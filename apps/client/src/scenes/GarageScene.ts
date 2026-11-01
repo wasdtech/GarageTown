@@ -13,6 +13,8 @@ const QUEUE_START = -2;
 // Car layers are AI-generated PNGs at 2x (see docs/art/style-guide.md); the footprint centre sits ~74% down.
 const CAR_FOOT_Y = 0.74;
 const CAR_TEXTURE_SCALE = 0.5;
+// Phaser skips input on objects that won't render (alpha 0), so in-flight cars stay barely visible.
+const IN_FLIGHT_ALPHA = 0.01;
 const ORIGIN: Point = { x: 0, y: 0 };
 const GRASS = '#86c96b';
 const CROSS_STREET_COL = 9; // the side street along the lot's right edge
@@ -64,7 +66,7 @@ export class GarageScene extends Phaser.Scene {
   private dynamicTweens: Phaser.Tweens.Tween[] = [];
   /** Cars drawn by the last rebuild, by customer id. */
   private carSprites = new Map<string, Phaser.GameObjects.Container>();
-  /** Customers currently shown as a travelling car; their resting sprite stays hidden until arrival. */
+  /** Customers shown as a travelling car; their resting sprite stays transparent (but tappable) until arrival. */
   private inFlight = new Set<string>();
   private updaters: ((now: number) => void)[] = [];
   onReady?: () => void;
@@ -390,7 +392,7 @@ export class GarageScene extends Phaser.Scene {
     });
     // children of a Container ignore depth unless sorted explicitly
     this.dynamic.sort('depth');
-    for (const id of this.inFlight) this.carSprites.get(id)?.setVisible(false);
+    for (const id of this.inFlight) this.carSprites.get(id)?.setAlpha(IN_FLIGHT_ALPHA);
     this.playTransitions(diffTransitions(this.prevState, s), s);
     this.prevState = s;
   }
@@ -455,13 +457,13 @@ export class GarageScene extends Phaser.Scene {
     const car = this.car(id, carKey, from, scale).setDepth(20);
     if (landsOnSprite) {
       this.inFlight.add(id);
-      this.carSprites.get(id)?.setVisible(false);
+      this.carSprites.get(id)?.setAlpha(IN_FLIGHT_ALPHA);
     }
     const finish = () => {
       car.destroy();
       if (!landsOnSprite) return;
       this.inFlight.delete(id);
-      this.carSprites.get(id)?.setVisible(true);
+      this.carSprites.get(id)?.setAlpha(1);
     };
     let at = from;
     const tweens = legs.map((leg) => {
