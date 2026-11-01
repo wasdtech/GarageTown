@@ -9,6 +9,7 @@ import { createHud } from './ui/hud';
 import { h } from './ui/dom';
 import { S } from './ui/strings';
 import { createToaster } from './ui/toast';
+import { createTutorial } from './ui/tutorial';
 import './ui/theme.css';
 
 const content = loadContent();
@@ -26,6 +27,7 @@ if (loaded.recovered === 'corrupt' || loaded.recovered === 'unknown_version') to
 
 const scene = new GarageScene();
 scene.onReady = () => {
+  let tutorial: { emit: (e: 'select' | 'start' | 'collect' | 'garage') => void } | null = null;
   const { render, garage } = createController({
     content,
     store,
@@ -33,6 +35,7 @@ scene.onReady = () => {
     ui,
     clock,
     toast,
+    onEvent: (e) => tutorial?.emit(e),
     openMinigame: (carKey) =>
       new Promise((resolve) => {
         const sprite = content.cars.find((c) => c.key === carKey)?.sprite ?? content.cars[0]!.sprite;
@@ -40,6 +43,7 @@ scene.onReady = () => {
       }),
   });
   render();
+  tutorial = createTutorial(ui, scene, store, clock);
   setInterval(() => store.tick(), 1000);
   ui.append(
     h(

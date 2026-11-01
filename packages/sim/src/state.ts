@@ -100,6 +100,8 @@ export interface GameState {
 
 export const QUEUE_MAX = 6;
 export const ARRIVAL_MS = 20_000;
+/** A new garage gets its first customer almost immediately (onboarding). */
+export const FIRST_CUSTOMER_MS = 2_000;
 export const PATIENCE_MS = 120_000;
 export const VIP_PATIENCE_MS = 240_000;
 export const VIP_MIN_REPUTATION = 10;
@@ -132,7 +134,7 @@ export function createInitialState(c: Content, now: number, seed: number): GameS
         job: null,
       })),
     queue: [],
-    nextCustomerAt: now + ARRIVAL_MS,
+    nextCustomerAt: now + FIRST_CUSTOMER_MS,
     lastTickAt: now,
     minigameUses: [],
     rngState: seed >>> 0,

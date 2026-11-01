@@ -26,6 +26,8 @@ export interface ControllerDeps {
   toast: (text: string, kind?: 'info' | 'good' | 'bad' | 'big') => void;
   /** Opens the hand-wash minigame; resolves with the gesture time, or null if cancelled. */
   openMinigame?: (carKey: string) => Promise<number | null>;
+  /** Notified of player milestones (used by the tutorial). */
+  onEvent?: (e: 'select' | 'start' | 'collect' | 'garage') => void;
 }
 
 /** Translates scene taps and menu picks into store actions and feedback. */
@@ -54,16 +56,21 @@ export function createController(d: ControllerDeps) {
     const gestureMs = await d.openMinigame(carKey);
     if (gestureMs === null) return;
     const r = d.store.minigame(bayId, gestureMs);
+    if (r.ok) d.onEvent?.('collect');
     if (r.ok) celebrate(r.value);
     else d.toast(errorText(r.error), 'bad');
   };
 
   d.scene.events.on('customer:tap', (id: string) => {
     selected = selected === id ? null : id;
+    if (selected) d.onEvent?.('select');
     render();
   });
 
-  const garage = () => openGarage(d.ui, d.content, d.store, d.toast);
+  const garage = () => {
+    d.onEvent?.('garage');
+    openGarage(d.ui, d.content, d.store, d.toast);
+  };
   d.scene.events.on('showcase:tap', garage);
 
   d.scene.events.on('slot:tap', (slot: number) => {
@@ -102,6 +109,7 @@ export function createController(d: ControllerDeps) {
       if (jobProgress(bay.job, now).done) {
         const r = d.store.collect(bayId);
         if (r.ok) collectedAt.set(bayId, performance.now());
+        if (r.ok) d.onEvent?.('collect');
         if (r.ok) celebrate(r.value);
         else d.toast(errorText(r.error), 'bad');
         return;
@@ -132,6 +140,7 @@ export function createController(d: ControllerDeps) {
     openJobMenu(d.ui, d.content, s.xp, bay, customer, (job) => {
       const r = d.store.start({ customerId: customer.id, bayId, jobKey: job.key });
       if (!r.ok) d.toast(errorText(r.error), 'bad');
+      else d.onEvent?.('start');
       selected = null;
       render();
     });

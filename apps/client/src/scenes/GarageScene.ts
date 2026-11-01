@@ -3,6 +3,7 @@ import { bayId, buildProgress, type GameState, jobProgress, TIMELY_WINDOW_MS } f
 import Phaser from 'phaser';
 import { depthOf, isoToScreen, type Point } from '../iso/iso';
 import { collectLabel, fmt } from '../ui/format';
+import { S } from '../ui/strings';
 import { structureKey } from './structureKey';
 import { diffTransitions, type Transition } from './transitions';
 
@@ -227,6 +228,31 @@ export class GarageScene extends Phaser.Scene {
 
   isDragging: () => boolean = () => false;
 
+  private pointer: Phaser.GameObjects.Text | null = null;
+  private pointerTarget: string | null = null;
+
+  /** Bouncing arrow over an anchor (tutorial); null hides it. Re-resolved on every render. */
+  pointAt(anchorId: string | null) {
+    this.pointerTarget = anchorId;
+    this.placePointer();
+  }
+
+  private placePointer() {
+    const a = this.pointerTarget ? this.anchors.get(this.pointerTarget) : undefined;
+    if (!a) {
+      this.pointer?.setVisible(false);
+      return;
+    }
+    if (!this.pointer) {
+      this.pointer = this.add
+        .text(0, 0, '▼', { fontSize: '34px', color: '#ffd166', stroke: '#1d1d2b', strokeThickness: 6 })
+        .setOrigin(0.5, 1)
+        .setDepth(6000);
+      this.tweens.add({ targets: this.pointer, scale: 1.2, yoyo: true, repeat: -1, duration: 420 });
+    }
+    this.pointer.setPosition(a.x, a.y - 58).setVisible(true);
+  }
+
   /** Page coordinates of an anchor (used by end-to-end tests). */
   screenOf(id: string): Point | null {
     const a = this.anchors.get(id);
@@ -446,6 +472,7 @@ export class GarageScene extends Phaser.Scene {
     for (const id of this.inFlight) this.carSprites.get(id)?.setAlpha(IN_FLIGHT_ALPHA);
     this.playTransitions(diffTransitions(this.prevState, s), s);
     this.prevState = s;
+    this.placePointer();
   }
 
   /** The player's own car on a spotlit pad, wearing its paint, finish, neon and sticker. */
@@ -468,6 +495,9 @@ export class GarageScene extends Phaser.Scene {
     pad.on('pointerup', () => !this.isDragging() && this.events.emit('showcase:tap'));
     this.dynamic.add(pad);
     this.anchors.set('showcase', { x: centre.x, y: centre.y - 10 });
+    // a sign so the player's own car never reads as a customer
+    const sign = this.label(centre.x, centre.y - 58, S.showcaseSign, '#ffd166').setDepth(2500);
+    this.dynamic.add(sign);
     if (car.look.neon) {
       const glow = this.add
         .ellipse(centre.x, centre.y + 2, 120, 52, 0x4cc9f0, 0.55)
