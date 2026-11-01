@@ -95,6 +95,48 @@
       "sha12": "d2cd907abf2d",
       "label": "build slot pad",
       "file": "art/generated/build-slot.png"
+    },
+    {
+      "asset_id": "4d52a100-d061-4150-9127-e33b5ad1505f",
+      "sha12": "c2576a545008",
+      "label": "icon touchup",
+      "file": "art/generated/icon-touchup.png"
+    },
+    {
+      "asset_id": "9a8957c0-2033-431e-9716-f3a7c1172a17",
+      "sha12": "3ec8b05fae39",
+      "label": "icon stickers",
+      "file": "art/generated/icon-stickers.png"
+    },
+    {
+      "asset_id": "3d5eb2cc-2aa6-4487-b018-dcc00c462759",
+      "sha12": "814fee753950",
+      "label": "icon fullpaint",
+      "file": "art/generated/icon-fullpaint.png"
+    },
+    {
+      "asset_id": "d4b55bf2-179a-46a8-a1a0-77a2f35c043a",
+      "sha12": "1c16bec3d15e",
+      "label": "icon alignment",
+      "file": "art/generated/icon-alignment.png"
+    },
+    {
+      "asset_id": "414ce5f5-bcb8-4fa6-84f8-c8eb56cb1e32",
+      "sha12": "39206d89d5f2",
+      "label": "icon suspension",
+      "file": "art/generated/icon-suspension.png"
+    },
+    {
+      "asset_id": "616de044-a6a2-4b01-b92b-ca62546a31f4",
+      "sha12": "da04d7e3dc66",
+      "label": "icon turbo",
+      "file": "art/generated/icon-turbo.png"
+    },
+    {
+      "asset_id": "a1545ab3-4017-4d5e-b0e8-c073b825e845",
+      "sha12": "482e570c17c0",
+      "label": "bay paint pad",
+      "file": "art/generated/bay-paint.png"
     }
   ],
   "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",

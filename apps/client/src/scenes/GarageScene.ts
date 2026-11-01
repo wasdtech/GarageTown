@@ -19,11 +19,11 @@ const VIP_GOLD = 0xe9b949;
 const ORIGIN: Point = { x: 0, y: 0 };
 const GRASS = '#86c96b';
 const CROSS_STREET_COL = 9; // the side street along the lot's right edge
-/** Paint and performance pads reuse the base pads with a tint until their own art is generated. */
+/** The performance pad reuses the mechanic pad with a tint until its own art is generated. */
 const PAD_ART: Record<string, { key: string; tint?: number }> = {
   wash: { key: 'bay_wash' },
   mechanic: { key: 'bay_mechanic' },
-  paint: { key: 'bay_wash', tint: 0xe0b3ff },
+  paint: { key: 'bay_paint' },
   performance: { key: 'bay_mechanic', tint: 0xff9aa8 },
 };
 const WALL_H = 22;
@@ -93,7 +93,7 @@ export class GarageScene extends Phaser.Scene {
     for (const t of ['floor', 'street', 'sidewalk', 'grass']) this.load.svg(t, `tiles/${t}.svg`);
     this.load.svg('billboard', 'objects/billboard.svg');
     // AI-generated art ships as 2x PNGs (drawn at scale 0.5); see art/spritecook-assets.json
-    for (const o of ['tree', 'shop', 'build_slot', 'bay_wash', 'bay_mechanic'])
+    for (const o of ['tree', 'shop', 'build_slot', 'bay_wash', 'bay_mechanic', 'bay_paint'])
       this.load.image(o, `objects/${o}.png`);
     for (const j of this.content.jobs) this.load.image(`icon_${j.icon}`, `icons/${j.icon}.png`);
     for (const car of this.content.cars) {
