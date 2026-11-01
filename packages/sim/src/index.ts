@@ -4,3 +4,4 @@ export * from './state';
 export * from './customers';
 export * from './result';
 export * from './jobs';
+export * from './minigame';
