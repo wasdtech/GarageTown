@@ -59,3 +59,16 @@ describe('save', () => {
     expect(r.state.queue.some((q) => q.id.startsWith('old'))).toBe(false);
   });
 });
+
+describe('save written with a wrong (future) clock', () => {
+  it('keeps playing normally once the clock is corrected', () => {
+    const future = T0 + 365 * 86_400_000;
+    const s = tick(c, createInitialState(c, future - 60_000, 2), future);
+    const r = deserialize(c, serialize(s), T0, 1);
+    expect(r.recovered).toBe('ok');
+    const after = tick(c, r.state, T0 + 60_000);
+    expect(after.lastTickAt).toBe(T0 + 60_000);
+    expect(after.queue.length).toBeGreaterThanOrEqual(2);
+    for (const q of after.queue) expect(q.patienceUntil).toBeGreaterThan(T0 + 60_000);
+  });
+});

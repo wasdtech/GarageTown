@@ -6,8 +6,8 @@ test('a running job survives a reload', async ({ page }) => {
   await startJob(page, 'bay2', 'oil');
   await page.reload();
   const errors = await open(page);
-  // the fake-clock offset (+20s used to spawn the customer) is lost on reload
-  await advance(page, 145_000);
+  // the fake-clock offset is lost on reload: the sim rebases timers, so 120s is still enough
+  await advance(page, 120_000);
   await tapAnchor(page, 'bay2');
   await expect(page.getByTestId('xp')).toHaveText('6 XP');
   expect(errors).toEqual([]);

@@ -60,9 +60,15 @@ describe('tick', () => {
     expect(s2.queue).toHaveLength(0);
   });
 
-  it('ignores a clock that moved backwards', () => {
+  it('rebases timers when the clock moves backwards instead of freezing', () => {
     const s1 = tick(c, createInitialState(c, T0, 5), T0 + 60_000);
     const s2 = tick(c, s1, T0 + 30_000);
-    expect(s2).toEqual(s1);
+    expect(s2.queue.map((q) => q.id)).toEqual(s1.queue.map((q) => q.id));
+    expect(s2.queue.map((q) => q.arrivedAt)).toEqual(s1.queue.map((q) => q.arrivedAt - 30_000));
+    expect(s2.lastTickAt).toBe(T0 + 30_000);
+    expect(s2.nextCustomerAt).toBe(s1.nextCustomerAt - 30_000);
+    // time keeps flowing normally afterwards
+    const s3 = tick(c, s2, s2.nextCustomerAt);
+    expect(s3.queue).toHaveLength(s1.queue.length + 1);
   });
 });

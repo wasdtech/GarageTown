@@ -2,7 +2,7 @@ import type { Content } from '@gt/shared';
 import { type GameState, jobProgress, TIMELY_WINDOW_MS } from '@gt/sim';
 import Phaser from 'phaser';
 import { depthOf, isoToScreen, type Point } from '../iso/iso';
-import { fmt } from '../ui/format';
+import { collectLabel, fmt } from '../ui/format';
 import { structureKey } from './structureKey';
 
 export const LOT_SIZE = 8;
@@ -184,7 +184,8 @@ export class GarageScene extends Phaser.Scene {
       if (prog.done) {
         const doneAt = bay.job.startedAt + bay.job.durationS * 1000;
         const timely = now <= doneAt + TIMELY_WINDOW_MS;
-        const tag = this.label(centre.x, top, timely ? 'Coletar  +10%' : 'Coletar', '#ffd166');
+        const coins = this.content.jobs.find((j) => j.key === bay.job!.jobKey)?.coins ?? 0;
+        const tag = this.label(centre.x, top, collectLabel(coins, timely), '#ffd166');
         tag.setDepth(2000).setInteractive({ useHandCursor: true });
         tag.on('pointerup', () => this.events.emit('bay:tap', bay.id));
         this.tweens.add({ targets: tag, scale: 1.08, yoyo: true, repeat: -1, duration: 450 });

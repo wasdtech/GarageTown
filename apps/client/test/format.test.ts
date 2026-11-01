@@ -16,3 +16,17 @@ describe('scene helpers', () => {
     expect(typeof paintFor('c2')).toBe('number');
   });
 });
+
+describe('collectLabel', () => {
+  it('shows the real timely bonus in coins', async () => {
+    const { collectLabel } = await import('../src/ui/format');
+    expect(collectLabel(15, true)).toBe('Coletar  +1 🪙');
+    expect(collectLabel(300, true)).toBe('Coletar  +30 🪙');
+  });
+
+  it('hides the bonus when it rounds to zero or the window passed', async () => {
+    const { collectLabel } = await import('../src/ui/format');
+    expect(collectLabel(5, true)).toBe('Coletar');
+    expect(collectLabel(300, false)).toBe('Coletar');
+  });
+});

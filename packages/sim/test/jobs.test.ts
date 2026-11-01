@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { tick } from '../src/customers';
 import { collectJob, jobProgress, startJob } from '../src/jobs';
 import { content as c, T0, withCustomer } from './helpers';
 
@@ -113,5 +114,14 @@ describe('collectJob', () => {
     if (!s.ok) throw new Error(s.error);
     const r = collectJob(big, s.value, 'bay1', T0 + 30_000);
     expect(r.ok && r.value.reward).toMatchObject({ levelBefore: 1, levelAfter: 5 });
+  });
+});
+
+describe('clock moving backwards', () => {
+  it('keeps a finished job finished and collectable', () => {
+    const s = started('wash', 'wash', 'bay1');
+    const later = tick(c, s, T0 + 200_000);
+    const r = collectJob(c, later, 'bay1', T0 + 200_000 - 3_600_000);
+    expect(r.ok).toBe(true);
   });
 });

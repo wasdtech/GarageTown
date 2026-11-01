@@ -2,9 +2,28 @@ import type { Content } from '@gt/shared';
 import { levelForXp, unlockedJobs } from './levels';
 import { ARRIVAL_MS, type Customer, type GameState, nextRandom, PATIENCE_MS, QUEUE_MAX } from './state';
 
+/**
+ * Shifts every timestamp back by `gapMs`. Used when the device clock jumps backwards so timers keep
+ * their remaining durations: finished jobs stay finished and the game never freezes.
+ */
+export function rebase(s: GameState, gapMs: number): GameState {
+  return {
+    ...s,
+    lastTickAt: s.lastTickAt - gapMs,
+    nextCustomerAt: s.nextCustomerAt - gapMs,
+    minigameUses: s.minigameUses.map((t) => t - gapMs),
+    queue: s.queue.map((q) => ({
+      ...q,
+      arrivedAt: q.arrivedAt - gapMs,
+      patienceUntil: q.patienceUntil - gapMs,
+    })),
+    bays: s.bays.map((b) => (b.job ? { ...b, job: { ...b.job, startedAt: b.job.startedAt - gapMs } } : b)),
+  };
+}
+
 /** Advances time: drops impatient customers and spawns pending arrivals (O(QUEUE_MAX), never O(elapsed)). */
-export function tick(c: Content, s: GameState, now: number): GameState {
-  if (now < s.lastTickAt) return s;
+export function tick(c: Content, state: GameState, now: number): GameState {
+  const s = now < state.lastTickAt ? rebase(state, state.lastTickAt - now) : state;
   const queue = s.queue.filter((q) => q.patienceUntil >= now);
   let { rngState, nextId, nextCustomerAt } = s;
 
