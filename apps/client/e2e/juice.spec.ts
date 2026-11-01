@@ -8,6 +8,10 @@ test('collecting flies coins to the counter and floats the XP', async ({ page })
   await tapAnchor(page, 'bay1', { waitFrames: false });
   await expect(page.locator('.gt-coin-fly').first()).toBeAttached();
   await expect(page.locator('.gt-float-text')).toHaveText('+3 XP');
+  // effects and toasts must never swallow taps meant for the scene
+  for (const sel of ['.gt-coin-fly', '.gt-float-text', '.gt-toasts']) {
+    await expect(page.locator(sel).first()).toHaveCSS('pointer-events', 'none');
+  }
   await expect(page.locator('.gt-coin-fly')).toHaveCount(0, { timeout: 5_000 });
   expect(errors).toEqual([]);
 });

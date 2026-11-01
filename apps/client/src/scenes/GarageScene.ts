@@ -17,8 +17,8 @@ const CAR_TEXTURE_SCALE = 0.5;
 // Phaser skips input on objects that won't render (alpha 0), so in-flight cars stay barely visible.
 const IN_FLIGHT_ALPHA = 0.01;
 const VIP_GOLD = 0xe9b949;
-/** Showcase spot for the player's own car (2x2 tiles on the left side, away from the queue). */
-const SHOWCASE = { x: 0, y: 2 };
+/** Showcase spot for the player's own car (back corner: clear of the queue and of every bay's tap area). */
+const SHOWCASE = { x: 0, y: 0 };
 const STICKER_GLYPH: Record<string, string> = { number: '7', bolt: '⚡', star: '★' };
 const ORIGIN: Point = { x: 0, y: 0 };
 const GRASS = '#86c96b';
@@ -545,7 +545,7 @@ export class GarageScene extends Phaser.Scene {
         .setOrigin(0.5);
       sprite.add(t);
     }
-    sprite.setSize(128, 80).setInteractive({ useHandCursor: true });
+    sprite.setSize(96, 56).setInteractive({ useHandCursor: true });
     sprite.on('pointerup', () => !this.isDragging() && this.events.emit('showcase:tap'));
     this.dynamic.add(sprite);
   }

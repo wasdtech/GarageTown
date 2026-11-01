@@ -492,3 +492,10 @@ body {
   pointer-events: none;
   z-index: 60;
 }
+/* overlays that must never swallow taps (beats the `#ui > *` rule above) */
+#ui > .gt-toasts,
+#ui > .gt-coin-fly,
+#ui > .gt-float-text,
+#ui > .gt-confetti {
+  pointer-events: none;
+}
