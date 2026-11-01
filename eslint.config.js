@@ -25,4 +25,5 @@ export default tseslint.config(
       ],
     },
   },
+  { files: ['**/*.mjs', '**/*.cjs'], rules: { 'no-undef': 'off' } },
 );

@@ -1,0 +1,35 @@
+:root {
+  --gt-ink: #1d1d2b;
+  --gt-bg: #2b2d42;
+  --gt-panel: #fffaf0;
+  --gt-accent: #ffd166;
+  --gt-good: #06d6a0;
+  --gt-bad: #e63946;
+  --gt-blue: #3a86ff;
+  --gt-radius: 14px;
+  --gt-shadow: 0 4px 0 var(--gt-ink);
+  --gt-font: 'Baloo 2', system-ui, sans-serif;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--gt-bg);
+  font-family: var(--gt-font);
+  color: var(--gt-ink);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+#game {
+  position: fixed;
+  inset: 0;
+}
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+#ui > * {
+  pointer-events: auto;
+}
