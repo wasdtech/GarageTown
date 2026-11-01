@@ -9,7 +9,9 @@ export const LOT_SIZE = 8;
 export const STREET_ROW = 8;
 const QUEUE_STEP = 2;
 const QUEUE_START = -2;
-const CAR_FOOT_Y = 54 / 80; // footprint centre in the 128x80 car canvas
+// Car layers are AI-generated PNGs at 2x (see docs/art/style-guide.md); the footprint centre sits ~74% down.
+const CAR_FOOT_Y = 0.74;
+const CAR_TEXTURE_SCALE = 0.5;
 const ORIGIN: Point = { x: 0, y: 0 };
 const GRASS = '#86c96b';
 const CROSS_STREET_COL = 9; // the side street along the lot's right edge
@@ -78,7 +80,7 @@ export class GarageScene extends Phaser.Scene {
     this.load.svg('bay_mechanic', 'objects/bay_mechanic.svg');
     for (const car of this.content.cars) {
       for (const layer of ['shadow', 'body', 'details']) {
-        this.load.svg(`${car.sprite}_${layer}`, `cars/${car.sprite}/${layer}.svg`);
+        this.load.image(`${car.sprite}_${layer}`, `cars/${car.sprite}/${layer}.png`);
       }
     }
   }
@@ -223,7 +225,10 @@ export class GarageScene extends Phaser.Scene {
     const def = this.content.cars.find((c) => c.key === carKey) ?? this.content.cars[0]!;
     const c = this.add.container(at.x, at.y);
     for (const layer of ['shadow', 'body', 'details']) {
-      const img = this.add.image(0, 0, `${def.sprite}_${layer}`).setOrigin(0.5, CAR_FOOT_Y).setScale(scale);
+      const img = this.add
+        .image(0, 0, `${def.sprite}_${layer}`)
+        .setOrigin(0.5, CAR_FOOT_Y)
+        .setScale(scale * CAR_TEXTURE_SCALE);
       if (layer === 'body') img.setTint(paintFor(id));
       c.add(img);
     }

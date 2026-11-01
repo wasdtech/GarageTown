@@ -1,1 +1,30 @@
-{ "assets": [] }
+{
+  "assets": [
+    {
+      "asset_id": "b35e52cc-0405-4674-afe2-84c5ca13389e",
+      "sha12": "43ccfe0164ee",
+      "label": "estilo carros (referência)",
+      "file": "art/reference/style-cars.png"
+    },
+    {
+      "asset_id": "05327603-fefe-485e-8eda-6675ff5b1999",
+      "sha12": "fa5b943a15aa",
+      "label": "pitoco",
+      "file": "art/generated/pitoco-test1.png"
+    },
+    {
+      "asset_id": "c2890593-06bf-4c60-a56a-ea723528b38f",
+      "sha12": "ed078274110c",
+      "label": "brutus_v8",
+      "file": "art/generated/brutus-test1.png"
+    },
+    {
+      "asset_id": "81910ebc-1f7d-4b30-8aa0-be4830e6cae3",
+      "sha12": "e290b8ab92b8",
+      "label": "corisco_rs",
+      "file": "art/generated/corisco-test1.png"
+    }
+  ],
+  "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",
+  "notes": "Cars generated with gpt-image-2 (low quality, 2 credits each), painted red, split into layers by tools/split_ai_car.py"
+}

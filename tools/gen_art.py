@@ -244,8 +244,7 @@ def world():
 
 
 if __name__ == '__main__':
-    for k, v in CARS.items():
-        car(k, **v)
+    # Cars are now AI-generated (tools/split_ai_car.py); car() is kept for regenerating placeholders.
     tiles()  # street (floor is replaced by world())
     bays()
     icons()

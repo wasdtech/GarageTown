@@ -66,7 +66,7 @@ export function openScrubMinigame(
   const car = h(
     'div',
     { class: 'gt-scrub-car' },
-    ...['shadow', 'body', 'details'].map((l) => h('img', { src: `cars/${carSprite}/${l}.svg`, alt: '' })),
+    ...['shadow', 'body', 'details'].map((l) => h('img', { src: `cars/${carSprite}/${l}.png`, alt: '' })),
     canvas,
   );
   let finished = false;

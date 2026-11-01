@@ -60,6 +60,12 @@ Para a camada `body`: acrescentar *"body painted in neutral greyscale only, no c
 ## Ícones de pedido (48×48)
 `wash` (gota), `oil` (galão de óleo), `polish` (brilho), `tires` (pneu), `engine` (motor). Estilo de ícone grosso, contorno escuro e uma cor dominante cada.
 
+## Como foi feito o primeiro lote (carros)
+- **Modelo:** `gpt-image-2`, qualidade `low` (2 créditos por imagem), HD (não pixel art), fundo transparente.
+- **Referências de estilo:** `style-cars.png` e, a partir do segundo carro, o próprio Pitoco gerado.
+- **Pintura:** o carro é gerado **pintado de vermelho sólido**. O script `tools/split_ai_car.py` separa os pixels vermelhos na camada `body` (convertida para cinza) e o resto em `details`/`shadow`, com saída em PNG 2× em `art/src/cars/<key>/`.
+- **No jogo:** as camadas são carregadas como PNG com escala 0,5.
+
 ## Processo
 1. Subir as referências como *style assets* e guardar os `asset_id` no manifesto.
 2. Gerar **um lote de teste:** 3 carros + `floor` + `street`.
