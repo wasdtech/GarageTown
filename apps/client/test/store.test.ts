@@ -55,3 +55,20 @@ describe('Store', () => {
     expect(persist).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('Store.build', () => {
+  it('starts a construction and persists it', () => {
+    const persist = vi.fn();
+    const s = {
+      ...createInitialState(c, T0, 1),
+      xp: 60,
+      coins: 200,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => T0, persist);
+    expect(store.build(3, 'paint')).toEqual({ ok: true, value: undefined });
+    expect(store.state.builds).toHaveLength(1);
+    expect(persist).toHaveBeenCalledTimes(1);
+    expect(store.build(3, 'paint')).toEqual({ ok: false, error: 'slot_taken' });
+  });
+});

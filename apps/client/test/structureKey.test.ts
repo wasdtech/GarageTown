@@ -41,3 +41,22 @@ describe('structureKey', () => {
     expect(structureKey(s, T0 + 20_000, { selectedCustomerId: s.queue[0]!.id })).not.toBe(a);
   });
 });
+
+describe('structureKey and constructions', () => {
+  it('changes when a construction starts and when it finishes', async () => {
+    const { startBuild } = await import('@gt/sim');
+    const s0 = {
+      ...createInitialState(c, T0, 1),
+      xp: 60,
+      coins: 500,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const r = startBuild(c, s0, { slot: 3, type: 'paint' }, T0);
+    if (!r.ok) throw new Error(r.error);
+    const before = structureKey(s0, T0, ui);
+    const building = structureKey(r.value, T0 + 1_000, ui);
+    const done = structureKey(tick(c, r.value, T0 + 120_000), T0 + 120_000, ui);
+    expect(new Set([before, building, done]).size).toBe(3);
+    expect(structureKey(r.value, T0 + 2_000, ui)).toBe(building);
+  });
+});

@@ -1,6 +1,6 @@
-import type { CollectError, MinigameError, StartError } from '@gt/sim';
+import type { BuildError, CollectError, MinigameError, StartError } from '@gt/sim';
 
-type ErrorKey = StartError | CollectError | MinigameError;
+type ErrorKey = StartError | CollectError | MinigameError | BuildError;
 
 export const S = {
   coins: 'Moedas',
@@ -22,7 +22,12 @@ export const S = {
   timely: (n: number) => `pontual +${n}`,
   levelUp: (lvl: number) => `Subiu para o nível ${lvl}! 🎉`,
   saveReset: 'Não deu para ler o seu save. Começamos um jogo novo (uma cópia do antigo foi guardada).',
-  comingSoonBay: 'Em breve: construir mais boxes',
+  buildTitle: 'Construir box',
+  buildPick: 'Escolha o tipo de box',
+  bayTypes: { wash: 'Lavagem', mechanic: 'Mecânica', paint: 'Pintura', performance: 'Performance' },
+  buildInfo: (cost: number, secs: string) => `${cost} 🪙 · obra de ${secs}`,
+  buildStarted: (secs: string) => `Obra iniciada! Fica pronta em ${secs} 🚧`,
+  buildInProgress: (secs: string) => `Obra em andamento: faltam ${secs}`,
   zoomIn: 'Aproximar',
   zoomOut: 'Afastar',
   endOfPrototype: 'Fim do protótipo — obrigado por testar!',
@@ -38,6 +43,10 @@ export const S = {
     not_eligible: 'Esse serviço não tem minijogo',
     gesture_too_short: 'Capricha mais um pouco…',
     rate_limited: 'Seus braços cansaram — tente mais tarde',
+    locked: 'Você ainda não tem nível para essa vaga',
+    no_coins: 'Moedas insuficientes',
+    slot_taken: 'Essa vaga já está ocupada',
+    unknown_slot: 'Vaga desconhecida',
   } satisfies Record<ErrorKey, string>,
 };
 

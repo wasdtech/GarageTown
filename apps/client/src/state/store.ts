@@ -1,5 +1,6 @@
-import type { Content, JobKey } from '@gt/shared';
+import type { BayType, Content, JobKey } from '@gt/shared';
 import {
+  type BuildError,
   collectJob,
   type CollectError,
   completeWithMinigame,
@@ -7,6 +8,7 @@ import {
   type MinigameError,
   type Result,
   type Reward,
+  startBuild,
   startJob,
   type StartError,
   tick,
@@ -66,6 +68,13 @@ export class Store {
     if (!r.ok) return r;
     this.commit(r.value.state, true);
     return { ok: true, value: r.value.reward };
+  }
+
+  build(slot: number, type: BayType): Result<void, BuildError> {
+    const r = startBuild(this.c, this.s, { slot, type }, this.clock());
+    if (!r.ok) return r;
+    this.commit(r.value, true);
+    return { ok: true, value: undefined };
   }
 
   minigame(bayId: string, gestureMs: number): Result<Reward, MinigameError> {

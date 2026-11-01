@@ -11,5 +11,6 @@ export function structureKey(s: GameState, now: number, ui: { selectedCustomerId
     const timely = now <= b.job.startedAt + b.job.durationS * 1000 + TIMELY_WINDOW_MS;
     return `${b.id}:${b.job.customerId}:${done ? (timely ? 'T' : 'D') : 'R'}`;
   });
-  return [bays.join(','), s.queue.map((q) => q.id).join(','), ui.selectedCustomerId ?? ''].join('|');
+  const builds = s.builds.map((b) => `${b.slot}:${b.type}`).join(',');
+  return [bays.join(','), builds, s.queue.map((q) => q.id).join(','), ui.selectedCustomerId ?? ''].join('|');
 }

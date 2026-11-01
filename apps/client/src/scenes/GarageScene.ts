@@ -1,5 +1,5 @@
 import type { Content } from '@gt/shared';
-import { type GameState, jobProgress, TIMELY_WINDOW_MS } from '@gt/sim';
+import { bayId, buildProgress, type GameState, jobProgress, TIMELY_WINDOW_MS } from '@gt/sim';
 import Phaser from 'phaser';
 import { depthOf, isoToScreen, type Point } from '../iso/iso';
 import { collectLabel, fmt } from '../ui/format';
@@ -18,7 +18,13 @@ const IN_FLIGHT_ALPHA = 0.01;
 const ORIGIN: Point = { x: 0, y: 0 };
 const GRASS = '#86c96b';
 const CROSS_STREET_COL = 9; // the side street along the lot's right edge
-const BUILD_SLOT = { x: 2, y: 0 }; // where the next bay will go (M1)
+/** Paint and performance pads reuse the base pads with a tint until their own art is generated. */
+const PAD_ART: Record<string, { key: string; tint?: number }> = {
+  wash: { key: 'bay_wash' },
+  mechanic: { key: 'bay_mechanic' },
+  paint: { key: 'bay_wash', tint: 0xe0b3ff },
+  performance: { key: 'bay_mechanic', tint: 0xff9aa8 },
+};
 const WALL_H = 22;
 const TREES: [number, number][] = [
   [-3, 11],
@@ -275,26 +281,57 @@ export class GarageScene extends Phaser.Scene {
     const jobName = (k: string) => this.content.jobs.find((j) => j.key === k)?.name ?? k;
     const jobIcon = (k: string) => this.content.jobs.find((j) => j.key === k)?.icon ?? 'wash';
 
-    const slotAt = isoToScreen(BUILD_SLOT.x, BUILD_SLOT.y, ORIGIN);
-    const slot = this.add
-      .image(slotAt.x, slotAt.y, 'build_slot')
-      .setOrigin(0.5, 0)
-      .setScale(0.5)
-      .setDepth(-500);
-    slot.setInteractive({ useHandCursor: true });
-    slot.on('pointerup', () => !this.isDragging() && this.events.emit('slot:tap'));
-    this.dynamic.add(slot);
-    const slotCentre = isoToScreen(BUILD_SLOT.x + 1, BUILD_SLOT.y + 1, ORIGIN);
-    this.anchors.set('build-slot', { x: slotCentre.x, y: slotCentre.y - 4 });
+    // garage slots that have no bay yet: a hazard pad to build on, or a construction sign
+    let firstFree = true;
+    for (const def of this.content.garage.bays) {
+      if (def.prebuilt || s.bays.some((b) => b.id === bayId(def.slot))) continue;
+      const [tx, ty] = def.tile;
+      const slotAt = isoToScreen(tx, ty, ORIGIN);
+      const slot = this.add
+        .image(slotAt.x, slotAt.y, 'build_slot')
+        .setOrigin(0.5, 0)
+        .setScale(0.5)
+        .setDepth(-500);
+      slot.setInteractive({ useHandCursor: true });
+      slot.on('pointerup', () => !this.isDragging() && this.events.emit('slot:tap', def.slot));
+      this.dynamic.add(slot);
+      const centre = isoToScreen(tx + 1, ty + 1, ORIGIN);
+      this.anchors.set(`slot-${def.slot}`, { x: centre.x, y: centre.y - 4 });
+      if (firstFree) this.anchors.set('build-slot', { x: centre.x, y: centre.y - 4 });
+      firstFree = false;
+      const build = s.builds.find((b) => b.slot === def.slot);
+      if (!build) continue;
+      const g = this.add.graphics().setDepth(2000);
+      const t = this.label(centre.x, centre.y - 22, '', '#ffd166').setDepth(2000);
+      const update = (at: number) => {
+        const p = buildProgress(build, at);
+        g.clear();
+        g.fillStyle(0x1d1d2b, 1).fillRoundedRect(centre.x - 42, centre.y - 16, 84, 12, 6);
+        g.fillStyle(0xffb703, 1).fillRoundedRect(
+          centre.x - 40,
+          centre.y - 14,
+          Math.max(1, 80 * p.fraction),
+          8,
+          4,
+        );
+        const text = `🚧 Obra · ${fmt(Math.ceil(p.remainingMs / 1000))}`;
+        if (t.text !== text) t.setText(text);
+      };
+      update(now);
+      this.updaters.push(update);
+      this.dynamic.add([g, t]);
+    }
 
     for (const bay of s.bays) {
       const pad = isoToScreen(bay.tile.x, bay.tile.y, ORIGIN);
       const padImg = this.add
-        .image(pad.x, pad.y, `bay_${bay.type}`)
+        .image(pad.x, pad.y, PAD_ART[bay.type]!.key)
         .setOrigin(0.5, 0)
         .setScale(0.5)
         .setDepth(-500)
         .setInteractive({ useHandCursor: true });
+      const tint = PAD_ART[bay.type]!.tint;
+      if (tint) padImg.setTint(tint);
       padImg.on('pointerup', () => !this.isDragging() && this.events.emit('bay:tap', bay.id));
       this.dynamic.add(padImg);
       const centre = isoToScreen(bay.tile.x + 1, bay.tile.y + 1, ORIGIN);

@@ -1,9 +1,18 @@
 import type { Content } from '@gt/shared';
-import { isMinigameEligible, jobProgress, maxLevel, minigameUsesLeft, type Reward } from '@gt/sim';
+import {
+  buildProgress,
+  isMinigameEligible,
+  jobProgress,
+  levelForXp,
+  maxLevel,
+  minigameUsesLeft,
+  type Reward,
+} from '@gt/sim';
+import { fmt } from './ui/format';
 import type { GarageScene } from './scenes/GarageScene';
 import type { Store } from './state/store';
 import { h } from './ui/dom';
-import { closeSheet, openBayStatus, openJobMenu } from './ui/jobMenu';
+import { closeSheet, openBayStatus, openBuildMenu, openJobMenu } from './ui/jobMenu';
 import { errorText, S } from './ui/strings';
 import { showBanner } from './ui/toast';
 
@@ -53,7 +62,31 @@ export function createController(d: ControllerDeps) {
     render();
   });
 
-  d.scene.events.on('slot:tap', () => d.toast(S.comingSoonBay));
+  d.scene.events.on('slot:tap', (slot: number) => {
+    const s = d.store.state;
+    const build = s.builds.find((b) => b.slot === slot);
+    if (build) {
+      d.toast(S.buildInProgress(fmt(Math.ceil(buildProgress(build, d.clock()).remainingMs / 1000))));
+      return;
+    }
+    const def = d.content.garage.bays.find((b) => b.slot === slot);
+    if (!def) return;
+    openBuildMenu(
+      d.ui,
+      {
+        level: levelForXp(d.content, s.xp),
+        coins: s.coins,
+        slotLevel: def.level ?? 1,
+        cost: def.cost ?? 0,
+        buildS: def.buildS ?? 0,
+      },
+      (type) => {
+        const r = d.store.build(slot, type);
+        if (r.ok) d.toast(S.buildStarted(fmt(def.buildS ?? 0)), 'good');
+        else d.toast(errorText(r.error), 'bad');
+      },
+    );
+  });
 
   d.scene.events.on('bay:tap', (bayId: string) => {
     if (performance.now() - (collectedAt.get(bayId) ?? -Infinity) < COLLECT_GUARD_MS) return;
