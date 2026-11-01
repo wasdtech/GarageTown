@@ -111,7 +111,7 @@ export function openBuildMenu(
       'button',
       { class: 'gt-job', 'data-bay-type': t, ...(disabled ? { disabled: '' } : {}) },
       h('strong', {}, S.bayTypes[t]),
-      h('span', {}, locked ? S.lockedAt(opts.slotLevel) : S.buildInfo(opts.cost, fmt(opts.buildS))),
+      h('span', {}, S.buildInfo(opts.cost, fmt(opts.buildS))),
     );
     btn.addEventListener('click', () => {
       if (btn.hasAttribute('disabled')) return;
@@ -120,5 +120,10 @@ export function openBuildMenu(
     });
     return btn;
   });
-  sheet(root, S.buildTitle, h('p', { class: 'gt-muted' }, S.buildPick), ...items);
+  const note = locked
+    ? S.slotUnlocksAt(opts.slotLevel)
+    : opts.coins < opts.cost
+      ? S.errors.no_coins
+      : S.buildPick;
+  sheet(root, S.buildTitle, h('p', { class: 'gt-muted', 'data-testid': 'build-note' }, note), ...items);
 }

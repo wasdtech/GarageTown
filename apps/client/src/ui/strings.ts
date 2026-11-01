@@ -56,6 +56,7 @@ export const S = {
   },
   buildTitle: 'Construir box',
   buildPick: 'Escolha o tipo de box',
+  slotUnlocksAt: (lvl: number) => `🔒 Esta vaga libera no nível ${lvl}`,
   bayTypes: { wash: 'Lavagem', mechanic: 'Mecânica', paint: 'Pintura', performance: 'Performance' },
   buildInfo: (cost: number, secs: string) => `${cost} 🪙 · obra de ${secs}`,
   buildStarted: (secs: string) => `Obra iniciada! Fica pronta em ${secs} 🚧`,

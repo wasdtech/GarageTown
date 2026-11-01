@@ -359,8 +359,8 @@ body {
 }
 .gt-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
 }
 .gt-tab {
   font: inherit;

@@ -180,12 +180,13 @@ export class GarageScene extends Phaser.Scene {
   /** Fits the lot plus the street queue (tiles x -2..8, y 0..9) to the screen. */
   fitCamera() {
     const cam = this.cameras.main;
-    const left = isoToScreen(-2, STREET_ROW + 1, ORIGIN).x - 32;
+    // include the first queue spot (QUEUE_START) with a car-width margin
+    const left = isoToScreen(QUEUE_START - 1.5, STREET_ROW + 1, ORIGIN).x - 32;
     const right = isoToScreen(LOT_SIZE, 0, ORIGIN).x + 32;
     const bottom = isoToScreen(LOT_SIZE, STREET_ROW + 1, ORIGIN).y;
     cam.centerOn((left + right) / 2, bottom / 2 + 10);
     const fit = Math.min(this.scale.width / (right - left), (this.scale.height - 120) / (bottom + 80));
-    cam.setZoom(Phaser.Math.Clamp(fit, 0.5, 1.3));
+    cam.setZoom(Phaser.Math.Clamp(fit, 0.45, 1.3));
   }
 
   zoomBy(factor: number) {
@@ -559,20 +560,36 @@ export class GarageScene extends Phaser.Scene {
     for (const t of list) {
       if (t.kind === 'arrive') {
         const to = this.queueSpot(t.slot);
-        this.trip(t.customerId, t.carKey, 0.75, street(-12), [{ to, mirror: false }]);
+        this.trip(t.customerId, t.carKey, 0.75, street(-12), [{ to, mirror: false }], true, t.vip);
       } else if (t.kind === 'giveUp') {
         const from = this.queueSpot(t.slot);
         this.puff(from);
-        this.trip(t.customerId, t.carKey, 0.75, from, [{ to: street(LOT_SIZE + 14), mirror: false }], false);
+        this.trip(
+          t.customerId,
+          t.carKey,
+          0.75,
+          from,
+          [{ to: street(LOT_SIZE + 14), mirror: false }],
+          false,
+          t.vip,
+        );
       } else if (t.kind === 'toBay') {
         const bay = bayCentre(t.bayId);
         if (!bay) continue;
         const from = this.queueSpot(t.fromSlot);
         // drive along the street to the bay's column, then reverse up into the bay
-        this.trip(t.customerId, t.carKey, 1, from, [
-          { to: street(bay.tile.x + 1), mirror: false },
-          { to: bay.at, mirror: false },
-        ]);
+        this.trip(
+          t.customerId,
+          t.carKey,
+          1,
+          from,
+          [
+            { to: street(bay.tile.x + 1), mirror: false },
+            { to: bay.at, mirror: false },
+          ],
+          true,
+          t.vip,
+        );
       } else {
         const bay = bayCentre(t.bayId);
         if (!bay) continue;
@@ -587,6 +604,7 @@ export class GarageScene extends Phaser.Scene {
             { to: street(LOT_SIZE + 14), mirror: false },
           ],
           false,
+          t.vip,
         );
       }
     }
@@ -599,8 +617,9 @@ export class GarageScene extends Phaser.Scene {
     from: Point,
     legs: { to: Point; mirror: boolean }[],
     landsOnSprite = true,
+    vip = false,
   ) {
-    const car = this.car(id, carKey, from, scale).setDepth(20);
+    const car = this.car(id, carKey, from, scale, vip).setDepth(20);
     if (landsOnSprite) {
       this.inFlight.add(id);
       this.carSprites.get(id)?.setAlpha(IN_FLIGHT_ALPHA);
