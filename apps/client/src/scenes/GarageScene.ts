@@ -17,8 +17,8 @@ const CAR_TEXTURE_SCALE = 0.5;
 // Phaser skips input on objects that won't render (alpha 0), so in-flight cars stay barely visible.
 const IN_FLIGHT_ALPHA = 0.01;
 const VIP_GOLD = 0xe9b949;
-/** Showcase spot for the player's own car (2x2 tiles near the street). */
-const SHOWCASE = { x: 5, y: 6 };
+/** Showcase spot for the player's own car (2x2 tiles on the left side, away from the queue). */
+const SHOWCASE = { x: 0, y: 2 };
 const STICKER_GLYPH: Record<string, string> = { number: '7', bolt: '⚡', star: '★' };
 const ORIGIN: Point = { x: 0, y: 0 };
 const GRASS = '#86c96b';
@@ -79,6 +79,8 @@ export class GarageScene extends Phaser.Scene {
   private carSprites = new Map<string, Phaser.GameObjects.Container>();
   /** Customers shown as a travelling car; their resting sprite stays transparent (but tappable) until arrival. */
   private inFlight = new Set<string>();
+  /** Bays whose job was already finished at the last rebuild (to celebrate newly finished ones once). */
+  private doneBays = new Set<string>();
   private updaters: ((now: number) => void)[] = [];
   onReady?: () => void;
   /** World positions of tappable things from the last render (bay ids and customer ids). */
@@ -353,6 +355,7 @@ export class GarageScene extends Phaser.Scene {
       this.dynamic.add([g, t]);
     }
 
+    const nowDone = new Set<string>();
     for (const bay of s.bays) {
       const pad = isoToScreen(bay.tile.x, bay.tile.y, ORIGIN);
       const padImg = this.add
@@ -380,6 +383,8 @@ export class GarageScene extends Phaser.Scene {
       const prog = jobProgress(bay.job, now);
       const top = centre.y - 64;
       if (prog.done) {
+        if (!this.doneBays.has(bay.id) && this.prevState) this.hop(car, centre);
+        nowDone.add(bay.id);
         const doneAt = bay.job.startedAt + bay.job.durationS * 1000;
         const timely = now <= doneAt + TIMELY_WINDOW_MS;
         const coins = this.content.jobs.find((j) => j.key === bay.job!.jobKey)?.coins ?? 0;
@@ -467,6 +472,7 @@ export class GarageScene extends Phaser.Scene {
           this.tweens.add({ targets: car, y: at.y - 6, yoyo: true, repeat: -1, duration: 300 }),
         );
     });
+    this.doneBays = nowDone;
     this.drawShowcase(s);
     // children of a Container ignore depth unless sorted explicitly
     this.dynamic.sort('depth');
@@ -644,6 +650,39 @@ export class GarageScene extends Phaser.Scene {
       };
     });
     this.tweens.chain({ tweens, onComplete: finish });
+  }
+
+  /** A little bounce and sparkles when a car's job finishes. */
+  private hop(car: Phaser.GameObjects.Container, at: Point) {
+    if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    this.tweens.add({
+      targets: car,
+      y: car.y - 14,
+      yoyo: true,
+      repeat: 1,
+      duration: 140,
+      ease: 'Quad.easeOut',
+    });
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const star = this.add.text(at.x, at.y - 30, '✦', {
+        fontSize: '16px',
+        color: '#ffd166',
+        stroke: '#1d1d2b',
+        strokeThickness: 3,
+      });
+      star.setOrigin(0.5).setDepth(3000);
+      this.tweens.add({
+        targets: star,
+        x: at.x + Math.cos(a) * 46,
+        y: at.y - 30 + Math.sin(a) * 26,
+        alpha: 0,
+        scale: 1.4,
+        duration: 600,
+        ease: 'Quad.easeOut',
+        onComplete: () => star.destroy(),
+      });
+    }
   }
 
   private puff(at: Point) {

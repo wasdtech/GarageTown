@@ -32,6 +32,8 @@ export const S = {
   levelUp: (lvl: number) => `Subiu para o nível ${lvl}! 🎉`,
   saveReset: 'Não deu para ler o seu save. Começamos um jogo novo (uma cópia do antigo foi guardada).',
   tutorialSkip: 'Pular',
+  soundOn: 'Ligar som',
+  soundOff: 'Desligar som',
   showcaseSign: '⭐ Meu carro',
   garage: {
     title: 'Minha garagem',

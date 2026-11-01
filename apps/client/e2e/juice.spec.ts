@@ -1,0 +1,24 @@
+import { expect, test } from '@playwright/test';
+import { advance, open, startJob, tapAnchor } from './helpers';
+
+test('collecting flies coins to the counter and floats the XP', async ({ page }) => {
+  const errors = await open(page);
+  await startJob(page, 'bay1', 'wash');
+  await advance(page, 30_000);
+  await tapAnchor(page, 'bay1', { waitFrames: false });
+  await expect(page.locator('.gt-coin-fly').first()).toBeAttached();
+  await expect(page.locator('.gt-float-text')).toHaveText('+3 XP');
+  await expect(page.locator('.gt-coin-fly')).toHaveCount(0, { timeout: 5_000 });
+  expect(errors).toEqual([]);
+});
+
+test('the mute choice survives a reload', async ({ page }) => {
+  await open(page);
+  const mute = page.getByTestId('mute');
+  await expect(mute).toHaveAttribute('aria-pressed', 'false');
+  await mute.click();
+  await expect(mute).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await open(page);
+  await expect(page.getByTestId('mute')).toHaveAttribute('aria-pressed', 'true');
+});
