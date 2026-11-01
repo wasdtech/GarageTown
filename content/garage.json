@@ -1,0 +1,28 @@
+{
+  "bays": [
+    {
+      "slot": 1,
+      "tile": [2, 3],
+      "prebuilt": "wash"
+    },
+    {
+      "slot": 2,
+      "tile": [5, 3],
+      "prebuilt": "mechanic"
+    },
+    {
+      "slot": 3,
+      "tile": [2, 0],
+      "level": 3,
+      "cost": 150,
+      "buildS": 120
+    },
+    {
+      "slot": 4,
+      "tile": [5, 0],
+      "level": 6,
+      "cost": 400,
+      "buildS": 600
+    }
+  ]
+}

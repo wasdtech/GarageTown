@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import brand from '../../../content/brand.json';
 import cars from '../../../content/cars.json';
+import garage from '../../../content/garage.json';
 import jobs from '../../../content/jobs.json';
 import levels from '../../../content/levels.json';
 
-export const BayTypeSchema = z.enum(['wash', 'mechanic']);
+export const BayTypeSchema = z.enum(['wash', 'mechanic', 'paint', 'performance']);
 export type BayType = z.infer<typeof BayTypeSchema>;
 export type JobKey = string;
 
@@ -20,6 +21,18 @@ const JobDefSchema = z.object({
   icon: z.string().min(1),
 });
 const LevelDefSchema = z.object({ level: z.number().int().positive(), xp: z.number().int().nonnegative() });
+const BaySlotSchema = z
+  .object({
+    slot: z.number().int().positive(),
+    tile: z.tuple([z.number().int(), z.number().int()]),
+    prebuilt: BayTypeSchema.optional(),
+    level: z.number().int().positive().optional(),
+    cost: z.number().int().nonnegative().optional(),
+    buildS: z.number().int().positive().optional(),
+  })
+  .refine((b) => b.prebuilt || (b.level && b.cost !== undefined && b.buildS), {
+    message: 'a buildable slot needs level, cost and buildS',
+  });
 const CarDefSchema = z.object({ key: z.string().min(1), name: z.string().min(1), sprite: z.string().min(1) });
 
 export const ContentSchema = z
@@ -28,6 +41,7 @@ export const ContentSchema = z
     jobs: z.array(JobDefSchema).min(1),
     levels: z.array(LevelDefSchema).min(1),
     cars: z.array(CarDefSchema).min(1),
+    garage: z.object({ bays: z.array(BaySlotSchema).min(1) }),
   })
   .superRefine((c, ctx) => {
     c.levels.forEach((l, i) => {
@@ -60,6 +74,7 @@ export const ContentSchema = z
 export type JobDef = z.infer<typeof JobDefSchema>;
 export type LevelDef = z.infer<typeof LevelDefSchema>;
 export type CarDef = z.infer<typeof CarDefSchema>;
+export type BaySlot = z.infer<typeof BaySlotSchema>;
 export type Content = z.infer<typeof ContentSchema>;
 
 export function parseContent(raw: unknown): Content {
@@ -67,5 +82,5 @@ export function parseContent(raw: unknown): Content {
 }
 
 export function loadContent(): Content {
-  return parseContent({ brand, jobs, levels, cars });
+  return parseContent({ brand, jobs, levels, cars, garage });
 }

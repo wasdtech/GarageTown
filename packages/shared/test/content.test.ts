@@ -10,14 +10,14 @@ const raw = () =>
 describe('content', () => {
   it('loads the M0 content', () => {
     const c = loadContent();
-    expect(c.jobs).toHaveLength(5);
-    expect(c.levels).toHaveLength(5);
+    expect(c.jobs).toHaveLength(11);
+    expect(c.levels).toHaveLength(15);
     expect(c.cars).toHaveLength(3);
     expect(c.brand.name).toBe('Garage Town');
   });
 
   it('gives every job an icon sprite', () => {
-    expect(loadContent().jobs.map((j) => j.icon)).toEqual(['wash', 'oil', 'polish', 'tires', 'engine']);
+    expect(loadContent().jobs.every((j) => j.icon.length > 0)).toBe(true);
   });
 
   it('rejects a job without an icon', () => {
@@ -32,9 +32,23 @@ describe('content', () => {
     expect(() => parseContent(r)).toThrow();
   });
 
+  it('has paint and performance jobs from the growth block', () => {
+    const bays = new Set(loadContent().jobs.map((j) => j.bay));
+    expect([...bays].sort()).toEqual(['mechanic', 'paint', 'performance', 'wash']);
+  });
+
+  it('defines two prebuilt bays and two buildable slots', () => {
+    const g = loadContent().garage;
+    expect(g.bays.filter((b) => b.prebuilt)).toHaveLength(2);
+    expect(g.bays.filter((b) => !b.prebuilt).map((b) => [b.level, b.cost, b.buildS])).toEqual([
+      [3, 150, 120],
+      [6, 400, 600],
+    ]);
+  });
+
   it('rejects an unknown bay type', () => {
     const r = raw();
-    r.jobs[0]!.bay = 'paint';
+    r.jobs[0]!.bay = 'spaceship';
     expect(() => parseContent(r)).toThrow();
   });
 
@@ -46,7 +60,7 @@ describe('content', () => {
 
   it('rejects unlockLevel above the max level', () => {
     const r = raw();
-    r.jobs[0]!.unlockLevel = 6;
+    r.jobs[0]!.unlockLevel = 16;
     expect(() => parseContent(r)).toThrow();
   });
 

@@ -13,12 +13,21 @@ describe('levels', () => {
   });
 
   it('caps at the max level when xp jumps far ahead', () => {
-    expect(levelForXp(c, 99999)).toBe(5);
-    expect(maxLevel(c)).toBe(5);
+    expect(levelForXp(c, 99999)).toBe(15);
+    expect(maxLevel(c)).toBe(15);
+    expect(levelForXp(c, 6999)).toBe(14);
   });
 
   it('lists jobs unlocked at a level', () => {
     expect(unlockedJobs(c, 1).map((j) => j.key)).toEqual(['wash', 'oil']);
-    expect(unlockedJobs(c, 4)).toHaveLength(5);
+    expect(unlockedJobs(c, 4).map((j) => j.key)).toEqual([
+      'wash',
+      'oil',
+      'polish',
+      'tires',
+      'engine',
+      'touchup',
+    ]);
+    expect(unlockedJobs(c, 15)).toHaveLength(11);
   });
 });
