@@ -1,5 +1,6 @@
 import type { BayType, Content } from '@gt/shared';
 import { startBuild } from './build';
+import { buyCar, buyPart } from './cars';
 import { tick } from './customers';
 import { collectJob, jobProgress, startJob } from './jobs';
 import { levelForXp, unlockedJobs } from './levels';
@@ -47,6 +48,21 @@ function serve(c: Content, s: GameState, now: number, leaving: boolean): GameSta
   return s;
 }
 
+/** Spends coins like a collector: unlock the next car, then upgrade parts on every car. */
+function shop(c: Content, s: GameState, now: number): GameState {
+  for (const m of c.cars) {
+    const r = buyCar(c, s, m.key, now);
+    if (r.ok) s = r.value;
+  }
+  for (const car of s.collection.cars) {
+    for (const p of c.parts) {
+      const r = buyPart(c, s, { carId: car.id, part: p.key }, now);
+      if (r.ok) s = r.value;
+    }
+  }
+  return s;
+}
+
 /** Simulates `days` of play and returns the day (fractional) each level was reached. */
 export function simulate(
   c: Content,
@@ -80,6 +96,7 @@ export function simulate(
           if (r.ok) s = r.value;
         }
         s = serve(c, s, now, now + STEP_MS > start + p.sessionS * 1000);
+        s = shop(c, s, now);
         const lvl = levelForXp(c, s.xp);
         for (let l = 2; l <= lvl; l++) levelDay[l] ??= now / DAY_MS;
       }
