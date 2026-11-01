@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "tsconfig.tools.json" },
+    { "path": "packages/shared" },
+    { "path": "packages/sim" },
+    { "path": "apps/client" }
+  ]
+}
