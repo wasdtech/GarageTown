@@ -13,7 +13,8 @@
     "typecheck": "tsc -b",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "e2e": "pnpm --filter @gt/client e2e"
+    "e2e": "pnpm --filter @gt/client e2e",
+    "size": "node tools/check-bundle-size.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

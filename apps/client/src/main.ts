@@ -11,7 +11,8 @@ import './ui/theme.css';
 
 const content = loadContent();
 document.title = content.brand.name;
-const clock = () => Date.now();
+let clockOffset = 0;
+const clock = () => Date.now() + clockOffset;
 const ui = document.getElementById('ui')!;
 const store = new Store(content, loadGame(content, clock()), clock, saveGame);
 const updateHud = createHud(ui, content);
@@ -36,6 +37,18 @@ scene.onReady = () => {
   });
   render();
   setInterval(() => store.tick(), 1000);
+  if (import.meta.env.MODE === 'test') {
+    (window as unknown as { __gt: unknown }).__gt = {
+      store,
+      scene,
+      clock: {
+        advance(ms: number) {
+          clockOffset += ms;
+          store.tick();
+        },
+      },
+    };
+  }
 };
 new Phaser.Game({
   type: Phaser.AUTO,

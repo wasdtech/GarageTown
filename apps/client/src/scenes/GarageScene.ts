@@ -3,6 +3,7 @@ import { type GameState, jobProgress, TIMELY_WINDOW_MS } from '@gt/sim';
 import Phaser from 'phaser';
 import { depthOf, isoToScreen, type Point } from '../iso/iso';
 import { fmt } from '../ui/format';
+import { structureKey } from './structureKey';
 
 export const LOT_SIZE = 8;
 export const STREET_ROW = 8;
@@ -25,7 +26,11 @@ export function paintFor(id: string): number {
 
 export class GarageScene extends Phaser.Scene {
   private dynamic!: Phaser.GameObjects.Container;
+  private lastKey = '';
+  private updaters: ((now: number) => void)[] = [];
   onReady?: () => void;
+  /** World positions of tappable things from the last render (bay ids and customer ids). */
+  readonly anchors = new Map<string, Point>();
   private content!: Content;
 
   constructor() {
@@ -102,6 +107,20 @@ export class GarageScene extends Phaser.Scene {
 
   isDragging: () => boolean = () => false;
 
+  /** Page coordinates of an anchor (used by end-to-end tests). */
+  screenOf(id: string): Point | null {
+    const a = this.anchors.get(id);
+    if (!a) return null;
+    const cam = this.cameras.main;
+    const rect = this.game.canvas.getBoundingClientRect();
+    const sx = (a.x - cam.worldView.x) * cam.zoom + cam.x;
+    const sy = (a.y - cam.worldView.y) * cam.zoom + cam.y;
+    return {
+      x: rect.left + (sx * rect.width) / this.scale.width,
+      y: rect.top + (sy * rect.height) / this.scale.height,
+    };
+  }
+
   private car(id: string, carKey: string, at: Point, scale: number) {
     const def = this.content.cars.find((c) => c.key === carKey) ?? this.content.cars[0]!;
     const c = this.add.container(at.x, at.y);
@@ -128,7 +147,16 @@ export class GarageScene extends Phaser.Scene {
 
   renderState(s: GameState, now: number, ui: SceneUi) {
     if (!this.dynamic) return;
+    const key = structureKey(s, now, ui);
+    if (key === this.lastKey) {
+      for (const u of this.updaters) u(now);
+      return;
+    }
+    this.lastKey = key;
+    this.updaters = [];
+    this.tweens.killAll();
     this.dynamic.removeAll(true);
+    this.anchors.clear();
     const jobName = (k: string) => this.content.jobs.find((j) => j.key === k)?.name ?? k;
 
     for (const bay of s.bays) {
@@ -141,6 +169,7 @@ export class GarageScene extends Phaser.Scene {
       padImg.on('pointerup', () => !this.isDragging() && this.events.emit('bay:tap', bay.id));
       this.dynamic.add(padImg);
       const centre = isoToScreen(bay.tile.x + 1, bay.tile.y + 1, ORIGIN);
+      this.anchors.set(bay.id, { x: centre.x, y: centre.y - 10 });
       if (!bay.job) {
         if (ui.selectedCustomerId) this.dynamic.add(this.label(centre.x, centre.y - 6, 'Livre', '#caffbf'));
         continue;
@@ -161,12 +190,25 @@ export class GarageScene extends Phaser.Scene {
         this.tweens.add({ targets: tag, scale: 1.08, yoyo: true, repeat: -1, duration: 450 });
         this.dynamic.add(tag);
       } else {
+        const job = bay.job;
         const g = this.add.graphics().setDepth(2000);
-        g.fillStyle(0x1d1d2b, 1).fillRoundedRect(centre.x - 42, top - 12, 84, 12, 6);
-        g.fillStyle(0x06d6a0, 1).fillRoundedRect(centre.x - 40, top - 10, 80 * prog.fraction, 8, 4);
-        const secs = Math.ceil(prog.remainingMs / 1000);
-        const t = this.label(centre.x, top - 14, `${jobName(bay.job.jobKey)} · ${fmt(secs)}`, '#ffffffdd');
-        t.setDepth(2000);
+        const t = this.label(centre.x, top - 14, '', '#ffffffdd').setDepth(2000);
+        const update = (at: number) => {
+          const p = jobProgress(job, at);
+          g.clear();
+          g.fillStyle(0x1d1d2b, 1).fillRoundedRect(centre.x - 42, top - 12, 84, 12, 6);
+          g.fillStyle(0x06d6a0, 1).fillRoundedRect(
+            centre.x - 40,
+            top - 10,
+            Math.max(1, 80 * p.fraction),
+            8,
+            4,
+          );
+          const text = `${jobName(job.jobKey)} · ${fmt(Math.ceil(p.remainingMs / 1000))}`;
+          if (t.text !== text) t.setText(text);
+        };
+        update(now);
+        this.updaters.push(update);
         this.dynamic.add([g, t]);
       }
     }
@@ -174,17 +216,23 @@ export class GarageScene extends Phaser.Scene {
     s.queue.forEach((q, i) => {
       const at = isoToScreen(QUEUE_START + i * QUEUE_STEP + 0.5, STREET_ROW + 0.5, ORIGIN);
       const car = this.car(q.id, q.carKey, at, 0.75);
+      this.anchors.set(q.id, { x: at.x, y: at.y - 12 });
       car.setDepth(depthOf(QUEUE_START + i * QUEUE_STEP, STREET_ROW) + 100);
       car.setSize(100, 64).setInteractive({ useHandCursor: true });
       car.on('pointerup', () => !this.isDragging() && this.events.emit('customer:tap', q.id));
       this.dynamic.add(car);
       const selected = ui.selectedCustomerId === q.id;
-      const patience = Math.max(0, Math.min(1, (q.patienceUntil - now) / (q.patienceUntil - q.arrivedAt)));
       const bubble = this.label(at.x, at.y - 44, jobName(q.need), selected ? '#ffd166' : '#ffffffee');
       bubble.setDepth(3000);
       const g = this.add.graphics().setDepth(3000);
-      g.fillStyle(0x1d1d2b, 1).fillRect(at.x - 24, at.y - 44, 48, 6);
-      g.fillStyle(patience > 0.3 ? 0x06d6a0 : 0xe63946, 1).fillRect(at.x - 23, at.y - 43, 46 * patience, 4);
+      const update = (t: number) => {
+        const patience = Math.max(0, Math.min(1, (q.patienceUntil - t) / (q.patienceUntil - q.arrivedAt)));
+        g.clear();
+        g.fillStyle(0x1d1d2b, 1).fillRect(at.x - 24, at.y - 44, 48, 6);
+        g.fillStyle(patience > 0.3 ? 0x06d6a0 : 0xe63946, 1).fillRect(at.x - 23, at.y - 43, 46 * patience, 4);
+      };
+      update(now);
+      this.updaters.push(update);
       this.dynamic.add([bubble, g]);
       if (selected) this.tweens.add({ targets: car, y: at.y - 6, yoyo: true, repeat: -1, duration: 300 });
     });
