@@ -50,7 +50,7 @@ export function openJobMenu(
         h(
           'strong',
           {},
-          h('img', { src: `icons/${j.icon}.svg`, alt: '', class: 'gt-job-icon' }),
+          h('img', { src: `icons/${j.icon}.png`, alt: '', class: 'gt-job-icon' }),
           `${j.key === customer.need ? '★ ' : ''}${j.name}`,
         ),
         h(

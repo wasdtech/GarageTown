@@ -23,6 +23,60 @@
       "sha12": "e290b8ab92b8",
       "label": "corisco_rs",
       "file": "art/generated/corisco-test1.png"
+    },
+    {
+      "asset_id": "464f5b97-f922-4052-94cb-a31fe06ad380",
+      "sha12": "64899191a02f",
+      "label": "estilo ícones (referência)",
+      "file": "art/reference/style-icons.png"
+    },
+    {
+      "asset_id": "7c0570fe-b225-44a5-b365-ab4d11e8d159",
+      "sha12": "85920c2ea177",
+      "label": "estilo cena (referência)",
+      "file": "art/reference/style-scene.png"
+    },
+    {
+      "asset_id": "5c3441e0-966f-4e3b-a5f4-6b49ae47b649",
+      "sha12": "4f07223b9f36",
+      "label": "icon wash",
+      "file": "art/generated/icon-wash.png"
+    },
+    {
+      "asset_id": "303eb256-17fd-48b8-8a22-820da62a4628",
+      "sha12": "37e55e8cbe9d",
+      "label": "icon oil",
+      "file": "art/generated/icon-oil.png"
+    },
+    {
+      "asset_id": "01191037-30aa-43b7-bcbd-08c2a888b37c",
+      "sha12": "6347f0386aba",
+      "label": "icon polish",
+      "file": "art/generated/icon-polish.png"
+    },
+    {
+      "asset_id": "ec008bf7-5376-4f83-8ea3-bc5c1ed6b31a",
+      "sha12": "3ae2fe9ad03f",
+      "label": "icon tires",
+      "file": "art/generated/icon-tires.png"
+    },
+    {
+      "asset_id": "101a3342-6935-4748-bbb8-e201e42509d4",
+      "sha12": "31c6e15ac8e0",
+      "label": "icon engine",
+      "file": "art/generated/icon-engine.png"
+    },
+    {
+      "asset_id": "ebfb7e1e-aed2-4254-a198-b5bb88f05639",
+      "sha12": "a7d6ea7fc0f5",
+      "label": "shop",
+      "file": "art/generated/shop.png"
+    },
+    {
+      "asset_id": "8b4e43c6-5209-4ee9-9176-df5084822e69",
+      "sha12": "a1c9f5751729",
+      "label": "tree",
+      "file": "art/generated/tree.png"
     }
   ],
   "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",

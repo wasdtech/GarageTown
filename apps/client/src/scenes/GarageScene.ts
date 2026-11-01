@@ -74,8 +74,10 @@ export class GarageScene extends Phaser.Scene {
 
   preload() {
     for (const t of ['floor', 'street', 'sidewalk', 'grass']) this.load.svg(t, `tiles/${t}.svg`);
-    for (const o of ['build_slot', 'tree', 'shop', 'billboard']) this.load.svg(o, `objects/${o}.svg`);
-    for (const j of this.content.jobs) this.load.svg(`icon_${j.icon}`, `icons/${j.icon}.svg`);
+    for (const o of ['build_slot', 'billboard']) this.load.svg(o, `objects/${o}.svg`);
+    // AI-generated art ships as 2x PNGs (drawn at scale 0.5); see art/spritecook-assets.json
+    for (const o of ['tree', 'shop']) this.load.image(o, `objects/${o}.png`);
+    for (const j of this.content.jobs) this.load.image(`icon_${j.icon}`, `icons/${j.icon}.png`);
     this.load.svg('bay_wash', 'objects/bay_wash.svg');
     this.load.svg('bay_mechanic', 'objects/bay_mechanic.svg');
     for (const car of this.content.cars) {
@@ -110,16 +112,15 @@ export class GarageScene extends Phaser.Scene {
     for (let y = -10; y < STREET_ROW; y++) this.tile('sidewalk', LOT_SIZE, y);
     for (let y = -10; y < STREET_ROW; y++) this.tile('sidewalk', CROSS_STREET_COL + 1, y);
     this.drawWalls();
-    const shopAt = isoToScreen(CROSS_STREET_COL + 2, 2, ORIGIN);
-    this.add
-      .image(shopAt.x, shopAt.y, 'shop')
-      .setOrigin(84 / 200, 40 / 170)
-      .setDepth(-100);
+    // the shop's front-bottom corner sits on its footprint's front corner (tiles x 11..14, y 2..4)
+    const shopAt = isoToScreen(CROSS_STREET_COL + 5, 4, ORIGIN);
+    this.add.image(shopAt.x, shopAt.y, 'shop').setOrigin(0.656, 0.99).setScale(0.5).setDepth(-100);
     for (const [x, y] of TREES) {
       const p = isoToScreen(x + 0.5, y + 0.5, ORIGIN);
       this.add
         .image(p.x, p.y, 'tree')
-        .setOrigin(0.5, 86 / 96)
+        .setOrigin(0.5, 0.94)
+        .setScale(0.5)
         .setDepth(x + y > 12 ? 100 : -100);
     }
     const b = isoToScreen(-4, 1.5, ORIGIN);
@@ -345,7 +346,7 @@ export class GarageScene extends Phaser.Scene {
       bubble.lineBetween(bx - 14, by + 17, bx - 18, by + 26).lineBetween(bx - 18, by + 26, bx - 4, by + 17);
       const icon = this.add
         .image(bx, by - 1, `icon_${jobIcon(q.need)}`)
-        .setScale(0.62)
+        .setScale(0.31)
         .setDepth(3001);
       icon.setName(jobName(q.need));
       const g = this.add.graphics().setDepth(3002);

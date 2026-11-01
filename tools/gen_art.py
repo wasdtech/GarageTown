@@ -213,7 +213,7 @@ def world():
         '<circle cx="22" cy="30" r="9" fill="#6cbf4f"/><circle cx="40" cy="44" r="6" fill="#3f8a2c"/>'
         '</svg>\n'
     )
-    open(os.path.join(o, 'tree.svg'), 'w').write(tree)
+    _ = tree  # superseded by art/src/objects/tree.png
     # neighbour parts shop: 3x2 tiles, flat roof, striped awning, sign band
     W2, H2 = 200, 170
     ox, oy = 100 - (3 - 2) * 16, 40
@@ -230,7 +230,7 @@ def world():
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W2}" height="{H2}" viewBox="0 0 {W2} {H2}">'
         + body + sign + door + win + awning + '</svg>\n'
     )
-    open(os.path.join(o, 'shop.svg'), 'w').write(shop)
+    _ = shop  # superseded by art/src/objects/shop.png
     # billboard frame on two posts (text drawn in-game); 140x110, base at bottom centre
     board = (
         '<svg xmlns="http://www.w3.org/2000/svg" width="140" height="110" viewBox="0 0 140 110">'
@@ -247,6 +247,6 @@ if __name__ == '__main__':
     # Cars are now AI-generated (tools/split_ai_car.py); car() is kept for regenerating placeholders.
     tiles()  # street (floor is replaced by world())
     bays()
-    icons()
+    # icons(), tree and shop are now AI-generated PNGs (see art/spritecook-assets.json)
     world()
     print('ok')
