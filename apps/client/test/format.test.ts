@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('phaser', () => ({ default: { Scene: class {} } }));
-const { fmt, paintFor } = await import('../src/scenes/GarageScene');
+const { paintFor } = await import('../src/scenes/GarageScene');
+const { fmt } = await import('../src/ui/format');
 
 describe('scene helpers', () => {
   it('formats remaining time', () => {

@@ -2,6 +2,7 @@ import type { Content } from '@gt/shared';
 import { type GameState, jobProgress, TIMELY_WINDOW_MS } from '@gt/sim';
 import Phaser from 'phaser';
 import { depthOf, isoToScreen, type Point } from '../iso/iso';
+import { fmt } from '../ui/format';
 
 export const LOT_SIZE = 8;
 export const STREET_ROW = 8;
@@ -62,9 +63,13 @@ export class GarageScene extends Phaser.Scene {
 
   private setupCamera() {
     const cam = this.cameras.main;
-    const centre = isoToScreen(LOT_SIZE / 2, LOT_SIZE / 2 + 1, ORIGIN);
-    cam.centerOn(centre.x, centre.y);
-    cam.setZoom(Math.min(1.2, Math.max(0.6, this.scale.width / 900)));
+    // Fit the lot plus the street queue (tiles x -2..8, y 0..9).
+    const left = isoToScreen(-2, STREET_ROW + 1, ORIGIN).x - 32;
+    const right = isoToScreen(LOT_SIZE, 0, ORIGIN).x + 32;
+    const bottom = isoToScreen(LOT_SIZE, STREET_ROW + 1, ORIGIN).y;
+    cam.centerOn((left + right) / 2, bottom / 2 + 10);
+    const fit = Math.min(this.scale.width / (right - left), (this.scale.height - 120) / (bottom + 80));
+    cam.setZoom(Phaser.Math.Clamp(fit, 0.5, 1.3));
     this.input.addPointer(1);
     let dragging = false;
     let pinchDist = 0;
@@ -72,7 +77,7 @@ export class GarageScene extends Phaser.Scene {
       const [a, b] = [this.input.pointer1, this.input.pointer2];
       if (a.isDown && b.isDown) {
         const d = Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y);
-        if (pinchDist > 0) cam.setZoom(Phaser.Math.Clamp(cam.zoom * (d / pinchDist), 0.6, 1.6));
+        if (pinchDist > 0) cam.setZoom(Phaser.Math.Clamp(cam.zoom * (d / pinchDist), 0.5, 1.6));
         pinchDist = d;
         dragging = true;
         return;
@@ -90,7 +95,7 @@ export class GarageScene extends Phaser.Scene {
       pinchDist = 0;
     });
     this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
-      cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.6, 1.6));
+      cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.5, 1.6));
     });
     this.isDragging = () => dragging;
   }
@@ -184,11 +189,4 @@ export class GarageScene extends Phaser.Scene {
       if (selected) this.tweens.add({ targets: car, y: at.y - 6, yoyo: true, repeat: -1, duration: 300 });
     });
   }
-}
-
-export function fmt(secs: number): string {
-  if (secs < 60) return `${secs}s`;
-  const m = Math.floor(secs / 60);
-  if (m < 60) return `${m}m ${String(secs % 60).padStart(2, '0')}s`;
-  return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`;
 }

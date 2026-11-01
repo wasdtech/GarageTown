@@ -33,3 +33,193 @@ body {
 #ui > * {
   pointer-events: auto;
 }
+
+/* HUD */
+.gt-hud {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+}
+.gt-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gt-panel);
+  border: 3px solid var(--gt-ink);
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-weight: 800;
+  font-size: 18px;
+  box-shadow: var(--gt-shadow);
+  white-space: nowrap;
+}
+.gt-level {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gt-blue);
+  color: #fff;
+  border: 2px solid var(--gt-ink);
+}
+.gt-xp-bar {
+  position: relative;
+  width: 110px;
+  height: 18px;
+  background: #e9e4d8;
+  border: 2px solid var(--gt-ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.gt-xp-fill {
+  height: 100%;
+  background: var(--gt-good);
+  transition: width 0.4s ease;
+}
+.gt-xp-text {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+}
+@media (max-width: 420px) {
+  .gt-pill {
+    font-size: 15px;
+    padding: 2px 8px;
+  }
+  .gt-xp-bar {
+    width: 70px;
+  }
+}
+
+/* Buttons and sheets */
+.gt-btn,
+.gt-job {
+  font: inherit;
+  min-height: 48px;
+  border: 3px solid var(--gt-ink);
+  border-radius: var(--gt-radius);
+  background: var(--gt-accent);
+  box-shadow: var(--gt-shadow);
+  font-weight: 800;
+  font-size: 17px;
+  cursor: pointer;
+  padding: 6px 14px;
+}
+.gt-btn:active,
+.gt-job:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--gt-ink);
+}
+.gt-btn-ghost {
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+}
+.gt-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(29, 29, 43, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.gt-sheet {
+  width: min(440px, 100vw);
+  box-sizing: border-box;
+  background: var(--gt-panel);
+  border: 3px solid var(--gt-ink);
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: gt-up 0.18s ease-out;
+}
+.gt-sheet h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.gt-muted {
+  margin: 0;
+  opacity: 0.7;
+}
+.gt-job {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  text-align: left;
+}
+.gt-job span {
+  font-weight: 500;
+  font-size: 14px;
+}
+.gt-job-need {
+  background: #fff3c4;
+}
+.gt-job[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@keyframes gt-up {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+/* Toasts and banner */
+.gt-toasts {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.gt-toast {
+  background: var(--gt-panel);
+  border: 3px solid var(--gt-ink);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-weight: 700;
+  box-shadow: var(--gt-shadow);
+  animation: gt-up 0.2s ease-out;
+}
+.gt-toast-good {
+  background: #caffbf;
+}
+.gt-toast-bad {
+  background: #ffc9c9;
+}
+.gt-toast-big {
+  background: var(--gt-accent);
+  font-size: 20px;
+}
+.gt-banner {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 32px));
+  box-sizing: border-box;
+  text-align: center;
+  background: var(--gt-accent);
+  border: 3px solid var(--gt-ink);
+  border-radius: var(--gt-radius);
+  padding: 12px;
+  font-weight: 800;
+  font-size: 18px;
+  box-shadow: var(--gt-shadow);
+}
