@@ -203,7 +203,7 @@ def world():
         '<path d="M64 24 v16 M56 32 h16" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>'
         '</svg>\n'
     )
-    open(os.path.join(o, 'build_slot.svg'), 'w').write(slot)
+    _ = slot  # superseded by art/src/objects/build_slot.png
     # round-canopy tree (canvas 64x96, base at bottom centre)
     tree = (
         '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="96" viewBox="0 0 64 96">'
@@ -246,7 +246,6 @@ def world():
 if __name__ == '__main__':
     # Cars are now AI-generated (tools/split_ai_car.py); car() is kept for regenerating placeholders.
     tiles()  # street (floor is replaced by world())
-    bays()
-    # icons(), tree and shop are now AI-generated PNGs (see art/spritecook-assets.json)
+    # bays(), icons(), build slot, tree and shop are now AI-generated PNGs (see art/spritecook-assets.json)
     world()
     print('ok')

@@ -74,12 +74,11 @@ export class GarageScene extends Phaser.Scene {
 
   preload() {
     for (const t of ['floor', 'street', 'sidewalk', 'grass']) this.load.svg(t, `tiles/${t}.svg`);
-    for (const o of ['build_slot', 'billboard']) this.load.svg(o, `objects/${o}.svg`);
+    this.load.svg('billboard', 'objects/billboard.svg');
     // AI-generated art ships as 2x PNGs (drawn at scale 0.5); see art/spritecook-assets.json
-    for (const o of ['tree', 'shop']) this.load.image(o, `objects/${o}.png`);
+    for (const o of ['tree', 'shop', 'build_slot', 'bay_wash', 'bay_mechanic'])
+      this.load.image(o, `objects/${o}.png`);
     for (const j of this.content.jobs) this.load.image(`icon_${j.icon}`, `icons/${j.icon}.png`);
-    this.load.svg('bay_wash', 'objects/bay_wash.svg');
-    this.load.svg('bay_mechanic', 'objects/bay_mechanic.svg');
     for (const car of this.content.cars) {
       for (const layer of ['shadow', 'body', 'details']) {
         this.load.image(`${car.sprite}_${layer}`, `cars/${car.sprite}/${layer}.png`);
@@ -265,7 +264,11 @@ export class GarageScene extends Phaser.Scene {
     const jobIcon = (k: string) => this.content.jobs.find((j) => j.key === k)?.icon ?? 'wash';
 
     const slotAt = isoToScreen(BUILD_SLOT.x, BUILD_SLOT.y, ORIGIN);
-    const slot = this.add.image(slotAt.x, slotAt.y, 'build_slot').setOrigin(0.5, 0).setDepth(-500);
+    const slot = this.add
+      .image(slotAt.x, slotAt.y, 'build_slot')
+      .setOrigin(0.5, 0)
+      .setScale(0.5)
+      .setDepth(-500);
     slot.setInteractive({ useHandCursor: true });
     slot.on('pointerup', () => !this.isDragging() && this.events.emit('slot:tap'));
     this.dynamic.add(slot);
@@ -277,6 +280,7 @@ export class GarageScene extends Phaser.Scene {
       const padImg = this.add
         .image(pad.x, pad.y, `bay_${bay.type}`)
         .setOrigin(0.5, 0)
+        .setScale(0.5)
         .setDepth(-500)
         .setInteractive({ useHandCursor: true });
       padImg.on('pointerup', () => !this.isDragging() && this.events.emit('bay:tap', bay.id));

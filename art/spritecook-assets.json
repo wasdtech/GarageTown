@@ -77,8 +77,26 @@
       "sha12": "a1c9f5751729",
       "label": "tree",
       "file": "art/generated/tree.png"
+    },
+    {
+      "asset_id": "cd64c627-408d-4c6d-b79f-89be47a43040",
+      "sha12": "e9e32f667b1e",
+      "label": "bay wash pad",
+      "file": "art/generated/bay-wash.png"
+    },
+    {
+      "asset_id": "b7d936cb-fbfb-4332-84ff-cbbd352267e0",
+      "sha12": "cec71cb40948",
+      "label": "bay mechanic pad",
+      "file": "art/generated/bay-mechanic.png"
+    },
+    {
+      "asset_id": "84bd2238-a40f-4d39-963d-b78e99938aec",
+      "sha12": "d2cd907abf2d",
+      "label": "build slot pad",
+      "file": "art/generated/build-slot.png"
     }
   ],
   "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",
-  "notes": "Cars generated with gpt-image-2 (low quality, 2 credits each), painted red, split into layers by tools/split_ai_car.py"
+  "notes": "Cars generated with gpt-image-2 (low quality, 2 credits each), painted red, split into layers by tools/split_ai_car.py; floor pads fitted to the exact 2:1 diamond by tools/fit_iso_pad.py"
 }
