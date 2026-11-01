@@ -1,6 +1,15 @@
-import type { BuildError, CollectError, MinigameError, StartError } from '@gt/sim';
+import type {
+  BuildError,
+  BuyCarError,
+  BuyPartError,
+  CollectError,
+  LookError,
+  MinigameError,
+  StartError,
+} from '@gt/sim';
 
-type ErrorKey = StartError | CollectError | MinigameError | BuildError;
+type ErrorKey =
+  StartError | CollectError | MinigameError | BuildError | BuyCarError | BuyPartError | LookError;
 
 export const S = {
   coins: 'Moedas',
@@ -22,6 +31,27 @@ export const S = {
   timely: (n: number) => `pontual +${n}`,
   levelUp: (lvl: number) => `Subiu para o nível ${lvl}! 🎉`,
   saveReset: 'Não deu para ler o seu save. Começamos um jogo novo (uma cópia do antigo foi guardada).',
+  garage: {
+    title: 'Minha garagem',
+    open: '🚗 Garagem',
+    tabs: {
+      paint: 'Pintura',
+      finish: 'Acabamento',
+      extras: 'Neon e adesivos',
+      parts: 'Peças',
+      cars: 'Carros',
+    },
+    stat: { power: 'Potência', grip: 'Aderência' },
+    style: 'Estilo',
+    free: 'Grátis',
+    owned: 'Liberado',
+    maxed: 'Nível máximo',
+    noSticker: 'Sem adesivo',
+    showing: 'Em exposição',
+    show: 'Expor este carro',
+    installed: (part: string) => `${part} instalado! 🔧`,
+    bought: (car: string) => `${car} é seu! 🎉`,
+  },
   buildTitle: 'Construir box',
   buildPick: 'Escolha o tipo de box',
   bayTypes: { wash: 'Lavagem', mechanic: 'Mecânica', paint: 'Pintura', performance: 'Performance' },
@@ -47,6 +77,12 @@ export const S = {
     no_coins: 'Moedas insuficientes',
     slot_taken: 'Essa vaga já está ocupada',
     unknown_slot: 'Vaga desconhecida',
+    unknown_model: 'Carro desconhecido',
+    owned: 'Você já tem esse carro',
+    unknown_car: 'Carro desconhecido',
+    unknown_part: 'Peça desconhecida',
+    maxed: 'Essa peça já está no máximo',
+    unknown_option: 'Opção desconhecida',
   } satisfies Record<ErrorKey, string>,
 };
 

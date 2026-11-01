@@ -12,6 +12,7 @@ import { fmt } from './ui/format';
 import type { GarageScene } from './scenes/GarageScene';
 import type { Store } from './state/store';
 import { h } from './ui/dom';
+import { openGarage } from './ui/garageSheet';
 import { closeSheet, openBayStatus, openBuildMenu, openJobMenu } from './ui/jobMenu';
 import { errorText, S } from './ui/strings';
 import { showBanner } from './ui/toast';
@@ -61,6 +62,9 @@ export function createController(d: ControllerDeps) {
     selected = selected === id ? null : id;
     render();
   });
+
+  const garage = () => openGarage(d.ui, d.content, d.store, d.toast);
+  d.scene.events.on('showcase:tap', garage);
 
   d.scene.events.on('slot:tap', (slot: number) => {
     const s = d.store.state;
@@ -134,5 +138,5 @@ export function createController(d: ControllerDeps) {
   });
 
   d.store.subscribe(render);
-  return { render };
+  return { render, garage };
 }

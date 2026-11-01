@@ -60,3 +60,13 @@ describe('structureKey and constructions', () => {
     expect(structureKey(r.value, T0 + 2_000, ui)).toBe(building);
   });
 });
+
+describe('structureKey and the showcase car', () => {
+  it('changes when the showcase car look changes', async () => {
+    const { applyLook } = await import('@gt/sim');
+    const s0 = { ...createInitialState(c, T0, 1), coins: 500, nextCustomerAt: Number.MAX_SAFE_INTEGER };
+    const r = applyLook(c, s0, { carId: 'car-pitoco', paint: 'blue' }, T0);
+    if (!r.ok) throw new Error(r.error);
+    expect(structureKey(r.value, T0, ui)).not.toBe(structureKey(s0, T0, ui));
+  });
+});

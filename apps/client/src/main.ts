@@ -26,7 +26,7 @@ if (loaded.recovered === 'corrupt' || loaded.recovered === 'unknown_version') to
 
 const scene = new GarageScene();
 scene.onReady = () => {
-  const { render } = createController({
+  const { render, garage } = createController({
     content,
     store,
     scene,
@@ -41,6 +41,13 @@ scene.onReady = () => {
   });
   render();
   setInterval(() => store.tick(), 1000);
+  ui.append(
+    h(
+      'button',
+      { class: 'gt-btn gt-garage-btn', 'data-testid': 'open-garage', onclick: garage },
+      S.garage.open,
+    ),
+  );
   ui.append(
     h(
       'div',

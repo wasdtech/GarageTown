@@ -61,3 +61,45 @@ export async function startJob(page: Page, bayId: string, jobKey: string) {
     .poll(() => page.evaluate((b) => !!window.__gt.store.state.bays.find((x) => x.id === b)?.job, bayId))
     .toBe(true);
 }
+
+/** Seeds a v3 save before the page loads (only on the first navigation of the test). */
+export async function seedSave(page: Page, over: Record<string, unknown>) {
+  await page.addInitScript((o) => {
+    if (sessionStorage.getItem('seeded')) return;
+    sessionStorage.setItem('seeded', '1');
+    const now = Date.now();
+    const base = {
+      version: 3,
+      coins: 0,
+      xp: 0,
+      reputation: 0,
+      bays: [
+        { id: 'bay1', type: 'wash', tile: { x: 2, y: 3 }, job: null },
+        { id: 'bay2', type: 'mechanic', tile: { x: 5, y: 3 }, job: null },
+      ],
+      queue: [],
+      nextCustomerAt: now + 20_000,
+      lastTickAt: now,
+      minigameUses: [],
+      rngState: 3,
+      nextId: 1,
+      builds: [],
+      collection: {
+        cars: [
+          {
+            id: 'car-pitoco',
+            model: 'pitoco',
+            look: { paint: 'red', finish: 'matte', neon: false, sticker: null },
+            parts: {},
+          },
+        ],
+        activeCarId: 'car-pitoco',
+        paints: ['red'],
+        finishes: ['matte'],
+        stickers: [],
+        neon: false,
+      },
+    };
+    localStorage.setItem('gt.save', JSON.stringify({ ...base, ...o }));
+  }, over);
+}
