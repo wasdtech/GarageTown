@@ -1,0 +1,39 @@
+[
+  { "key": "wash", "name": "Lavagem", "bay": "wash", "durationS": 30, "coins": 5, "xp": 3, "unlockLevel": 1 },
+  {
+    "key": "oil",
+    "name": "Troca de óleo",
+    "bay": "mechanic",
+    "durationS": 120,
+    "coins": 15,
+    "xp": 6,
+    "unlockLevel": 1
+  },
+  {
+    "key": "polish",
+    "name": "Polimento",
+    "bay": "wash",
+    "durationS": 180,
+    "coins": 22,
+    "xp": 8,
+    "unlockLevel": 2
+  },
+  {
+    "key": "tires",
+    "name": "Pneus novos",
+    "bay": "mechanic",
+    "durationS": 300,
+    "coins": 35,
+    "xp": 10,
+    "unlockLevel": 3
+  },
+  {
+    "key": "engine",
+    "name": "Revisão de motor",
+    "bay": "mechanic",
+    "durationS": 3600,
+    "coins": 300,
+    "xp": 50,
+    "unlockLevel": 4
+  }
+]
