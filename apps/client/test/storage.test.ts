@@ -25,12 +25,12 @@ describe('storage', () => {
     const st = memoryStorage();
     const s = { ...createInitialState(c, T0, 1), coins: 42 };
     saveGame(s, st);
-    expect(loadGame(c, T0, st).coins).toBe(42);
+    expect(loadGame(c, T0, st)).toMatchObject({ recovered: 'ok', state: { coins: 42 } });
   });
 
   it('backs up a corrupt save before starting fresh', () => {
     const st = memoryStorage({ [SAVE_KEY]: '{oops' });
-    expect(loadGame(c, T0, st).coins).toBe(0);
+    expect(loadGame(c, T0, st)).toMatchObject({ recovered: 'corrupt', state: { coins: 0 } });
     expect(st.getItem(BACKUP_KEY)).toBe('{oops');
   });
 
@@ -44,7 +44,7 @@ describe('storage', () => {
         throw new Error('denied');
       },
     } as Storage;
-    expect(loadGame(c, T0, broken).coins).toBe(0);
+    expect(loadGame(c, T0, broken).state.coins).toBe(0);
     expect(() => saveGame(createInitialState(c, T0, 1), broken)).not.toThrow();
   });
 });

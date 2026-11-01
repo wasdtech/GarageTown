@@ -16,6 +16,16 @@ describe('content', () => {
     expect(c.brand.name).toBe('Garage Town');
   });
 
+  it('gives every job an icon sprite', () => {
+    expect(loadContent().jobs.map((j) => j.icon)).toEqual(['wash', 'oil', 'polish', 'tires', 'engine']);
+  });
+
+  it('rejects a job without an icon', () => {
+    const r = raw();
+    delete r.jobs[0]!.icon;
+    expect(() => parseContent(r)).toThrow();
+  });
+
   it('rejects a job with zero duration', () => {
     const r = raw();
     r.jobs[0]!.durationS = 0;

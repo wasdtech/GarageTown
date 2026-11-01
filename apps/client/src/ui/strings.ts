@@ -21,6 +21,10 @@ export const S = {
   tip: (n: number) => `gorjeta +${n}`,
   timely: (n: number) => `pontual +${n}`,
   levelUp: (lvl: number) => `Subiu para o nível ${lvl}! 🎉`,
+  saveReset: 'Não deu para ler o seu save. Começamos um jogo novo (uma cópia do antigo foi guardada).',
+  comingSoonBay: 'Em breve: construir mais boxes',
+  zoomIn: 'Aproximar',
+  zoomOut: 'Afastar',
   endOfPrototype: 'Fim do protótipo — obrigado por testar!',
   errors: {
     bay_busy: 'Esse box já está ocupado',

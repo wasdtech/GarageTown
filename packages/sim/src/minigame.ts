@@ -18,6 +18,11 @@ export function isMinigameEligible(c: Content, job: ActiveJob): boolean {
   return !!def && def.durationS <= MINIGAME_MAX_DURATION_S && def.bay === 'wash';
 }
 
+/** How many minigame completions are still allowed in the rolling hour. */
+export function minigameUsesLeft(s: GameState, now: number): number {
+  return Math.max(0, MINIGAME_MAX_PER_HOUR - s.minigameUses.filter((t) => t > now - HOUR_MS).length);
+}
+
 export function completeWithMinigame(
   c: Content,
   state: GameState,
@@ -31,8 +36,8 @@ export function completeWithMinigame(
   if (!bay.job) return err('empty_bay');
   if (!isMinigameEligible(c, bay.job)) return err('not_eligible');
   if (gestureMs < MINIGAME_MIN_GESTURE_MS) return err('gesture_too_short');
+  if (minigameUsesLeft(s, now) === 0) return err('rate_limited');
   const recent = s.minigameUses.filter((t) => t > now - HOUR_MS);
-  if (recent.length >= MINIGAME_MAX_PER_HOUR) return err('rate_limited');
 
   const reward = computeReward(c, s, bay.job, now, { minigameBonus: MINIGAME_BONUS });
   return ok({ state: { ...applyReward(s, bayId, reward), minigameUses: [...recent, now] }, reward });

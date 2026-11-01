@@ -4,7 +4,10 @@ declare global {
   interface Window {
     __gt: {
       store: { state: { queue: { id: string }[]; bays: { id: string; job: unknown }[] } };
-      scene: { screenOf(id: string): { x: number; y: number } | null };
+      scene: {
+        screenOf(id: string): { x: number; y: number } | null;
+        cameras: { main: { zoom: number } };
+      };
       clock: { advance(ms: number): void };
     };
   }
@@ -24,11 +27,11 @@ export async function advance(page: Page, ms: number) {
   await nextFrames(page);
 }
 
-export async function tapAnchor(page: Page, id: string) {
+export async function tapAnchor(page: Page, id: string, opts: { waitFrames?: boolean } = {}) {
   const p = await page.evaluate((i) => window.__gt.scene.screenOf(i), id);
   expect(p, `anchor ${id}`).not.toBeNull();
   await page.mouse.click(p!.x, p!.y);
-  await nextFrames(page);
+  if (opts.waitFrames !== false) await nextFrames(page);
 }
 
 /** Phaser handles input and makes newly created objects tappable on later frames; wait a few. */

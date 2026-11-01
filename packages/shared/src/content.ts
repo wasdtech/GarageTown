@@ -16,6 +16,8 @@ const JobDefSchema = z.object({
   coins: z.number().int().nonnegative(),
   xp: z.number().int().nonnegative(),
   unlockLevel: z.number().int().positive(),
+  /** Sprite name under art/src/icons (also used in the job menu). */
+  icon: z.string().min(1),
 });
 const LevelDefSchema = z.object({ level: z.number().int().positive(), xp: z.number().int().nonnegative() });
 const CarDefSchema = z.object({ key: z.string().min(1), name: z.string().min(1), sprite: z.string().min(1) });

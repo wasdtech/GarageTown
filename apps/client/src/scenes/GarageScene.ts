@@ -11,6 +11,35 @@ const QUEUE_STEP = 2;
 const QUEUE_START = -2;
 const CAR_FOOT_Y = 54 / 80; // footprint centre in the 128x80 car canvas
 const ORIGIN: Point = { x: 0, y: 0 };
+const GRASS = '#86c96b';
+const CROSS_STREET_COL = 9; // the side street along the lot's right edge
+const BUILD_SLOT = { x: 2, y: 0 }; // where the next bay will go (M1)
+const WALL_H = 22;
+const TREES: [number, number][] = [
+  [-3, 11],
+  [-1, 12],
+  [12, -2],
+  [-6, 4],
+  [14, 11],
+  [6, 11],
+  [-3, -3],
+];
+
+/** Deterministic scatter for grass tufts so the background never shimmers between renders. */
+function tuftSpots(): [number, number][] {
+  const out: [number, number][] = [];
+  let h = 7;
+  for (let i = 0; i < 40; i++) {
+    h = (h * 16807) % 2147483647;
+    const x = (h % 30) - 10;
+    h = (h * 16807) % 2147483647;
+    const y = (h % 28) - 10;
+    const inLot = x >= -1 && x <= LOT_SIZE && y >= -1 && y <= LOT_SIZE + 1;
+    const onStreet = y === STREET_ROW || x === CROSS_STREET_COL;
+    if (!inLot && !onStreet) out.push([x, y]);
+  }
+  return out;
+}
 
 export interface SceneUi {
   selectedCustomerId: string | null;
@@ -42,8 +71,9 @@ export class GarageScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.svg('floor', 'tiles/floor.svg');
-    this.load.svg('street', 'tiles/street.svg');
+    for (const t of ['floor', 'street', 'sidewalk', 'grass']) this.load.svg(t, `tiles/${t}.svg`);
+    for (const o of ['build_slot', 'tree', 'shop', 'billboard']) this.load.svg(o, `objects/${o}.svg`);
+    for (const j of this.content.jobs) this.load.svg(`icon_${j.icon}`, `icons/${j.icon}.svg`);
     this.load.svg('bay_wash', 'objects/bay_wash.svg');
     this.load.svg('bay_mechanic', 'objects/bay_mechanic.svg');
     for (const car of this.content.cars) {
@@ -54,27 +84,95 @@ export class GarageScene extends Phaser.Scene {
   }
 
   create() {
-    for (let y = 0; y < LOT_SIZE; y++) for (let x = 0; x < LOT_SIZE; x++) this.tile('floor', x, y);
-    for (let x = -4; x < LOT_SIZE + 6; x++) this.tile('street', x, STREET_ROW);
-    this.dynamic = this.add.container(0, 0);
+    this.cameras.main.setBackgroundColor(GRASS);
+    this.buildWorld();
+    this.dynamic = this.add.container(0, 0).setDepth(10);
     this.setupCamera();
+    this.scale.on('resize', () => this.fitCamera());
     this.onReady?.();
   }
 
-  private tile(key: string, x: number, y: number) {
+  private tile(key: string, x: number, y: number, flip = false) {
     const p = isoToScreen(x, y, ORIGIN);
-    this.add.image(p.x, p.y, key).setOrigin(0.5, 0).setDepth(-1000);
+    return this.add.image(p.x, p.y, key).setOrigin(0.5, 0).setDepth(-1000).setFlipX(flip);
   }
 
-  private setupCamera() {
+  /** Static neighbourhood: grass, streets, sidewalks, walled lot, a neighbour shop, trees and a billboard. */
+  private buildWorld() {
+    for (const [x, y] of tuftSpots()) this.tile('grass', x, y);
+    for (let y = 0; y < LOT_SIZE; y++) for (let x = 0; x < LOT_SIZE; x++) this.tile('floor', x, y);
+    for (let x = -10; x < LOT_SIZE + 12; x++) if (x !== CROSS_STREET_COL) this.tile('street', x, STREET_ROW);
+    for (let y = -10; y <= STREET_ROW; y++) this.tile('street', CROSS_STREET_COL, y, true);
+    for (let x = -10; x < LOT_SIZE + 12; x++)
+      if (x !== CROSS_STREET_COL) this.tile('sidewalk', x, STREET_ROW + 1);
+    for (let y = -10; y < STREET_ROW; y++) this.tile('sidewalk', LOT_SIZE, y);
+    for (let y = -10; y < STREET_ROW; y++) this.tile('sidewalk', CROSS_STREET_COL + 1, y);
+    this.drawWalls();
+    const shopAt = isoToScreen(CROSS_STREET_COL + 2, 2, ORIGIN);
+    this.add
+      .image(shopAt.x, shopAt.y, 'shop')
+      .setOrigin(84 / 200, 40 / 170)
+      .setDepth(-100);
+    for (const [x, y] of TREES) {
+      const p = isoToScreen(x + 0.5, y + 0.5, ORIGIN);
+      this.add
+        .image(p.x, p.y, 'tree')
+        .setOrigin(0.5, 86 / 96)
+        .setDepth(x + y > 12 ? 100 : -100);
+    }
+    const b = isoToScreen(-4, 1.5, ORIGIN);
+    this.add
+      .image(b.x, b.y, 'billboard')
+      .setOrigin(0.5, 108 / 110)
+      .setDepth(-100);
+    this.add
+      .text(b.x, b.y - 70, this.content.brand.name, {
+        fontFamily: '"Baloo 2", system-ui, sans-serif',
+        fontSize: '19px',
+        fontStyle: '800',
+        color: '#ffffff',
+        stroke: '#1d1d2b',
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5)
+      .setRotation(0.108)
+      .setDepth(-99);
+  }
+
+  /** Low walls along the lot's two back edges. */
+  private drawWalls() {
+    const g = this.add.graphics().setDepth(-900);
+    const P = (x: number, y: number, z = 0) => {
+      const p = isoToScreen(x, y, ORIGIN);
+      return new Phaser.Math.Vector2(p.x, p.y - z);
+    };
+    const face = (pts: Phaser.Math.Vector2[], fill: number) => {
+      g.fillStyle(fill, 1).fillPoints(pts, true);
+      g.lineStyle(2.5, 0x1d1d2b, 1).strokePoints(pts, true);
+    };
+    face([P(0, 0), P(LOT_SIZE, 0), P(LOT_SIZE, 0, WALL_H), P(0, 0, WALL_H)], 0xe6e9ee);
+    face([P(0, 0), P(0, LOT_SIZE), P(0, LOT_SIZE, WALL_H), P(0, 0, WALL_H)], 0xffffff);
+  }
+
+  /** Fits the lot plus the street queue (tiles x -2..8, y 0..9) to the screen. */
+  fitCamera() {
     const cam = this.cameras.main;
-    // Fit the lot plus the street queue (tiles x -2..8, y 0..9).
     const left = isoToScreen(-2, STREET_ROW + 1, ORIGIN).x - 32;
     const right = isoToScreen(LOT_SIZE, 0, ORIGIN).x + 32;
     const bottom = isoToScreen(LOT_SIZE, STREET_ROW + 1, ORIGIN).y;
     cam.centerOn((left + right) / 2, bottom / 2 + 10);
     const fit = Math.min(this.scale.width / (right - left), (this.scale.height - 120) / (bottom + 80));
     cam.setZoom(Phaser.Math.Clamp(fit, 0.5, 1.3));
+  }
+
+  zoomBy(factor: number) {
+    const cam = this.cameras.main;
+    cam.setZoom(Phaser.Math.Clamp(cam.zoom * factor, 0.5, 1.6));
+  }
+
+  private setupCamera() {
+    const cam = this.cameras.main;
+    this.fitCamera();
     this.input.addPointer(1);
     let dragging = false;
     let pinchDist = 0;
@@ -99,9 +197,9 @@ export class GarageScene extends Phaser.Scene {
       this.time.delayedCall(0, () => (dragging = false));
       pinchDist = 0;
     });
-    this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
-      cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.5, 1.6));
-    });
+    this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) =>
+      this.zoomBy(dy > 0 ? 0.9 : 1.1),
+    );
     this.isDragging = () => dragging;
   }
 
@@ -158,6 +256,15 @@ export class GarageScene extends Phaser.Scene {
     this.dynamic.removeAll(true);
     this.anchors.clear();
     const jobName = (k: string) => this.content.jobs.find((j) => j.key === k)?.name ?? k;
+    const jobIcon = (k: string) => this.content.jobs.find((j) => j.key === k)?.icon ?? 'wash';
+
+    const slotAt = isoToScreen(BUILD_SLOT.x, BUILD_SLOT.y, ORIGIN);
+    const slot = this.add.image(slotAt.x, slotAt.y, 'build_slot').setOrigin(0.5, 0).setDepth(-500);
+    slot.setInteractive({ useHandCursor: true });
+    slot.on('pointerup', () => !this.isDragging() && this.events.emit('slot:tap'));
+    this.dynamic.add(slot);
+    const slotCentre = isoToScreen(BUILD_SLOT.x + 1, BUILD_SLOT.y + 1, ORIGIN);
+    this.anchors.set('build-slot', { x: slotCentre.x, y: slotCentre.y - 4 });
 
     for (const bay of s.bays) {
       const pad = isoToScreen(bay.tile.x, bay.tile.y, ORIGIN);
@@ -187,7 +294,7 @@ export class GarageScene extends Phaser.Scene {
         const coins = this.content.jobs.find((j) => j.key === bay.job!.jobKey)?.coins ?? 0;
         const tag = this.label(centre.x, top, collectLabel(coins, timely), '#ffd166');
         tag.setDepth(2000).setInteractive({ useHandCursor: true });
-        tag.on('pointerup', () => this.events.emit('bay:tap', bay.id));
+        tag.on('pointerup', () => !this.isDragging() && this.events.emit('bay:tap', bay.id));
         this.tweens.add({ targets: tag, scale: 1.08, yoyo: true, repeat: -1, duration: 450 });
         this.dynamic.add(tag);
       } else {
@@ -223,19 +330,38 @@ export class GarageScene extends Phaser.Scene {
       car.on('pointerup', () => !this.isDragging() && this.events.emit('customer:tap', q.id));
       this.dynamic.add(car);
       const selected = ui.selectedCustomerId === q.id;
-      const bubble = this.label(at.x, at.y - 44, jobName(q.need), selected ? '#ffd166' : '#ffffffee');
-      bubble.setDepth(3000);
-      const g = this.add.graphics().setDepth(3000);
+      // speech bubble with the job icon (readable at any zoom, unlike text)
+      const bx = at.x + 18;
+      const by = at.y - 62;
+      const bubble = this.add.graphics().setDepth(3000);
+      bubble.fillStyle(selected ? 0xffd166 : 0xffffff, 1).lineStyle(2.5, 0x1d1d2b, 1);
+      bubble.fillRoundedRect(bx - 22, by - 20, 44, 38, 12).strokeRoundedRect(bx - 22, by - 20, 44, 38, 12);
+      bubble.fillTriangle(bx - 14, by + 16, bx - 4, by + 16, bx - 18, by + 26);
+      bubble.lineBetween(bx - 14, by + 17, bx - 18, by + 26).lineBetween(bx - 18, by + 26, bx - 4, by + 17);
+      const icon = this.add
+        .image(bx, by - 1, `icon_${jobIcon(q.need)}`)
+        .setScale(0.62)
+        .setDepth(3001);
+      icon.setName(jobName(q.need));
+      const g = this.add.graphics().setDepth(3002);
       const update = (t: number) => {
         const patience = Math.max(0, Math.min(1, (q.patienceUntil - t) / (q.patienceUntil - q.arrivedAt)));
         g.clear();
-        g.fillStyle(0x1d1d2b, 1).fillRect(at.x - 24, at.y - 44, 48, 6);
-        g.fillStyle(patience > 0.3 ? 0x06d6a0 : 0xe63946, 1).fillRect(at.x - 23, at.y - 43, 46 * patience, 4);
+        g.fillStyle(0x1d1d2b, 1).fillRoundedRect(bx - 20, by + 22, 40, 7, 3);
+        g.fillStyle(patience > 0.3 ? 0x06d6a0 : 0xe63946, 1).fillRoundedRect(
+          bx - 19,
+          by + 23,
+          38 * patience,
+          5,
+          2,
+        );
       };
       update(now);
       this.updaters.push(update);
-      this.dynamic.add([bubble, g]);
+      this.dynamic.add([bubble, icon, g]);
       if (selected) this.tweens.add({ targets: car, y: at.y - 6, yoyo: true, repeat: -1, duration: 300 });
     });
+    // children of a Container ignore depth unless sorted explicitly
+    this.dynamic.sort('depth');
   }
 }

@@ -12,5 +12,6 @@ test('a corrupt save is backed up and the game starts fresh', async ({ page }) =
   await page.goto('/');
   await expect(page.getByTestId('coins')).toHaveText('0');
   expect(await page.evaluate(() => localStorage.getItem('gt.save.bak'))).toBe('{oops');
+  await expect(page.getByText('Não deu para ler o seu save')).toBeVisible();
   expect(errors).toEqual([]);
 });

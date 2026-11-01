@@ -1,5 +1,14 @@
 [
-  { "key": "wash", "name": "Lavagem", "bay": "wash", "durationS": 30, "coins": 5, "xp": 3, "unlockLevel": 1 },
+  {
+    "key": "wash",
+    "name": "Lavagem",
+    "bay": "wash",
+    "durationS": 30,
+    "coins": 5,
+    "xp": 3,
+    "unlockLevel": 1,
+    "icon": "wash"
+  },
   {
     "key": "oil",
     "name": "Troca de óleo",
@@ -7,7 +16,8 @@
     "durationS": 120,
     "coins": 15,
     "xp": 6,
-    "unlockLevel": 1
+    "unlockLevel": 1,
+    "icon": "oil"
   },
   {
     "key": "polish",
@@ -16,7 +26,8 @@
     "durationS": 180,
     "coins": 22,
     "xp": 8,
-    "unlockLevel": 2
+    "unlockLevel": 2,
+    "icon": "polish"
   },
   {
     "key": "tires",
@@ -25,7 +36,8 @@
     "durationS": 300,
     "coins": 35,
     "xp": 10,
-    "unlockLevel": 3
+    "unlockLevel": 3,
+    "icon": "tires"
   },
   {
     "key": "engine",
@@ -34,6 +46,7 @@
     "durationS": 3600,
     "coins": 300,
     "xp": 50,
-    "unlockLevel": 4
+    "unlockLevel": 4,
+    "icon": "engine"
   }
 ]

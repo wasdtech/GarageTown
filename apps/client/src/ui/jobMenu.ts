@@ -47,7 +47,12 @@ export function openJobMenu(
           'data-job': j.key,
           ...(locked ? { disabled: '' } : {}),
         },
-        h('strong', {}, `${j.key === customer.need ? '★ ' : ''}${j.name}`),
+        h(
+          'strong',
+          {},
+          h('img', { src: `icons/${j.icon}.svg`, alt: '', class: 'gt-job-icon' }),
+          `${j.key === customer.need ? '★ ' : ''}${j.name}`,
+        ),
         h(
           'span',
           {},
@@ -66,15 +71,28 @@ export function openJobMenu(
   sheet(root, S.chooseService, h('p', { class: 'gt-muted' }, `${S.customerWants}: ★ ${need}`), ...items);
 }
 
-/** Shows a running job; `extra` lets callers add actions (e.g. the minigame). */
-export function openBayStatus(root: HTMLElement, c: Content, bay: Bay, now: number, extra: Node[] = []) {
-  if (!bay.job) return;
+/** Shows a running job and keeps its countdown live; closes itself when the job finishes. */
+export function openBayStatus(
+  root: HTMLElement,
+  c: Content,
+  getBay: () => Bay | undefined,
+  clock: () => number,
+  extra: Node[] = [],
+) {
+  const bay = getBay();
+  if (!bay?.job) return;
   const name = c.jobs.find((j) => j.key === bay.job!.jobKey)?.name ?? bay.job.jobKey;
-  const p = jobProgress(bay.job, now);
-  sheet(
-    root,
-    name,
-    h('p', { class: 'gt-muted' }, S.remaining(fmt(Math.ceil(p.remainingMs / 1000)))),
-    ...extra,
-  );
+  const remaining = h('p', { class: 'gt-muted', 'data-testid': 'remaining' });
+  const update = () => {
+    const job = getBay()?.job;
+    if (!job || jobProgress(job, clock()).done) {
+      clearInterval(timer);
+      if (current?.contains(remaining)) closeSheet();
+      return;
+    }
+    remaining.textContent = S.remaining(fmt(Math.ceil(jobProgress(job, clock()).remainingMs / 1000)));
+  };
+  const timer = setInterval(update, 500);
+  sheet(root, name, remaining, ...extra);
+  update();
 }

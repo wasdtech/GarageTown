@@ -1,6 +1,6 @@
 :root {
   --gt-ink: #1d1d2b;
-  --gt-bg: #2b2d42;
+  --gt-bg: #86c96b;
   --gt-panel: #fffaf0;
   --gt-accent: #ffd166;
   --gt-good: #06d6a0;
@@ -264,4 +264,32 @@ body {
     radial-gradient(closest-side, var(--gt-panel) 72%, transparent 73%),
     conic-gradient(var(--gt-good) calc(var(--p) * 100%), #e9e4d8 0);
   border: 3px solid var(--gt-ink);
+}
+
+.gt-job strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gt-job-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Zoom buttons */
+.gt-zoom {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right, 0px));
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gt-zoom .gt-btn {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  background: var(--gt-panel);
 }

@@ -1,5 +1,5 @@
 import type { Content } from '@gt/shared';
-import { isMinigameEligible, jobProgress, maxLevel, type Reward } from '@gt/sim';
+import { isMinigameEligible, jobProgress, maxLevel, minigameUsesLeft, type Reward } from '@gt/sim';
 import type { GarageScene } from './scenes/GarageScene';
 import type { Store } from './state/store';
 import { h } from './ui/dom';
@@ -21,6 +21,9 @@ export interface ControllerDeps {
 /** Translates scene taps and menu picks into store actions and feedback. */
 export function createController(d: ControllerDeps) {
   let selected: string | null = null;
+  // ignore taps on a bay right after collecting it, so a double tap doesn't land on the empty pad
+  const COLLECT_GUARD_MS = 500;
+  const collectedAt = new Map<string, number>();
 
   const render = () => {
     if (selected && !d.store.state.queue.some((q) => q.id === selected)) selected = null;
@@ -50,7 +53,10 @@ export function createController(d: ControllerDeps) {
     render();
   });
 
+  d.scene.events.on('slot:tap', () => d.toast(S.comingSoonBay));
+
   d.scene.events.on('bay:tap', (bayId: string) => {
+    if (performance.now() - (collectedAt.get(bayId) ?? -Infinity) < COLLECT_GUARD_MS) return;
     const s = d.store.state;
     const bay = s.bays.find((b) => b.id === bayId);
     if (!bay) return;
@@ -58,13 +64,14 @@ export function createController(d: ControllerDeps) {
     if (bay.job) {
       if (jobProgress(bay.job, now).done) {
         const r = d.store.collect(bayId);
+        if (r.ok) collectedAt.set(bayId, performance.now());
         if (r.ok) celebrate(r.value);
         else d.toast(errorText(r.error), 'bad');
         return;
       }
       const job = bay.job;
       const extra =
-        d.openMinigame && isMinigameEligible(d.content, job)
+        d.openMinigame && isMinigameEligible(d.content, job) && minigameUsesLeft(s, now) > 0
           ? [
               h(
                 'button',
@@ -77,7 +84,7 @@ export function createController(d: ControllerDeps) {
               ),
             ]
           : [];
-      openBayStatus(d.ui, d.content, bay, now, extra);
+      openBayStatus(d.ui, d.content, () => d.store.state.bays.find((b) => b.id === bayId), d.clock, extra);
       return;
     }
     const customer = s.queue.find((q) => q.id === selected);
