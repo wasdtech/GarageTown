@@ -17,7 +17,7 @@ const save = {
       job: {
         jobKey: 'wash',
         customerId: 'c1',
-        carKey: 'vespa_gt',
+        carKey: 'pitoco',
         need: 'wash',
         startedAt: now - 12_000,
         durationS: 30,
@@ -37,7 +37,7 @@ const save = {
       },
     },
   ],
-  queue: ['kumo_86', 'brutus_v8', 'vespa_gt'].map((carKey, i) => ({
+  queue: ['corisco_rs', 'brutus_v8', 'pitoco'].map((carKey, i) => ({
     id: `q${i}`,
     carKey,
     need: i === 1 ? 'oil' : 'wash',

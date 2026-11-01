@@ -1,5 +1,17 @@
 [
-  { "key": "vespa_gt", "name": "Vespa GT", "sprite": "vespa_gt" },
-  { "key": "brutus_v8", "name": "Brutus V8", "sprite": "brutus_v8" },
-  { "key": "kumo_86", "name": "Kumo 86", "sprite": "kumo_86" }
+  {
+    "key": "pitoco",
+    "name": "Pitoco",
+    "sprite": "pitoco"
+  },
+  {
+    "key": "brutus_v8",
+    "name": "Brutus V8",
+    "sprite": "brutus_v8"
+  },
+  {
+    "key": "corisco_rs",
+    "name": "Corisco RS",
+    "sprite": "corisco_rs"
+  }
 ]

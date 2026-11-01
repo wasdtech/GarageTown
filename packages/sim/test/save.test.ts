@@ -45,7 +45,7 @@ describe('save', () => {
       nextCustomerAt: T0 + 20_000,
       queue: [1, 2, 3].map((i) => ({
         id: `old${i}`,
-        carKey: 'kumo_86',
+        carKey: 'corisco_rs',
         need: 'oil',
         arrivedAt: T0,
         patienceUntil: T0 + 120_000,
@@ -70,5 +70,18 @@ describe('save written with a wrong (future) clock', () => {
     expect(after.lastTickAt).toBe(T0 + 60_000);
     expect(after.queue.length).toBeGreaterThanOrEqual(2);
     for (const q of after.queue) expect(q.patienceUntil).toBeGreaterThan(T0 + 60_000);
+  });
+});
+
+describe('renamed cars', () => {
+  it('migrates old car keys in saves instead of resetting the game', () => {
+    const s = { ...withCustomer('wash'), coins: 77 };
+    const old = JSON.parse(serialize(s));
+    old.queue[0].carKey = 'vespa_gt';
+    old.queue.push({ ...old.queue[0], id: 'cz', carKey: 'kumo_86' });
+    const r = deserialize(c, JSON.stringify(old), T0, 1);
+    expect(r.recovered).toBe('ok');
+    expect(r.state.coins).toBe(77);
+    expect(r.state.queue.map((q) => q.carKey)).toEqual(['pitoco', 'corisco_rs']);
   });
 });

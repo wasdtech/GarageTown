@@ -11,7 +11,7 @@ function setup() {
   const base = createInitialState(c, T0, 1);
   const initial: GameState = {
     ...base,
-    queue: [{ id: 'cx', carKey: 'vespa_gt', need: 'wash', arrivedAt: T0, patienceUntil: T0 + 1e12 }],
+    queue: [{ id: 'cx', carKey: 'pitoco', need: 'wash', arrivedAt: T0, patienceUntil: T0 + 1e12 }],
     nextCustomerAt: Number.MAX_SAFE_INTEGER,
   };
   const persist = vi.fn();

@@ -40,6 +40,19 @@ const GameStateSchema = z.object({
   nextId: int.positive(),
 });
 
+/** Old car keys from earlier builds, mapped to their current keys so saves keep loading. */
+const CAR_KEY_ALIASES: Record<string, string> = { vespa_gt: 'pitoco', kumo_86: 'corisco_rs' };
+
+function migrateCarKeys(data: unknown): void {
+  if (typeof data !== 'object' || data === null) return;
+  const d = data as { queue?: { carKey?: string }[]; bays?: { job?: { carKey?: string } | null }[] };
+  const fix = (o?: { carKey?: string } | null) => {
+    if (o?.carKey && CAR_KEY_ALIASES[o.carKey]) o.carKey = CAR_KEY_ALIASES[o.carKey];
+  };
+  if (Array.isArray(d.queue)) d.queue.forEach(fix);
+  if (Array.isArray(d.bays)) d.bays.forEach((b) => fix(b?.job));
+}
+
 export type Recovered = 'ok' | 'missing' | 'corrupt' | 'unknown_version';
 
 export function serialize(s: GameState): string {
@@ -64,6 +77,7 @@ export function deserialize(
   if (typeof data === 'object' && data !== null && 'version' in data && data.version !== 1) {
     return fresh('unknown_version');
   }
+  migrateCarKeys(data);
   const parsed = GameStateSchema.safeParse(data);
   if (!parsed.success) return fresh('corrupt');
   const s = parsed.data as GameState;

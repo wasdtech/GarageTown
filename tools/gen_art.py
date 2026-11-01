@@ -53,9 +53,9 @@ TAIL = '#e63946'
 
 CARS = {
     # length, width, chassis h, cabin (x0, x1, h), extras
-    'vespa_gt': dict(L=56, Wd=30, h=11, cab=(8, 46, 14), wheel=6, extras=[]),
+    'pitoco': dict(L=56, Wd=30, h=11, cab=(8, 46, 14), wheel=6, extras=[]),
     'brutus_v8': dict(L=78, Wd=32, h=12, cab=(10, 46, 10), wheel=7, extras=[('scoop', (52, 11, 11, 64, 21, 14))]),
-    'kumo_86': dict(L=72, Wd=30, h=9, cab=(16, 54, 9), wheel=6, extras=[('spoiler', (0, 2, 13, 6, 28, 15))]),
+    'corisco_rs': dict(L=72, Wd=30, h=9, cab=(16, 54, 9), wheel=6, extras=[('spoiler', (0, 2, 13, 6, 28, 15))]),
 }
 
 
