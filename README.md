@@ -11,4 +11,10 @@ pnpm test       # testes unitários (Vitest)
 pnpm typecheck
 pnpm lint
 pnpm build
+pnpm build --mode test && pnpm e2e   # testes end-to-end (Playwright)
 ```
+
+## Playtest
+
+- Preview: _(adicionar o link do Cloudflare Pages aqui)_
+- Roteiro: `docs/playtest-m0.md`
