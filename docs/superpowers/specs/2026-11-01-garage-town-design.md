@@ -141,7 +141,7 @@ tools/                  simulador de economia, build de atlas
 
 ### 2.2 Carros e customização
 - **Base de carros:**
-  - ~15 carros-base fictícios no lançamento (ex.: *Vespa GT*, *Brutus V8*, *Kumo 86*).
+  - ~15 carros-base fictícios no lançamento (ex.: *Pitoco*, *Brutus V8*, *Corisco RS*). Nomes e formas não podem ser modelos reais com nome trocado.
   - Classes: Popular, Clássico, Esportivo, Muscle e Exótico.
   - Raridades: Comum, Incomum, Raro e Lendário.
 - **Visual por camadas:**
@@ -273,11 +273,12 @@ tools/                  simulador de economia, build de atlas
 | Marco | Conteúdo | Saída |
 |---|---|---|
 | **M0** Protótipo local | Oficina isométrica 8×8, 2 boxes, 5 serviços, fila de clientes, 🪙 e XP, níveis 1–5, minijogo de lavagem, save local | Validar a diversão do loop curto |
-| **M1** Online | Login de convidado, servidor como autoridade, conteúdo em JSON, customização em camadas com 5 carros, níveis 1–15, posicionamento de objetos | Jogo persistente e seguro |
-| **M2** Social | Amigos, visitar e ajudar, contratar, comboio, concurso semanal, Dona Cida, rankings | Loop social completo |
+| **M0.1** Ajuste visual | Balões de pedido com ícone, bairro diurno em volta do lote murado, vaga "construir box aqui", botões de zoom, correções pequenas da revisão do M0, carros renomeados | Leitura clara no celular e sensação de lugar |
+| **M1** Online | Login de convidado, servidor como autoridade, conteúdo em JSON, customização em abas (pintura, rodas, pneus, kit, performance, suspensão) com **classe + índice de performance**, 5 carros, níveis 1–15, **editor da oficina (piso e decoração) com inventário** | Jogo persistente e seguro |
+| **M2** Social | Amigos, visitar e ajudar, contratar, comboio, concurso semanal, Dona Cida, rankings, **carros de amigos como clientes (rosto e nome)**, **missões e avaliação da garagem**, **coleções na concessionária** | Loop social completo |
 | **M3** Beta fechado | Loja cosmética (Stripe em modo de teste), telemetria, PT-BR e EN, achados de celeiro, ~50 testers | D1 ≥ 35% e D7 ≥ 12% |
 | **v1.0** | Lançamento público na web, Stripe em produção, nome final aprovado | Público |
-| **v1.1** | Arrancada com timing, Passe da Temporada, push, app via Capacitor | Expansão |
+| **v1.1** | Arrancada com timing e **metas Bronze/Prata/Ouro por pista**, **roleta diária grátis com timing**, Passe da Temporada, push, app via Capacitor | Expansão |
 
 ---
 
@@ -295,7 +296,26 @@ tools/                  simulador de economia, build de atlas
   - O cliente envia só a sequência de entradas com timestamps relativos.
   - O servidor refaz a corrida com `packages/sim` e grava o fantasma.
 
-## 8. Ajustes futuros (lista aberta)
+## 8. Lições da referência de gênero (2026-11-01)
+Fonte: prints de um remake de fãs de um jogo social de garagem dos anos 2010, enviados pelo dono. O que vale é a **ideia de gênero**; arte, ícones, layout e nomes não são copiados.
+
+| Observado | Decisão |
+|---|---|
+| Pedido do cliente como **ícone** num balão | Adotar no M0.1 |
+| Garagem como **lugar**: lote murado num quarteirão com ruas, grama, vizinhos, outdoor de ranking, loja de peças como prédio | Adotar no M0.1 (bairro) e M1 (loja como prédio tocável) |
+| Vaga vazia listrada indicando onde construir | Adotar no M0.1 |
+| Clientes são **carros de amigos**, com foto e nome | Adotar no M2 |
+| Decorações que **geram moedas** (brinquedos de moeda) | Avaliar no M1, com limite e manutenção para não quebrar a economia |
+| Customização em **abas**, **classe + índice de performance** | Adotar no M1 |
+| Concessionária com **coleções** e XP pela compra | Coleções no M2; XP por compra a avaliar no balanceamento |
+| Editor da garagem: **piso e decoração** baratos, **inventário**, "resetar" e "concluir" | Adotar no M1 (melhor forma de gastar moedas) |
+| Arrancada com **três metas de tempo por pista** e barra de timing | Adotar na v1.1 (Bronze/Prata/Ouro) |
+| Nível como **velocímetro/conta-giros** | Adotar com desenho próprio (M1) |
+| **Energia/combustível** que limita ações | **Recusar**: frustra e empurra para pagamento; o ritmo já vem dos timers |
+| Carro comprável por **moeda premium**, **caixa misteriosa paga** | **Recusar**: pay-to-win e caixa de recompensa aleatória paga (§5) |
+| Carros reais com nome levemente trocado, marcas licenciadas na tela de carregamento | **Recusar**: risco de marca; tudo original |
+
+## 9. Ajustes futuros (lista aberta)
 - Balanceamento contínuo, guiado pela telemetria.
 - Mais minijogos (pintura, alinhamento, troca de pneu cronometrada).
 - Nome final, com checagem de marca e domínio.
