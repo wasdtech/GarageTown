@@ -1,0 +1,9 @@
+node_modules
+dist
+*.tsbuildinfo
+*.d.ts
+!**/src/**/*.d.ts
+test-results
+playwright-report
+.superpowers
+.tsbuild-tools

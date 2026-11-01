@@ -1,0 +1,8 @@
+dist
+pnpm-lock.yaml
+.superpowers
+docs
+*.svg
+test-results
+playwright-report
+.tsbuild-tools
