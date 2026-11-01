@@ -21,12 +21,27 @@ export async function open(page: Page) {
 
 export async function advance(page: Page, ms: number) {
   await page.evaluate((m) => window.__gt.clock.advance(m), ms);
+  await nextFrames(page);
 }
 
 export async function tapAnchor(page: Page, id: string) {
   const p = await page.evaluate((i) => window.__gt.scene.screenOf(i), id);
   expect(p, `anchor ${id}`).not.toBeNull();
   await page.mouse.click(p!.x, p!.y);
+  await nextFrames(page);
+}
+
+/** Phaser handles input and makes newly created objects tappable on later frames; wait a few. */
+export async function nextFrames(page: Page, n = 3) {
+  await page.evaluate(
+    (count) =>
+      new Promise<void>((resolve) => {
+        let left = count;
+        const step = () => (--left <= 0 ? resolve() : requestAnimationFrame(step));
+        requestAnimationFrame(step);
+      }),
+    n,
+  );
 }
 
 export async function firstCustomer(page: Page): Promise<string> {
