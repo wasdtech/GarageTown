@@ -223,3 +223,43 @@ body {
   font-size: 18px;
   box-shadow: var(--gt-shadow);
 }
+
+/* Scrub minigame */
+.gt-scrub .gt-sheet {
+  align-items: center;
+  touch-action: none;
+}
+.gt-scrub-car {
+  position: relative;
+  width: min(320px, 80vw);
+  aspect-ratio: 320 / 200;
+}
+.gt-scrub-car img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.gt-dirt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+.gt-ring {
+  --p: 0;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-weight: 800;
+  background:
+    radial-gradient(closest-side, var(--gt-panel) 72%, transparent 73%),
+    conic-gradient(var(--gt-good) calc(var(--p) * 100%), #e9e4d8 0);
+  border: 3px solid var(--gt-ink);
+}

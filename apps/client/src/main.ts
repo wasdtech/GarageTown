@@ -1,6 +1,7 @@
 import { loadContent } from '@gt/shared';
 import Phaser from 'phaser';
 import { createController } from './controller';
+import { openScrubMinigame } from './minigames/scrub';
 import { GarageScene } from './scenes/GarageScene';
 import { loadGame, saveGame } from './state/storage';
 import { Store } from './state/store';
@@ -20,7 +21,19 @@ updateHud(store.state);
 
 const scene = new GarageScene();
 scene.onReady = () => {
-  const { render } = createController({ content, store, scene, ui, clock, toast });
+  const { render } = createController({
+    content,
+    store,
+    scene,
+    ui,
+    clock,
+    toast,
+    openMinigame: (carKey) =>
+      new Promise((resolve) => {
+        const sprite = content.cars.find((c) => c.key === carKey)?.sprite ?? content.cars[0]!.sprite;
+        openScrubMinigame(ui, sprite, resolve, () => resolve(null));
+      }),
+  });
   render();
   setInterval(() => store.tick(), 1000);
 };
