@@ -31,7 +31,7 @@ describe('save', () => {
   it('flags structurally invalid saves as corrupt', () => {
     const good = JSON.parse(serialize(createInitialState(c, T0, 1)));
     expect(deserialize(c, JSON.stringify({ ...good, coins: -5 }), T0, 1).recovered).toBe('corrupt');
-    const { bays: _bays, ...noBays } = good;
+    const noBays = { ...good, bays: undefined };
     expect(deserialize(c, JSON.stringify(noBays), T0, 1).recovered).toBe('corrupt');
     const s = deserialize(c, JSON.stringify({ ...good, coins: -5 }), T0, 1).state;
     expect(s).toEqual(createInitialState(c, T0, 1));
