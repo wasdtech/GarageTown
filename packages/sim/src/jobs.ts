@@ -2,7 +2,7 @@ import type { Content, JobKey } from '@gt/shared';
 import { tick } from './customers';
 import { levelForXp } from './levels';
 import { err, ok, type Result } from './result';
-import type { ActiveJob, GameState } from './state';
+import { type ActiveJob, type GameState, VIP_COIN_MULTIPLIER } from './state';
 
 export interface Reward {
   coins: number;
@@ -46,6 +46,7 @@ export function startJob(
     need: customer.need,
     startedAt: now,
     durationS: def.durationS,
+    ...(customer.vip ? { vip: true } : {}),
   };
   return ok({
     ...s,
@@ -72,14 +73,15 @@ export function computeReward(
   opts: { minigameBonus: number },
 ): Reward {
   const def = c.jobs.find((j) => j.key === job.jobKey)!;
+  const base = def.coins * (job.vip ? VIP_COIN_MULTIPLIER : 1);
   const matched = job.need === job.jobKey;
-  const tip = matched ? Math.floor(def.coins * TIP_RATE) : 0;
+  const tip = matched ? Math.floor(base * TIP_RATE) : 0;
   const doneAt = job.startedAt + job.durationS * 1000;
   const timelyBonus =
-    opts.minigameBonus === 0 && now <= doneAt + TIMELY_WINDOW_MS ? Math.floor(def.coins * TIMELY_BONUS) : 0;
-  const minigame = Math.floor(def.coins * opts.minigameBonus);
+    opts.minigameBonus === 0 && now <= doneAt + TIMELY_WINDOW_MS ? Math.floor(base * TIMELY_BONUS) : 0;
+  const minigame = Math.floor(base * opts.minigameBonus);
   return {
-    coins: def.coins + tip + timelyBonus + minigame,
+    coins: base + tip + timelyBonus + minigame,
     xp: def.xp,
     tip,
     timelyBonus,

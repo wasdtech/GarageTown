@@ -13,6 +13,7 @@ const ActiveJobSchema = z.object({
   need: z.string(),
   startedAt: int,
   durationS: int.positive(),
+  vip: z.boolean().optional(),
 });
 
 const GameStateSchema = z.object({
@@ -31,7 +32,14 @@ const GameStateSchema = z.object({
     )
     .min(1),
   queue: z.array(
-    z.object({ id: z.string(), carKey: z.string(), need: z.string(), arrivedAt: int, patienceUntil: int }),
+    z.object({
+      id: z.string(),
+      carKey: z.string(),
+      need: z.string(),
+      arrivedAt: int,
+      patienceUntil: int,
+      vip: z.boolean().optional(),
+    }),
   ),
   nextCustomerAt: int,
   lastTickAt: int,

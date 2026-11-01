@@ -15,6 +15,7 @@ const CAR_FOOT_Y = 0.74;
 const CAR_TEXTURE_SCALE = 0.5;
 // Phaser skips input on objects that won't render (alpha 0), so in-flight cars stay barely visible.
 const IN_FLIGHT_ALPHA = 0.01;
+const VIP_GOLD = 0xe9b949;
 const ORIGIN: Point = { x: 0, y: 0 };
 const GRASS = '#86c96b';
 const CROSS_STREET_COL = 9; // the side street along the lot's right edge
@@ -237,7 +238,7 @@ export class GarageScene extends Phaser.Scene {
     };
   }
 
-  private car(id: string, carKey: string, at: Point, scale: number) {
+  private car(id: string, carKey: string, at: Point, scale: number, vip = false) {
     const def = this.content.cars.find((c) => c.key === carKey) ?? this.content.cars[0]!;
     const c = this.add.container(at.x, at.y);
     for (const layer of ['shadow', 'body', 'details']) {
@@ -245,7 +246,7 @@ export class GarageScene extends Phaser.Scene {
         .image(0, 0, `${def.sprite}_${layer}`)
         .setOrigin(0.5, CAR_FOOT_Y)
         .setScale(scale * CAR_TEXTURE_SCALE);
-      if (layer === 'body') img.setTint(paintFor(id));
+      if (layer === 'body') img.setTint(vip ? VIP_GOLD : paintFor(id));
       c.add(img);
     }
     return c;
@@ -340,7 +341,7 @@ export class GarageScene extends Phaser.Scene {
         if (ui.selectedCustomerId) this.dynamic.add(this.label(centre.x, centre.y - 6, 'Livre', '#caffbf'));
         continue;
       }
-      const car = this.car(bay.job.customerId, bay.job.carKey, centre, 1);
+      const car = this.car(bay.job.customerId, bay.job.carKey, centre, 1, bay.job.vip);
       this.carSprites.set(bay.job.customerId, car);
       car.setDepth(depthOf(bay.tile.x + 1, bay.tile.y + 1));
       car.setSize(128, 80).setInteractive({ useHandCursor: true });
@@ -385,7 +386,7 @@ export class GarageScene extends Phaser.Scene {
 
     s.queue.forEach((q, i) => {
       const at = isoToScreen(QUEUE_START + i * QUEUE_STEP + 0.5, STREET_ROW + 0.5, ORIGIN);
-      const car = this.car(q.id, q.carKey, at, 0.75);
+      const car = this.car(q.id, q.carKey, at, 0.75, q.vip);
       this.carSprites.set(q.id, car);
       this.anchors.set(q.id, { x: at.x, y: at.y - 12 });
       car.setDepth(depthOf(QUEUE_START + i * QUEUE_STEP, STREET_ROW) + 100);
@@ -397,7 +398,9 @@ export class GarageScene extends Phaser.Scene {
       const bx = at.x + 18;
       const by = at.y - 62;
       const bubble = this.add.graphics().setDepth(3000);
-      bubble.fillStyle(selected ? 0xffd166 : 0xffffff, 1).lineStyle(2.5, 0x1d1d2b, 1);
+      bubble
+        .fillStyle(selected ? 0xffd166 : q.vip ? 0xfff1c1 : 0xffffff, 1)
+        .lineStyle(q.vip ? 3.5 : 2.5, 0x1d1d2b, 1);
       bubble.fillRoundedRect(bx - 22, by - 20, 44, 38, 12).strokeRoundedRect(bx - 22, by - 20, 44, 38, 12);
       bubble.fillTriangle(bx - 14, by + 16, bx - 4, by + 16, bx - 18, by + 26);
       bubble.lineBetween(bx - 14, by + 17, bx - 18, by + 26).lineBetween(bx - 18, by + 26, bx - 4, by + 17);
@@ -422,6 +425,13 @@ export class GarageScene extends Phaser.Scene {
       update(now);
       this.updaters.push(update);
       this.dynamic.add([bubble, icon, g]);
+      if (q.vip)
+        this.dynamic.add(
+          this.add
+            .text(bx + 16, by - 28, '👑', { fontSize: '18px' })
+            .setOrigin(0.5)
+            .setDepth(3003),
+        );
       if (selected)
         this.dynamicTweens.push(
           this.tweens.add({ targets: car, y: at.y - 6, yoyo: true, repeat: -1, duration: 300 }),

@@ -7,6 +7,7 @@ export interface ActiveJob {
   need: JobKey;
   startedAt: number;
   durationS: number;
+  vip?: boolean;
 }
 
 export interface Bay {
@@ -22,6 +23,8 @@ export interface Customer {
   need: JobKey;
   arrivedAt: number;
   patienceUntil: number;
+  /** VIP customers pay double and ask for higher-level jobs. */
+  vip?: boolean;
 }
 
 /** A bay under construction in a garage slot. */
@@ -51,6 +54,11 @@ export interface GameState {
 export const QUEUE_MAX = 6;
 export const ARRIVAL_MS = 20_000;
 export const PATIENCE_MS = 120_000;
+export const VIP_PATIENCE_MS = 240_000;
+export const VIP_MIN_REPUTATION = 10;
+export const VIP_CHANCE = 0.1;
+export const VIP_MIN_JOB_LEVEL = 4;
+export const VIP_COIN_MULTIPLIER = 2;
 
 /** mulberry32: returns a value in [0,1) and the next state. */
 export function nextRandom(s: number): [value: number, nextState: number] {
