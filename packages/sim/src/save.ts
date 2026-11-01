@@ -16,7 +16,7 @@ const ActiveJobSchema = z.object({
 });
 
 const GameStateSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   coins: nonneg,
   xp: nonneg,
   reputation: nonneg,
@@ -38,6 +38,9 @@ const GameStateSchema = z.object({
   minigameUses: z.array(int),
   rngState: nonneg,
   nextId: int.positive(),
+  builds: z.array(
+    z.object({ slot: int.positive(), type: BayTypeSchema, startedAt: int, durationS: int.positive() }),
+  ),
 });
 
 /** Old car keys from earlier builds, mapped to their current keys so saves keep loading. */
@@ -74,8 +77,15 @@ export function deserialize(
   } catch {
     return fresh('corrupt');
   }
-  if (typeof data === 'object' && data !== null && 'version' in data && data.version !== 1) {
-    return fresh('unknown_version');
+  if (typeof data === 'object' && data !== null && 'version' in data) {
+    const d = data as { version: unknown; builds?: unknown };
+    if (d.version === 1) {
+      // v1 -> v2: construction queue added
+      d.version = 2;
+      d.builds = [];
+    } else if (d.version !== 2) {
+      return fresh('unknown_version');
+    }
   }
   migrateCarKeys(data);
   const parsed = GameStateSchema.safeParse(data);

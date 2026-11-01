@@ -1,4 +1,5 @@
 import type { Content } from '@gt/shared';
+import { completeBuilds } from './build';
 import { levelForXp, unlockedJobs } from './levels';
 import { ARRIVAL_MS, type Customer, type GameState, nextRandom, PATIENCE_MS, QUEUE_MAX } from './state';
 
@@ -12,6 +13,7 @@ export function rebase(s: GameState, gapMs: number): GameState {
     lastTickAt: s.lastTickAt - gapMs,
     nextCustomerAt: s.nextCustomerAt - gapMs,
     minigameUses: s.minigameUses.map((t) => t - gapMs),
+    builds: s.builds.map((b) => ({ ...b, startedAt: b.startedAt - gapMs })),
     queue: s.queue.map((q) => ({
       ...q,
       arrivedAt: q.arrivedAt - gapMs,
@@ -53,5 +55,5 @@ export function tick(c: Content, state: GameState, now: number): GameState {
     nextCustomerAt += pending * ARRIVAL_MS;
   }
 
-  return { ...s, queue, rngState, nextId, nextCustomerAt, lastTickAt: now };
+  return completeBuilds(c, { ...s, queue, rngState, nextId, nextCustomerAt, lastTickAt: now }, now);
 }

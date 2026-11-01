@@ -24,8 +24,16 @@ export interface Customer {
   patienceUntil: number;
 }
 
+/** A bay under construction in a garage slot. */
+export interface Build {
+  slot: number;
+  type: BayType;
+  startedAt: number;
+  durationS: number;
+}
+
 export interface GameState {
-  version: 1;
+  version: 2;
   coins: number;
   xp: number;
   reputation: number;
@@ -37,6 +45,7 @@ export interface GameState {
   minigameUses: number[];
   rngState: number;
   nextId: number;
+  builds: Build[];
 }
 
 export const QUEUE_MAX = 6;
@@ -51,21 +60,28 @@ export function nextRandom(s: number): [value: number, nextState: number] {
   return [((r ^ (r >>> 14)) >>> 0) / 4294967296, t >>> 0];
 }
 
-export function createInitialState(_c: Content, now: number, seed: number): GameState {
+export const bayId = (slot: number) => `bay${slot}`;
+
+export function createInitialState(c: Content, now: number, seed: number): GameState {
   return {
-    version: 1,
+    version: 2,
     coins: 0,
     xp: 0,
     reputation: 0,
-    bays: [
-      { id: 'bay1', type: 'wash', tile: { x: 2, y: 3 }, job: null },
-      { id: 'bay2', type: 'mechanic', tile: { x: 5, y: 3 }, job: null },
-    ],
+    bays: c.garage.bays
+      .filter((b) => b.prebuilt)
+      .map((b) => ({
+        id: bayId(b.slot),
+        type: b.prebuilt!,
+        tile: { x: b.tile[0], y: b.tile[1] },
+        job: null,
+      })),
     queue: [],
     nextCustomerAt: now + ARRIVAL_MS,
     lastTickAt: now,
     minigameUses: [],
     rngState: seed >>> 0,
     nextId: 1,
+    builds: [],
   };
 }
