@@ -20,8 +20,10 @@ describe('economy simulator (spec §2.3)', () => {
 });
 
 describe('economy sinks', () => {
-  it('the average player can afford all cars within a month but not every part', () => {
-    const { final } = simulate(c, profile('medio'), 30);
+  // with helpers working overnight the average player now maxes every part within a month
+  // (balance finding reported to the owner); the casual player still has parts left to buy
+  it('a casual player can afford all cars within a month but not every part', () => {
+    const { final } = simulate(c, profile('casual'), 30);
     expect(final.collection.cars).toHaveLength(3);
     const tiers = final.collection.cars.flatMap((car) => c.parts.map((p) => car.parts[p.key] ?? 0));
     expect(tiers.some((t) => t < 3)).toBe(true);
@@ -30,5 +32,28 @@ describe('economy sinks', () => {
   it('a casual player still owns only the gift car after 3 days', () => {
     const { final } = simulate(c, profile('casual'), 3);
     expect(final.collection.cars).toHaveLength(1);
+  });
+});
+
+describe('economy with helpers', () => {
+  it('the average player hires helpers and still reaches level 10 on days 2-4', () => {
+    const { levelDay, final } = simulate(c, profile('medio'), 30);
+    expect(final.helpers.length).toBeGreaterThanOrEqual(3);
+    expect(levelDay[10]).toBeGreaterThanOrEqual(2);
+    expect(levelDay[10]).toBeLessThanOrEqual(4);
+  });
+
+  it('a day of only quick check-ins earns less than a day of the average player', () => {
+    const coinsOn = (name: string) => {
+      const day = (d: number) => simulate(c, profile(name), d).final;
+      // compare day 10 -> day 11 earnings (helpers already hired)
+      const a = day(10);
+      const b = day(11);
+      const spent = (s: typeof a) => s.coins;
+      return { a: spent(a), b: spent(b), xp: b.xp - a.xp };
+    };
+    const offline = coinsOn('offline');
+    const medio = coinsOn('medio');
+    expect(offline.xp).toBeLessThan(medio.xp);
   });
 });

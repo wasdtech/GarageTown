@@ -1,6 +1,7 @@
 import type { BayType, Content } from '@gt/shared';
 import { startBuild } from './build';
 import { buyCar, buyPart } from './cars';
+import { assignHelper, buyClock, hireHelper, trainHelper } from './helpers';
 import { tick } from './customers';
 import { collectJob, jobProgress, startJob } from './jobs';
 import { levelForXp, unlockedJobs } from './levels';
@@ -17,6 +18,7 @@ export const PROFILES: Profile[] = [
   { name: 'casual', sessionsPerDay: 3, sessionS: 240 },
   { name: 'medio', sessionsPerDay: 6, sessionS: 300 },
   { name: 'intenso', sessionsPerDay: 12, sessionS: 420 },
+  { name: 'offline', sessionsPerDay: 2, sessionS: 120 },
 ];
 
 const DAY_MS = 86_400_000;
@@ -50,6 +52,19 @@ function serve(c: Content, s: GameState, now: number, leaving: boolean): GameSta
 
 /** Spends coins like a collector: unlock the next car, then upgrade parts on every car. */
 function shop(c: Content, s: GameState, now: number): GameState {
+  // helpers first: hire as soon as possible and put each on a bay without a helper (wash first)
+  for (const h of c.helpers) {
+    const r = hireHelper(c, s, h.key, now);
+    if (r.ok) s = r.value;
+  }
+  for (const h of s.helpers.filter((x) => !x.bayId)) {
+    const free = [...s.bays]
+      .sort((a) => (a.type === 'wash' ? -1 : 1))
+      .find((b) => !s.helpers.some((x) => x.bayId === b.id));
+    if (!free) break;
+    const r = assignHelper(s, h.key, free.id, now);
+    if (r.ok) s = r.value;
+  }
   for (const m of c.cars) {
     const r = buyCar(c, s, m.key, now);
     if (r.ok) s = r.value;
@@ -59,6 +74,12 @@ function shop(c: Content, s: GameState, now: number): GameState {
       const r = buyPart(c, s, { carId: car.id, part: p.key }, now);
       if (r.ok) s = r.value;
     }
+  }
+  const clock = buyClock(c, s, now);
+  if (clock.ok) s = clock.value;
+  for (const h of s.helpers) {
+    const r = trainHelper(c, s, h.key, now);
+    if (r.ok) s = r.value;
   }
   return s;
 }
