@@ -2,7 +2,7 @@ import type { Content } from '@gt/shared';
 import { tick } from './customers';
 import { applyReward, computeReward, type Reward } from './jobs';
 import { err, ok, type Result } from './result';
-import type { ActiveJob, GameState } from './state';
+import { type ActiveJob, type GameState, touch } from './state';
 
 export type MinigameError =
   'empty_bay' | 'not_eligible' | 'gesture_too_short' | 'rate_limited' | 'unknown_bay';
@@ -40,5 +40,8 @@ export function completeWithMinigame(
   const recent = s.minigameUses.filter((t) => t > now - HOUR_MS);
 
   const reward = computeReward(c, s, bay.job, now, { minigameBonus: MINIGAME_BONUS });
-  return ok({ state: { ...applyReward(s, bayId, reward), minigameUses: [...recent, now] }, reward });
+  return ok({
+    state: touch({ ...applyReward(s, bayId, reward), minigameUses: [...recent, now] }, now),
+    reward,
+  });
 }

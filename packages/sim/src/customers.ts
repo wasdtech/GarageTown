@@ -22,6 +22,7 @@ export function rebase(s: GameState, gapMs: number): GameState {
   return {
     ...s,
     lastTickAt: s.lastTickAt - gapMs,
+    lastActiveAt: s.lastActiveAt - gapMs,
     nextCustomerAt: s.nextCustomerAt - gapMs,
     minigameUses: s.minigameUses.map((t) => t - gapMs),
     builds: s.builds.map((b) => ({ ...b, startedAt: b.startedAt - gapMs })),

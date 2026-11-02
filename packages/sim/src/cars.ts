@@ -1,7 +1,7 @@
 import type { Content } from '@gt/shared';
 import { levelForXp } from './levels';
 import { err, ok, type Result } from './result';
-import { type CarLook, carId, type Collection, type GameState, type OwnedCar } from './state';
+import { type CarLook, carId, type Collection, type GameState, type OwnedCar, touch } from './state';
 
 export type CarClass = 'D' | 'C' | 'B' | 'A' | 'S';
 export interface CarStats {
@@ -55,12 +55,7 @@ function withCar(
 
 export type BuyCarError = 'unknown_model' | 'locked' | 'no_coins' | 'owned';
 
-export function buyCar(
-  c: Content,
-  s: GameState,
-  model: string,
-  _now: number,
-): Result<GameState, BuyCarError> {
+export function buyCar(c: Content, s: GameState, model: string, now: number): Result<GameState, BuyCarError> {
   const def = c.cars.find((m) => m.key === model);
   if (!def) return err('unknown_model');
   if (s.collection.cars.some((x) => x.model === model)) return err('owned');
@@ -72,11 +67,16 @@ export function buyCar(
     look: { paint: c.looks.paints[0]!.key, finish: c.looks.finishes[0]!.key, neon: false, sticker: null },
     parts: {},
   };
-  return ok({
-    ...s,
-    coins: s.coins - def.price,
-    collection: { ...s.collection, cars: [...s.collection.cars, car], activeCarId: car.id },
-  });
+  return ok(
+    touch(
+      {
+        ...s,
+        coins: s.coins - def.price,
+        collection: { ...s.collection, cars: [...s.collection.cars, car], activeCarId: car.id },
+      },
+      now,
+    ),
+  );
 }
 
 export function setActiveCar(s: GameState, id: string): Result<GameState, 'unknown_car'> {
@@ -90,7 +90,7 @@ export function buyPart(
   c: Content,
   s: GameState,
   a: { carId: string; part: string },
-  _now: number,
+  now: number,
 ): Result<GameState, BuyPartError> {
   const car = s.collection.cars.find((x) => x.id === a.carId);
   if (!car) return err('unknown_car');
@@ -101,10 +101,15 @@ export function buyPart(
   if (!tier) return err('maxed');
   if (levelForXp(c, s.xp) < tier.level) return err('locked');
   if (s.coins < tier.cost) return err('no_coins');
-  return ok({
-    ...withCar(s, car.id, (x) => ({ ...x, parts: { ...x.parts, [a.part]: current + 1 } })),
-    coins: s.coins - tier.cost,
-  });
+  return ok(
+    touch(
+      {
+        ...withCar(s, car.id, (x) => ({ ...x, parts: { ...x.parts, [a.part]: current + 1 } })),
+        coins: s.coins - tier.cost,
+      },
+      now,
+    ),
+  );
 }
 
 export type LookError = 'unknown_car' | 'unknown_option' | 'locked' | 'no_coins';
@@ -114,7 +119,7 @@ export function applyLook(
   c: Content,
   s: GameState,
   a: { carId: string } & Partial<CarLook>,
-  _now: number,
+  now: number,
 ): Result<GameState, LookError> {
   const car = s.collection.cars.find((x) => x.id === a.carId);
   if (!car) return err('unknown_car');
@@ -157,8 +162,10 @@ export function applyLook(
     neon: a.neon ?? car.look.neon,
     sticker: a.sticker !== undefined ? a.sticker : car.look.sticker,
   };
-  return ok({
-    ...withCar({ ...s, collection: col }, car.id, (x) => ({ ...x, look })),
-    coins: s.coins - cost,
-  });
+  return ok(
+    touch(
+      { ...withCar({ ...s, collection: col }, car.id, (x) => ({ ...x, look })), coins: s.coins - cost },
+      now,
+    ),
+  );
 }

@@ -14,6 +14,7 @@ const ActiveJobSchema = z.object({
   startedAt: int,
   durationS: int.positive(),
   vip: z.boolean().optional(),
+  byHelper: z.string().optional(),
 });
 
 const CollectionSchema = z.object({
@@ -40,7 +41,11 @@ const CollectionSchema = z.object({
 });
 
 const GameStateSchema = z.object({
-  version: z.literal(3),
+  version: z.literal(4),
+  helpers: z.array(z.object({ key: z.string(), level: int.min(1).max(5), bayId: z.string().nullable() })),
+  clockTier: int.min(0),
+  lastActiveAt: int,
+  idleReport: z.object({ jobs: nonneg, coins: nonneg, xp: nonneg }),
   coins: nonneg,
   xp: nonneg,
   reputation: nonneg,
@@ -110,7 +115,16 @@ export function deserialize(
     return fresh('corrupt');
   }
   if (typeof data === 'object' && data !== null && 'version' in data) {
-    const d = data as { version: unknown; builds?: unknown; collection?: unknown };
+    const d = data as {
+      version: unknown;
+      builds?: unknown;
+      collection?: unknown;
+      helpers?: unknown;
+      clockTier?: unknown;
+      lastActiveAt?: unknown;
+      lastTickAt?: unknown;
+      idleReport?: unknown;
+    };
     if (d.version === 1) {
       // v1 -> v2: construction queue added
       d.version = 2;
@@ -120,7 +134,15 @@ export function deserialize(
       // v2 -> v3: personal garage, starting with the gift car
       d.version = 3;
       d.collection = starterCollection(c);
-    } else if (d.version !== 3) {
+    }
+    if (d.version === 3) {
+      // v3 -> v4: helpers, shift clock and idle report
+      d.version = 4;
+      d.helpers = [];
+      d.clockTier = 0;
+      d.lastActiveAt = d.lastTickAt;
+      d.idleReport = { jobs: 0, coins: 0, xp: 0 };
+    } else if (d.version !== 4) {
       return fresh('unknown_version');
     }
   }

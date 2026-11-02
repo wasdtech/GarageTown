@@ -2,7 +2,7 @@ import type { BayType, Content } from '@gt/shared';
 import { tick } from './customers';
 import { levelForXp } from './levels';
 import { err, ok, type Result } from './result';
-import { type Build, bayId, type GameState } from './state';
+import { type Build, bayId, type GameState, touch } from './state';
 
 export type BuildError = 'locked' | 'no_coins' | 'slot_taken' | 'unknown_slot';
 
@@ -23,7 +23,7 @@ export function startBuild(
   const cost = def.cost ?? 0;
   if (s.coins < cost) return err('no_coins');
   const build: Build = { slot: a.slot, type: a.type, startedAt: now, durationS: def.buildS ?? 0 };
-  return ok({ ...s, coins: s.coins - cost, builds: [...s.builds, build] });
+  return ok(touch({ ...s, coins: s.coins - cost, builds: [...s.builds, build] }, now));
 }
 
 export function buildProgress(

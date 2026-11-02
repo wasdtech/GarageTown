@@ -2,7 +2,7 @@ import type { Content, JobKey } from '@gt/shared';
 import { tick } from './customers';
 import { levelForXp } from './levels';
 import { err, ok, type Result } from './result';
-import { type ActiveJob, type GameState, VIP_COIN_MULTIPLIER } from './state';
+import { type ActiveJob, type GameState, touch, VIP_COIN_MULTIPLIER } from './state';
 
 export interface Reward {
   coins: number;
@@ -48,11 +48,16 @@ export function startJob(
     durationS: def.durationS,
     ...(customer.vip ? { vip: true } : {}),
   };
-  return ok({
-    ...s,
-    queue: s.queue.filter((q) => q.id !== customer.id),
-    bays: s.bays.map((b) => (b.id === bay.id ? { ...b, job } : b)),
-  });
+  return ok(
+    touch(
+      {
+        ...s,
+        queue: s.queue.filter((q) => q.id !== customer.id),
+        bays: s.bays.map((b) => (b.id === bay.id ? { ...b, job } : b)),
+      },
+      now,
+    ),
+  );
 }
 
 export function jobProgress(
@@ -114,5 +119,5 @@ export function collectJob(
   if (!bay.job) return err('empty_bay');
   if (!jobProgress(bay.job, now).done) return err('not_done');
   const reward = computeReward(c, s, bay.job, now, { minigameBonus: 0 });
-  return ok({ state: applyReward(s, bayId, reward), reward });
+  return ok({ state: touch(applyReward(s, bayId, reward), now), reward });
 }

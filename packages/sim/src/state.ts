@@ -8,6 +8,8 @@ export interface ActiveJob {
   startedAt: number;
   durationS: number;
   vip?: boolean;
+  /** Key of the helper who started this job (paid with helper rules). */
+  byHelper?: string;
 }
 
 export interface Bay {
@@ -81,8 +83,20 @@ export function starterCollection(c: Content): Collection {
   };
 }
 
+export interface HiredHelper {
+  key: string;
+  level: number;
+  bayId: string | null;
+}
+
+export interface IdleReport {
+  jobs: number;
+  coins: number;
+  xp: number;
+}
+
 export interface GameState {
-  version: 3;
+  version: 4;
   coins: number;
   xp: number;
   reputation: number;
@@ -96,6 +110,11 @@ export interface GameState {
   nextId: number;
   builds: Build[];
   collection: Collection;
+  helpers: HiredHelper[];
+  clockTier: number;
+  /** Last player action; helpers keep working until lastActiveAt + shift. */
+  lastActiveAt: number;
+  idleReport: IdleReport;
 }
 
 export const QUEUE_MAX = 6;
@@ -121,7 +140,7 @@ export const bayId = (slot: number) => `bay${slot}`;
 
 export function createInitialState(c: Content, now: number, seed: number): GameState {
   return {
-    version: 3,
+    version: 4,
     coins: 0,
     xp: 0,
     reputation: 0,
@@ -141,5 +160,14 @@ export function createInitialState(c: Content, now: number, seed: number): GameS
     nextId: 1,
     builds: [],
     collection: starterCollection(c),
+    helpers: [],
+    clockTier: 0,
+    lastActiveAt: now,
+    idleReport: { jobs: 0, coins: 0, xp: 0 },
   };
+}
+
+/** Marks player activity (extends the helpers' shift). */
+export function touch<T extends GameState>(s: T, now: number): T {
+  return now > s.lastActiveAt ? { ...s, lastActiveAt: now } : s;
 }
