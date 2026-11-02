@@ -23,7 +23,7 @@ const ui = document.getElementById('ui')!;
 const loaded = loadGame(content, clock());
 const store = new Store(content, loaded.state, clock, saveGame);
 const updateHud = createHud(ui, content);
-const toast = createToaster(ui);
+const rawToast = createToaster(ui);
 const sfx = createSfx(
   (() => {
     try {
@@ -34,15 +34,22 @@ const sfx = createSfx(
   })(),
   globalThis.AudioContext,
 );
+const toast: typeof rawToast = (text, kind, ms) => {
+  if (kind === 'bad') sfx.error();
+  rawToast(text, kind, ms);
+};
+// browsers only allow audio after a user gesture: start the music on the first tap
+window.addEventListener('pointerdown', () => sfx.startMusic(), { once: true });
 store.subscribe(updateHud);
 updateHud(store.state);
 if (loaded.recovered === 'corrupt' || loaded.recovered === 'unknown_version') toast(S.saveReset, 'bad', 5000);
 
 const scene = new GarageScene();
 scene.onReady = () => {
+  scene.onImpatient = () => sfx.horn();
   let tutorial: { emit: (e: 'select' | 'start' | 'collect' | 'garage') => void } | null = null;
   const { render, garage } = createController({
-    garageOpts: { sfx: { hired: () => sfx.click() } },
+    garageOpts: { sfx: { hired: () => sfx.hired(), register: () => sfx.register(), menu: () => sfx.menu() } },
     content,
     store,
     scene,
@@ -54,7 +61,13 @@ scene.onReady = () => {
     openMinigame: (carKey) =>
       new Promise((resolve) => {
         const sprite = content.cars.find((c) => c.key === carKey)?.sprite ?? content.cars[0]!.sprite;
-        openScrubMinigame(ui, sprite, resolve, () => resolve(null));
+        openScrubMinigame(
+          ui,
+          sprite,
+          resolve,
+          () => resolve(null),
+          () => sfx.scrub(),
+        );
       }),
   });
   render();
@@ -66,7 +79,7 @@ scene.onReady = () => {
       const coinsEl = ui.querySelector<HTMLElement>('[data-testid="coins"]')?.parentElement;
       if (coinsEl) coinFly(ui, from, coinsEl, report.coins);
       confetti(ui);
-      sfx.levelUp();
+      sfx.welcome();
       store.clearIdleReport();
     });
   } else if (report.jobs > 0) {
@@ -84,6 +97,7 @@ scene.onReady = () => {
     h(
       'div',
       { class: 'gt-zoom' },
+      musicButton(),
       muteButton(),
       h(
         'button',
@@ -119,6 +133,22 @@ new Phaser.Game({
   input: { windowEvents: false },
   scene: [],
 }).scene.add('garage', scene, true, { content });
+
+function musicButton() {
+  const b = h('button', { class: 'gt-btn', 'data-testid': 'music' });
+  const paint = () => {
+    b.textContent = sfx.musicOn ? '🎵' : '🎵̸';
+    b.style.opacity = sfx.musicOn ? '1' : '0.55';
+    b.setAttribute('aria-label', sfx.musicOn ? S.musicOff : S.musicOn);
+    b.setAttribute('aria-pressed', String(!sfx.musicOn));
+  };
+  b.addEventListener('click', () => {
+    sfx.setMusic(!sfx.musicOn);
+    paint();
+  });
+  paint();
+  return b;
+}
 
 function muteButton() {
   const b = h('button', { class: 'gt-btn', 'data-testid': 'mute' });

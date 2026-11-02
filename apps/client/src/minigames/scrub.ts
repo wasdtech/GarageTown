@@ -49,6 +49,7 @@ export function openScrubMinigame(
   carSprite: string,
   onDone: (gestureMs: number) => void,
   onCancel: () => void,
+  onScrub?: () => void,
 ) {
   const tracker = createScrubTracker(TARGET_PX);
   const W = 320;
@@ -86,6 +87,7 @@ export function openScrubMinigame(
   root.append(overlay);
 
   let prev: { x: number; y: number } | null = null;
+  let lastScrubSound = 0;
   canvas.addEventListener('pointerdown', (e) => {
     canvas.setPointerCapture(e.pointerId);
     prev = { x: e.offsetX, y: e.offsetY };
@@ -99,6 +101,10 @@ export function openScrubMinigame(
     const x = e.offsetX * scale;
     const y = e.offsetY * scale;
     tracker.add(x - prev.x * scale, y - prev.y * scale, t);
+    if (t - lastScrubSound > 140) {
+      lastScrubSound = t;
+      onScrub?.();
+    }
     prev = { x: e.offsetX, y: e.offsetY };
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();

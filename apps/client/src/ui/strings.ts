@@ -46,6 +46,8 @@ export const S = {
   tutorialSkip: 'Pular',
   soundOn: 'Ligar som',
   soundOff: 'Desligar som',
+  musicOn: 'Ligar música',
+  musicOff: 'Desligar música',
   showcaseSign: '⭐ Meu carro',
   team: {
     pitch: 'Atende e coleta sozinho no box dele, até com o jogo fechado.',

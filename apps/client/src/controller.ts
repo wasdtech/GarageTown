@@ -97,6 +97,7 @@ export function createController(d: ControllerDeps) {
     }
     const def = d.content.garage.bays.find((b) => b.slot === slot);
     if (!def) return;
+    d.sfx?.menu();
     openBuildMenu(
       d.ui,
       {
@@ -126,6 +127,7 @@ export function createController(d: ControllerDeps) {
         const r = d.store.collect(bayId);
         if (r.ok) collectedAt.set(bayId, performance.now());
         if (r.ok) d.onEvent?.('collect');
+        if (r.ok) setTimeout(() => d.sfx?.engine(), 250);
         if (r.ok) celebrate(r.value, bayId);
         else d.toast(errorText(r.error), 'bad');
         return;
@@ -145,6 +147,7 @@ export function createController(d: ControllerDeps) {
               ),
             ]
           : [];
+      d.sfx?.menu();
       openBayStatus(d.ui, d.content, () => d.store.state.bays.find((b) => b.id === bayId), d.clock, extra);
       return;
     }
@@ -153,6 +156,7 @@ export function createController(d: ControllerDeps) {
       d.toast(S.pickCustomerFirst);
       return;
     }
+    d.sfx?.menu();
     openJobMenu(d.ui, d.content, s.xp, bay, customer, (job) => {
       const r = d.store.start({ customerId: customer.id, bayId, jobKey: job.key });
       if (!r.ok) d.toast(errorText(r.error), 'bad');

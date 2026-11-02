@@ -1,9 +1,24 @@
 /** Tiny synthesized sound effects (Web Audio): no audio files, nothing to download. */
 export const MUTE_KEY = 'gt.muted';
+export const MUSIC_KEY = 'gt.music';
 
 type Note = { f: number; t: number; d: number; type?: OscillatorType; vol?: number; slideTo?: number };
 
-const SOUNDS: Record<'coin' | 'click' | 'levelUp' | 'build', Note[]> = {
+type SoundKey =
+  | 'coin'
+  | 'click'
+  | 'levelUp'
+  | 'build'
+  | 'horn'
+  | 'engine'
+  | 'error'
+  | 'menu'
+  | 'register'
+  | 'hired'
+  | 'scrub'
+  | 'welcome';
+
+const SOUNDS: Record<SoundKey, Note[]> = {
   coin: [
     { f: 1318, t: 0, d: 0.08, type: 'square', vol: 0.08 },
     { f: 1975, t: 0.07, d: 0.18, type: 'square', vol: 0.08 },
@@ -20,22 +35,69 @@ const SOUNDS: Record<'coin' | 'click' | 'levelUp' | 'build', Note[]> = {
     { f: 180, t: 0, d: 0.09, type: 'square', vol: 0.1, slideTo: 90 },
     { f: 180, t: 0.16, d: 0.09, type: 'square', vol: 0.1, slideTo: 90 },
   ],
+  horn: [
+    { f: 415, t: 0, d: 0.16, type: 'sawtooth', vol: 0.06 },
+    { f: 523, t: 0, d: 0.16, type: 'sawtooth', vol: 0.05 },
+    { f: 415, t: 0.22, d: 0.22, type: 'sawtooth', vol: 0.06 },
+    { f: 523, t: 0.22, d: 0.22, type: 'sawtooth', vol: 0.05 },
+  ],
+  engine: [{ f: 70, t: 0, d: 0.7, type: 'sawtooth', vol: 0.07, slideTo: 160 }],
+  error: [
+    { f: 220, t: 0, d: 0.12, type: 'square', vol: 0.07 },
+    { f: 165, t: 0.13, d: 0.18, type: 'square', vol: 0.07 },
+  ],
+  menu: [{ f: 880, t: 0, d: 0.06, type: 'sine', vol: 0.1, slideTo: 1320 }],
+  register: [
+    { f: 1568, t: 0, d: 0.08, type: 'triangle', vol: 0.1 },
+    { f: 2093, t: 0.08, d: 0.25, type: 'triangle', vol: 0.1 },
+    { f: 120, t: 0, d: 0.12, type: 'square', vol: 0.05 },
+  ],
+  hired: [392, 523, 659].map((f, i) => ({ f, t: i * 0.08, d: 0.16, type: 'square' as const, vol: 0.07 })),
+  scrub: [{ f: 900, t: 0, d: 0.05, type: 'sawtooth', vol: 0.025, slideTo: 1400 }],
+  welcome: [392, 523, 659, 784, 659, 1047].map((f, i) => ({
+    f,
+    t: i * 0.1,
+    d: 0.2,
+    type: 'triangle' as const,
+    vol: 0.12,
+  })),
 };
 
-function readMuted(storage: Storage | null): boolean {
+/** A calm 4-chord loop (I–vi–IV–V in C), one bar every 2 s, played very softly. */
+const MUSIC_BARS: number[][] = [
+  [261.6, 329.6, 392.0],
+  [220.0, 261.6, 329.6],
+  [174.6, 220.0, 261.6],
+  [196.0, 246.9, 293.7],
+];
+const BAR_S = 2;
+
+function readFlag(storage: Storage | null, key: string, fallback: boolean): boolean {
   try {
-    return storage?.getItem(MUTE_KEY) === '1';
+    const v = storage?.getItem(key);
+    return v === null || v === undefined ? fallback : v === '1';
   } catch {
-    return false;
+    return fallback;
+  }
+}
+
+function writeFlag(storage: Storage | null, key: string, v: boolean) {
+  try {
+    storage?.setItem(key, v ? '1' : '0');
+  } catch {
+    /* ignore */
   }
 }
 
 export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | undefined) {
-  let muted = readMuted(storage);
+  let muted = readFlag(storage, MUTE_KEY, false);
+  let musicOn = readFlag(storage, MUSIC_KEY, true);
   let ctx: AudioContext | null = null;
+  let musicTimer: ReturnType<typeof setInterval> | null = null;
+  let bar = 0;
 
-  const play = (notes: Note[]) => {
-    if (muted || !Ctx) return;
+  const play = (notes: Note[], force = false) => {
+    if ((muted && !force) || !Ctx) return;
     try {
       ctx ??= new Ctx();
       if (ctx.state === 'suspended') void ctx.resume();
@@ -57,22 +119,62 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
     }
   };
 
+  const playBar = () => {
+    const chord = MUSIC_BARS[bar % MUSIC_BARS.length]!;
+    bar++;
+    // soft pad plus a two-note bass; forced so muting effects does not stop the music
+    play(
+      [
+        ...chord.map((f) => ({ f, t: 0, d: BAR_S * 0.95, type: 'sine' as const, vol: 0.018 })),
+        { f: chord[0]! / 2, t: 0, d: BAR_S * 0.45, type: 'triangle', vol: 0.03 },
+        { f: chord[0]! / 2, t: BAR_S / 2, d: BAR_S * 0.45, type: 'triangle', vol: 0.03 },
+      ],
+      true,
+    );
+  };
+
+  const startMusic = () => {
+    if (!musicOn || musicTimer || !Ctx) return;
+    playBar();
+    musicTimer = setInterval(playBar, BAR_S * 1000);
+  };
+  const stopMusic = () => {
+    if (musicTimer) clearInterval(musicTimer);
+    musicTimer = null;
+  };
+
+  const sound = (k: SoundKey) => () => play(SOUNDS[k]);
   return {
     get muted() {
       return muted;
     },
+    get musicOn() {
+      return musicOn;
+    },
     setMuted(v: boolean) {
       muted = v;
-      try {
-        storage?.setItem(MUTE_KEY, v ? '1' : '0');
-      } catch {
-        /* ignore */
-      }
+      writeFlag(storage, MUTE_KEY, v);
     },
-    coin: () => play(SOUNDS.coin),
-    click: () => play(SOUNDS.click),
-    levelUp: () => play(SOUNDS.levelUp),
-    build: () => play(SOUNDS.build),
+    setMusic(v: boolean) {
+      musicOn = v;
+      writeFlag(storage, MUSIC_KEY, v);
+      if (v) startMusic();
+      else stopMusic();
+    },
+    startMusic,
+    stopMusic,
+    coin: sound('coin'),
+    click: sound('click'),
+    levelUp: sound('levelUp'),
+    build: sound('build'),
+    horn: sound('horn'),
+    engine: sound('engine'),
+    error: sound('error'),
+    menu: sound('menu'),
+    register: sound('register'),
+    hired: sound('hired'),
+    scrub: sound('scrub'),
+    welcome: sound('welcome'),
   };
 }
 

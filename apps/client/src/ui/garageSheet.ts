@@ -15,9 +15,10 @@ export function openGarage(
   c: Content,
   store: Store,
   toast: (t: string, k?: 'good' | 'bad') => void,
-  opts: { tab?: Tab; sfx?: { hired(): void } } = {},
+  opts: { tab?: Tab; sfx?: { hired(): void; register?(): void; menu?(): void } } = {},
 ) {
   if (opts.tab) openTab = opts.tab;
+  opts.sfx?.menu?.();
   root.querySelector('.gt-garage')?.remove();
   const panel = h('div', { class: 'gt-sheet gt-garage-sheet', role: 'dialog', 'aria-label': S.garage.title });
   const backdrop = h('div', { class: 'gt-backdrop gt-garage' }, panel);
@@ -43,6 +44,7 @@ export function openGarage(
   }
   const run = (r: { ok: true } | { ok: false; error: string }, okText?: string) => {
     if (r.ok) {
+      opts.sfx?.register?.();
       if (okText) toast(okText, 'good');
     } else toast(errorText(r.error as never), 'bad');
   };

@@ -431,8 +431,8 @@ body {
 /* Dona Cida tutorial */
 .gt-cida {
   position: absolute;
-  /* above the garage button and the mute + zoom buttons (3 x 48px + gaps) */
-  bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 176px);
+  /* above the garage button and the music, mute and zoom buttons (4 x 48px + gaps) */
+  bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 232px);
   left: 50%;
   transform: translateX(-50%);
   width: min(460px, calc(100vw - 32px));

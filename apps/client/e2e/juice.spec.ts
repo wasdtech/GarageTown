@@ -26,3 +26,14 @@ test('the mute choice survives a reload', async ({ page }) => {
   await open(page);
   await expect(page.getByTestId('mute')).toHaveAttribute('aria-pressed', 'true');
 });
+
+test('music and effects toggles are independent and survive a reload', async ({ page }) => {
+  await open(page);
+  await page.getByTestId('music').click();
+  await expect(page.getByTestId('music')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('mute')).toHaveAttribute('aria-pressed', 'false');
+  await page.reload();
+  await open(page);
+  await expect(page.getByTestId('music')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('mute')).toHaveAttribute('aria-pressed', 'false');
+});

@@ -61,3 +61,28 @@ describe('sfx', () => {
     expect(started.length).toBe(n);
   });
 });
+
+describe('sfx: more sounds and music', () => {
+  it('all new sounds are safe without Web Audio', () => {
+    const sfx = createSfx(memoryStorage(), undefined);
+    expect(() => {
+      for (const k of ['horn', 'engine', 'error', 'menu', 'register', 'hired', 'scrub', 'welcome'] as const)
+        sfx[k]();
+      sfx.setMusic(true);
+      sfx.startMusic();
+      sfx.stopMusic();
+    }).not.toThrow();
+  });
+
+  it('music and effects preferences are independent and remembered', () => {
+    const st = memoryStorage();
+    const a = createSfx(st, undefined);
+    expect(a.musicOn).toBe(true);
+    a.setMuted(true);
+    expect(a.musicOn).toBe(true);
+    a.setMusic(false);
+    const b = createSfx(st, undefined);
+    expect(b.muted).toBe(true);
+    expect(b.musicOn).toBe(false);
+  });
+});
