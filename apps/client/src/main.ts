@@ -40,7 +40,14 @@ const toast: typeof rawToast = (text, kind, ms) => {
   rawToast(text, kind, ms);
 };
 // browsers only allow audio after a user gesture: start the music on the first tap
-window.addEventListener('pointerdown', () => sfx.startMusic(), { once: true });
+// (touch pointerdown is not a user gesture for audio; pointerup/click/keydown are)
+for (const ev of ['pointerup', 'click', 'keydown'])
+  window.addEventListener(ev, () => sfx.startMusic(), { once: true });
+// no music in the background (battery, and a phone switching apps should go quiet)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') sfx.stopMusic();
+  else sfx.startMusic();
+});
 store.subscribe(updateHud);
 updateHud(store.state);
 if (loaded.recovered === 'corrupt' || loaded.recovered === 'unknown_version') toast(S.saveReset, 'bad', 5000);

@@ -86,3 +86,36 @@ describe('sfx: more sounds and music', () => {
     expect(b.musicOn).toBe(false);
   });
 });
+
+describe('music on touch devices', () => {
+  it('resumes a suspended audio context for the music even when effects are muted', () => {
+    let resumed = 0;
+    const node = () => ({
+      connect: () => node(),
+      gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+      frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+      type: '',
+      start() {},
+      stop() {},
+    });
+    class SuspendedCtx {
+      currentTime = 0;
+      state = 'suspended';
+      destination = {};
+      createOscillator = node;
+      createGain = node;
+      resume() {
+        resumed++;
+      }
+    }
+    const sfx = createSfx(memoryStorage(), SuspendedCtx as unknown as typeof AudioContext);
+    sfx.setMuted(true);
+    sfx.startMusic();
+    expect(resumed).toBeGreaterThan(0);
+    // a later gesture must resume the context again even though the loop is already running
+    const before = resumed;
+    sfx.startMusic();
+    expect(resumed).toBeGreaterThan(before);
+    sfx.stopMusic();
+  });
+});

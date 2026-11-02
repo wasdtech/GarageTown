@@ -134,7 +134,14 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
   };
 
   const startMusic = () => {
-    if (!musicOn || musicTimer || !Ctx) return;
+    if (!musicOn || !Ctx) return;
+    // every call (each user gesture) may unlock a context that started suspended
+    try {
+      if (ctx?.state === 'suspended') void ctx.resume();
+    } catch {
+      /* ignore */
+    }
+    if (musicTimer) return;
     playBar();
     musicTimer = setInterval(playBar, BAR_S * 1000);
   };
