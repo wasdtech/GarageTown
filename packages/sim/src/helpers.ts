@@ -1,4 +1,5 @@
 import type { Content } from '@gt/shared';
+import { tick } from './customers';
 import { levelForXp } from './levels';
 import { err, ok, type Result } from './result';
 import { type GameState, touch } from './state';
@@ -12,7 +13,13 @@ export function shiftEndsAt(c: Content, s: GameState): number {
 
 export type HireError = 'unknown_helper' | 'hired' | 'locked' | 'no_coins';
 
-export function hireHelper(c: Content, s: GameState, key: string, now: number): Result<GameState, HireError> {
+export function hireHelper(
+  c: Content,
+  state: GameState,
+  key: string,
+  now: number,
+): Result<GameState, HireError> {
+  const s = tick(c, state, now);
   const def = c.helpers.find((h) => h.key === key);
   if (!def) return err('unknown_helper');
   if (s.helpers.some((h) => h.key === key)) return err('hired');
@@ -32,10 +39,11 @@ export function trainCost(c: Content, key: string, nextLevel: number): number {
 
 export function trainHelper(
   c: Content,
-  s: GameState,
+  state: GameState,
   key: string,
   now: number,
 ): Result<GameState, TrainError> {
+  const s = tick(c, state, now);
   if (!c.helpers.some((h) => h.key === key)) return err('unknown_helper');
   const hired = s.helpers.find((h) => h.key === key);
   if (!hired) return err('not_hired');
@@ -57,11 +65,14 @@ export function trainHelper(
 export type AssignError = 'not_hired' | 'unknown_bay' | 'bay_has_helper';
 
 export function assignHelper(
-  s: GameState,
+  c: Content,
+  state: GameState,
   key: string,
   bayId: string | null,
   now: number,
 ): Result<GameState, AssignError> {
+  // settle everything up to now first, so a helper never gets credit for time before it was on the bay
+  const s = tick(c, state, now);
   if (!s.helpers.some((h) => h.key === key)) return err('not_hired');
   if (bayId !== null) {
     if (!s.bays.some((b) => b.id === bayId)) return err('unknown_bay');
@@ -70,7 +81,8 @@ export function assignHelper(
   return ok(touch({ ...s, helpers: s.helpers.map((h) => (h.key === key ? { ...h, bayId } : h)) }, now));
 }
 
-export function buyClock(c: Content, s: GameState, now: number): Result<GameState, 'maxed' | 'no_coins'> {
+export function buyClock(c: Content, state: GameState, now: number): Result<GameState, 'maxed' | 'no_coins'> {
+  const s = tick(c, state, now);
   const next = c.clockTiers[s.clockTier + 1];
   if (!next) return err('maxed');
   if (s.coins < next.cost) return err('no_coins');

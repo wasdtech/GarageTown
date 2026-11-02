@@ -57,13 +57,15 @@ describe('assignHelper', () => {
   it('puts one helper per bay and can unassign', () => {
     let s = ok(hireHelper(c, fresh({ xp: 250, coins: 99999 }), 'ze', T0));
     s = ok(hireHelper(c, s, 'bia', T0));
-    s = ok(assignHelper(s, 'ze', 'bay1', T0));
-    expect(assignHelper(s, 'bia', 'bay1', T0)).toEqual({ ok: false, error: 'bay_has_helper' });
-    expect(assignHelper(s, 'bia', 'bay9', T0)).toEqual({ ok: false, error: 'unknown_bay' });
-    expect(assignHelper(s, 'tiao', 'bay2', T0)).toEqual({ ok: false, error: 'not_hired' });
-    s = ok(assignHelper(s, 'ze', null, T0));
+    s = ok(assignHelper(c, s, 'ze', 'bay1', T0));
+    expect(assignHelper(c, s, 'bia', 'bay1', T0)).toEqual({ ok: false, error: 'bay_has_helper' });
+    expect(assignHelper(c, s, 'bia', 'bay9', T0)).toEqual({ ok: false, error: 'unknown_bay' });
+    expect(assignHelper(c, s, 'tiao', 'bay2', T0)).toEqual({ ok: false, error: 'not_hired' });
+    s = ok(assignHelper(c, s, 'ze', null, T0));
     expect(s.helpers.find((h) => h.key === 'ze')!.bayId).toBeNull();
-    expect(ok(assignHelper(s, 'bia', 'bay1', T0)).helpers.find((h) => h.key === 'bia')!.bayId).toBe('bay1');
+    expect(ok(assignHelper(c, s, 'bia', 'bay1', T0)).helpers.find((h) => h.key === 'bia')!.bayId).toBe(
+      'bay1',
+    );
   });
 });
 

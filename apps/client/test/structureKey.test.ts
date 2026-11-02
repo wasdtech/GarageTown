@@ -82,7 +82,7 @@ describe('structureKey and helpers', () => {
     };
     const hired = hireHelper(c, s0, 'ze', T0);
     if (!hired.ok) throw new Error(hired.error);
-    const on = assignHelper(hired.value, 'ze', 'bay1', T0);
+    const on = assignHelper(c, hired.value, 'ze', 'bay1', T0);
     if (!on.ok) throw new Error(on.error);
     expect(structureKey(on.value, T0, ui)).not.toBe(structureKey(hired.value, T0, ui));
   });

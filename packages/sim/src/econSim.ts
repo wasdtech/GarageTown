@@ -62,7 +62,7 @@ function shop(c: Content, s: GameState, now: number): GameState {
       .sort((a) => (a.type === 'wash' ? -1 : 1))
       .find((b) => !s.helpers.some((x) => x.bayId === b.id));
     if (!free) break;
-    const r = assignHelper(s, h.key, free.id, now);
+    const r = assignHelper(c, s, h.key, free.id, now);
     if (r.ok) s = r.value;
   }
   for (const m of c.cars) {

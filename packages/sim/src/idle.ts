@@ -47,15 +47,17 @@ function assignWork(c: Content, s: GameState, t: number): GameState {
  * Helpers collect their finished jobs at the exact moment they finish and pick the next customer.
  */
 export function runHelpers(c: Content, state: GameState, until: number): GameState {
-  let s = assignWork(c, state, state.lastTickAt);
+  const from = state.lastTickAt;
+  let s = assignWork(c, state, from);
   for (let i = 0; i < MAX_EVENTS; i++) {
     const finishing = helperBays(s).filter(({ bay }) => bay.job?.byHelper);
-    const nextDone = Math.min(...finishing.map(({ bay }) => doneAt(bay.job!)));
+    // a job that finished while the garage was closed is collected now, never back in time
+    const nextDone = Math.max(from, Math.min(...finishing.map(({ bay }) => doneAt(bay.job!))));
     const t = Math.min(s.nextCustomerAt, nextDone);
     if (!(t <= until)) break;
     s = { ...s, queue: s.queue.filter((q) => q.patienceUntil >= t) };
     for (const { bay, helper } of finishing) {
-      if (doneAt(bay.job!) !== t) continue;
+      if (Math.max(from, doneAt(bay.job!)) !== t) continue;
       const reward = helperReward(c, s, bay.job!, helper);
       s = applyReward(s, bay.id, reward);
       s = {

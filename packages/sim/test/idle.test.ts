@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tick } from '../src/customers';
-import { assignHelper, hireHelper } from '../src/helpers';
+import { assignHelper, hireHelper, trainHelper } from '../src/helpers';
 import { clearIdleReport } from '../src/idle';
 import { collectJob, startJob } from '../src/jobs';
 import { createInitialState, type Customer, type GameState } from '../src/state';
@@ -29,7 +29,7 @@ function withZe(queue: Customer[], extra: Partial<GameState> = {}): GameState {
     nextCustomerAt: Number.MAX_SAFE_INTEGER,
   };
   s = ok(hireHelper(c, s, 'ze', T0));
-  s = ok(assignHelper(s, 'ze', 'bay1', T0));
+  s = ok(assignHelper(c, s, 'ze', 'bay1', T0));
   return { ...s, ...extra };
 }
 
@@ -68,7 +68,7 @@ describe('helper on a bay', () => {
   it('pays helper rules when the player collects a job a helper started', () => {
     const s0 = withZe([customer('a', 'wash')]);
     const started = tick(c, s0, T0 + 1);
-    const unassigned = ok(assignHelper(started, 'ze', null, T0 + 2));
+    const unassigned = ok(assignHelper(c, started, 'ze', null, T0 + 2));
     const r = ok(collectJob(c, unassigned, 'bay1', T0 + 31_000));
     expect(r.reward).toMatchObject({ coins: 4, tip: 0, timelyBonus: 0 });
   });
@@ -96,7 +96,7 @@ describe('offline shift', () => {
   it('is deterministic and fast (8h with two helpers under 50ms)', () => {
     let s = withZe([], { nextCustomerAt: T0 + 20_000, xp: 250, coins: 99999, clockTier: 2 });
     s = ok(hireHelper(c, s, 'bia', T0));
-    s = ok(assignHelper(s, 'bia', 'bay2', T0));
+    s = ok(assignHelper(c, s, 'bia', 'bay2', T0));
     const t = performance.now();
     const a = tick(c, s, T0 + 8 * HOUR);
     expect(performance.now() - t).toBeLessThan(50);
@@ -109,5 +109,25 @@ describe('offline shift', () => {
     const cleared = clearIdleReport(s);
     expect(cleared.idleReport).toEqual({ jobs: 0, coins: 0, xp: 0 });
     expect(cleared.coins).toBe(s.coins);
+  });
+});
+
+describe('garage actions after a long gap', () => {
+  it('training after 24h without a tick still yields only one shift of work', () => {
+    const s0 = withZe([], { nextCustomerAt: T0 + 20_000, coins: 99999 });
+    const viaTick = tick(c, s0, T0 + 24 * HOUR);
+    const viaTrain = trainHelper(c, s0, 'ze', T0 + 24 * HOUR);
+    if (!viaTrain.ok) throw new Error(viaTrain.error);
+    const after = tick(c, viaTrain.value, T0 + 24 * HOUR + 1);
+    // at most the one job that finished while the garage was closed gets collected when the player returns
+    expect(after.idleReport.jobs - viaTick.idleReport.jobs).toBeGreaterThanOrEqual(0);
+    expect(after.idleReport.jobs - viaTick.idleReport.jobs).toBeLessThanOrEqual(1);
+  });
+
+  it('assigning a helper hours later does not credit work done before it was on the bay', () => {
+    let s: GameState = { ...createInitialState(c, T0, 1), xp: 20, coins: 300, nextCustomerAt: T0 + 20_000 };
+    s = ok(hireHelper(c, s, 'ze', T0));
+    const assigned = ok(assignHelper(c, s, 'ze', 'bay1', T0 + 3 * HOUR));
+    expect(assigned.idleReport.jobs).toBe(0);
   });
 });

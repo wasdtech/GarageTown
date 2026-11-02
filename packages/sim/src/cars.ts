@@ -1,4 +1,5 @@
 import type { Content } from '@gt/shared';
+import { tick } from './customers';
 import { levelForXp } from './levels';
 import { err, ok, type Result } from './result';
 import { type CarLook, carId, type Collection, type GameState, type OwnedCar, touch } from './state';
@@ -55,7 +56,13 @@ function withCar(
 
 export type BuyCarError = 'unknown_model' | 'locked' | 'no_coins' | 'owned';
 
-export function buyCar(c: Content, s: GameState, model: string, now: number): Result<GameState, BuyCarError> {
+export function buyCar(
+  c: Content,
+  state: GameState,
+  model: string,
+  now: number,
+): Result<GameState, BuyCarError> {
+  const s = tick(c, state, now);
   const def = c.cars.find((m) => m.key === model);
   if (!def) return err('unknown_model');
   if (s.collection.cars.some((x) => x.model === model)) return err('owned');
@@ -88,10 +95,11 @@ export type BuyPartError = 'unknown_car' | 'unknown_part' | 'maxed' | 'locked' |
 
 export function buyPart(
   c: Content,
-  s: GameState,
+  state: GameState,
   a: { carId: string; part: string },
   now: number,
 ): Result<GameState, BuyPartError> {
+  const s = tick(c, state, now);
   const car = s.collection.cars.find((x) => x.id === a.carId);
   if (!car) return err('unknown_car');
   const part = c.parts.find((p) => p.key === a.part);
@@ -117,10 +125,11 @@ export type LookError = 'unknown_car' | 'unknown_option' | 'locked' | 'no_coins'
 /** Applies look changes; options are paid once (first unlock) and are free afterwards. */
 export function applyLook(
   c: Content,
-  s: GameState,
+  state: GameState,
   a: { carId: string } & Partial<CarLook>,
   now: number,
 ): Result<GameState, LookError> {
+  const s = tick(c, state, now);
   const car = s.collection.cars.find((x) => x.id === a.carId);
   if (!car) return err('unknown_car');
   const L = c.looks;

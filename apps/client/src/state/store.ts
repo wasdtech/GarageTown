@@ -125,7 +125,7 @@ export class Store {
   }
 
   assignHelper(key: string, bayId: string | null): Result<void, AssignError> {
-    return this.act(assignHelper(this.s, key, bayId, this.clock()));
+    return this.act(assignHelper(this.c, this.s, key, bayId, this.clock()));
   }
 
   buyClock(): Result<void, 'maxed' | 'no_coins'> {
