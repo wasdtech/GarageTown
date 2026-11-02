@@ -6,6 +6,7 @@ import { collectLabel, fmt } from '../ui/format';
 import { S } from '../ui/strings';
 import { structureKey } from './structureKey';
 import { diffTransitions, type Transition } from './transitions';
+import { type Ambient, ambientFor, IMPATIENT_BELOW } from './ambient';
 
 export const LOT_SIZE = 8;
 export const STREET_ROW = 8;
@@ -81,6 +82,15 @@ export class GarageScene extends Phaser.Scene {
   private inFlight = new Set<string>();
   /** Bays whose job was already finished at the last rebuild (to celebrate newly finished ones once). */
   private doneBays = new Set<string>();
+  /** Timers driving the ambient effects of the current rebuild. */
+  private ambientTimers: Phaser.Time.TimerEvent[] = [];
+  private particles = 0;
+  /** Customers who already honked when they got impatient. */
+  private honked = new Set<string>();
+  /** Called once per customer when they get impatient (used for the horn). */
+  onImpatient?: (customerId: string) => void;
+  /** Clock of the latest render (rebuild or in-place update). */
+  private lastNow = 0;
   private updaters: ((now: number) => void)[] = [];
   onReady?: () => void;
   /** World positions of tappable things from the last render (bay ids and customer ids). */
@@ -299,6 +309,7 @@ export class GarageScene extends Phaser.Scene {
 
   renderState(s: GameState, now: number, ui: SceneUi) {
     if (!this.dynamic) return;
+    this.lastNow = now;
     const key = structureKey(s, now, ui);
     if (key === this.lastKey) {
       for (const u of this.updaters) u(now);
@@ -308,6 +319,8 @@ export class GarageScene extends Phaser.Scene {
     this.updaters = [];
     for (const t of this.dynamicTweens) t.remove();
     this.dynamicTweens = [];
+    for (const t of this.ambientTimers) t.remove();
+    this.ambientTimers = [];
     this.dynamic.removeAll(true);
     this.anchors.clear();
     this.carSprites.clear();
@@ -458,8 +471,38 @@ export class GarageScene extends Phaser.Scene {
         .setDepth(3001);
       icon.setName(jobName(q.need));
       const g = this.add.graphics().setDepth(3002);
+      let angry = false;
       const update = (t: number) => {
         const patience = Math.max(0, Math.min(1, (q.patienceUntil - t) / (q.patienceUntil - q.arrivedAt)));
+        // impatience runs on the real clock (this updater), not on scene timers, so it also works at low frame rates
+        if (!angry && patience < IMPATIENT_BELOW) {
+          angry = true;
+          this.dynamic.add(
+            this.add
+              .text(bx + 30, by - 18, '💢', { fontSize: '20px' })
+              .setOrigin(0.5)
+              .setDepth(3100),
+          );
+          if (!this.honked.has(q.id)) {
+            this.honked.add(q.id);
+            this.onImpatient?.(q.id);
+          }
+          if (!this.reducedMotion()) {
+            const x0 = car.x;
+            this.dynamicTweens.push(
+              this.tweens.add({
+                targets: car,
+                x: x0 + 2,
+                yoyo: true,
+                repeat: 3,
+                duration: 45,
+                repeatDelay: 0,
+                loop: -1,
+                loopDelay: 2000,
+              }),
+            );
+          }
+        }
         g.clear();
         g.fillStyle(0x1d1d2b, 1).fillRoundedRect(bx - 20, by + 22, 40, 7, 3);
         g.fillStyle(patience > 0.3 ? 0x06d6a0 : 0xe63946, 1).fillRoundedRect(
@@ -492,6 +535,7 @@ export class GarageScene extends Phaser.Scene {
     for (const id of this.inFlight) this.carSprites.get(id)?.setAlpha(IN_FLIGHT_ALPHA);
     this.playTransitions(diffTransitions(this.prevState, s), s);
     this.prevState = s;
+    this.startAmbient(s, now, ui);
     this.placePointer();
   }
 
@@ -663,6 +707,143 @@ export class GarageScene extends Phaser.Scene {
       };
     });
     this.tweens.chain({ tweens, onComplete: finish });
+  }
+
+  private reducedMotion() {
+    return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  }
+
+  /** Short-lived particle with a global cap and an off-screen skip. */
+  private particle(
+    x: number,
+    y: number,
+    make: () => Phaser.GameObjects.GameObject & { setDepth(d: number): unknown },
+    tween: Omit<Phaser.Types.Tweens.TweenBuilderConfig, 'targets'>,
+  ) {
+    if (this.particles >= 30 || !this.cameras.main.worldView.contains(x, y)) return;
+    const obj = make();
+    obj.setDepth(3500);
+    this.particles++;
+    this.tweens.add({
+      ...tween,
+      targets: obj,
+      onComplete: () => {
+        obj.destroy();
+        this.particles--;
+      },
+    });
+  }
+
+  private every(minMs: number, maxMs: number, fn: () => void) {
+    const ev = this.time.addEvent({ delay: Phaser.Math.Between(minMs, maxMs), loop: true, callback: fn });
+    this.ambientTimers.push(ev);
+  }
+
+  /** Life animations: idling and impatient cars in the queue, and an effect per bay type while in service. */
+  private startAmbient(s: GameState, now: number, ui: SceneUi) {
+    if (this.reducedMotion()) return;
+    for (const a of ambientFor(s, now)) {
+      const car = this.carSprites.get(a.id);
+      if (!car) continue;
+      if (a.kind === 'service') this.serviceEffect(car, a);
+      else this.queueEffect(car, a.id, ui.selectedCustomerId === a.id);
+    }
+  }
+
+  private queueEffect(car: Phaser.GameObjects.Container, id: string, selected: boolean) {
+    const baseY = car.y;
+    if (!selected) {
+      // idle engine: a gentle bob with a per-car phase
+      this.dynamicTweens.push(
+        this.tweens.add({
+          targets: car,
+          y: baseY - 1.5,
+          yoyo: true,
+          repeat: -1,
+          duration: 420,
+          delay: (id.length * 137) % 400,
+        }),
+      );
+    }
+    this.every(3000, 6000, () => {
+      this.particle(car.x - 30, car.y - 8, () => this.add.circle(car.x - 30, car.y - 8, 5, 0xc8c8c8, 0.8), {
+        x: car.x - 48,
+        y: car.y - 22,
+        scale: 2,
+        alpha: 0,
+        duration: 900,
+      });
+    });
+  }
+
+  private serviceEffect(car: Phaser.GameObjects.Container, a: Extract<Ambient, { kind: 'service' }>) {
+    const x = car.x;
+    const y = car.y;
+    if (a.bay === 'wash') {
+      this.every(350, 550, () =>
+        this.particle(
+          x,
+          y,
+          () =>
+            this.add
+              .circle(x + Phaser.Math.Between(-36, 36), y - 30, Phaser.Math.Between(3, 6), 0xffffff, 0.9)
+              .setStrokeStyle(1.5, 0x4cc9f0),
+          {
+            y: y - 70,
+            alpha: 0,
+            duration: 1000,
+          },
+        ),
+      );
+    } else if (a.bay === 'mechanic') {
+      this.dynamicTweens.push(
+        this.tweens.add({ targets: car, y: y - 6, duration: 400, ease: 'Quad.easeOut' }),
+      );
+      this.every(800, 1200, () => {
+        for (let i = 0; i < 4; i++) {
+          const ang = Phaser.Math.FloatBetween(-2.6, -0.5);
+          this.particle(x + 20, y - 16, () => this.add.rectangle(x + 20, y - 16, 4, 2, 0xffd166), {
+            x: x + 20 + Math.cos(ang) * 30,
+            y: y - 16 + Math.sin(ang) * 30,
+            alpha: 0,
+            duration: 380,
+          });
+        }
+      });
+    } else if (a.bay === 'paint') {
+      const colours = [0xff5ca8, 0x3a86ff, 0xffd166, 0x06d6a0, 0x8338ec];
+      this.every(250, 400, () =>
+        this.particle(
+          x,
+          y,
+          () =>
+            this.add.circle(
+              x + Phaser.Math.Between(-40, 40),
+              y - Phaser.Math.Between(10, 40),
+              9,
+              Phaser.Utils.Array.GetRandom(colours),
+              0.35,
+            ),
+          {
+            scale: 2.2,
+            alpha: 0,
+            duration: 900,
+          },
+        ),
+      );
+    } else {
+      this.dynamicTweens.push(
+        this.tweens.add({ targets: car, x: x + 1.5, yoyo: true, repeat: -1, duration: 60 }),
+      );
+      this.every(600, 900, () =>
+        this.particle(x - 40, y - 4, () => this.add.triangle(x - 40, y - 4, 0, 6, 14, 0, 14, 12, 0xff7b00), {
+          x: x - 58,
+          scaleX: 1.6,
+          alpha: 0,
+          duration: 300,
+        }),
+      );
+    }
   }
 
   /** A little bounce and sparkles when a car's job finishes. */
