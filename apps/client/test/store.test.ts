@@ -11,7 +11,7 @@ function setup() {
   const base = createInitialState(c, T0, 1);
   const initial: GameState = {
     ...base,
-    queue: [{ id: 'cx', carKey: 'vespa_gt', need: 'wash', arrivedAt: T0, patienceUntil: T0 + 1e12 }],
+    queue: [{ id: 'cx', carKey: 'pitoco', need: 'wash', arrivedAt: T0, patienceUntil: T0 + 1e12 }],
     nextCustomerAt: Number.MAX_SAFE_INTEGER,
   };
   const persist = vi.fn();
@@ -53,5 +53,79 @@ describe('Store', () => {
     advance(4_000);
     store.tick();
     expect(persist).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Store.build', () => {
+  it('starts a construction and persists it', () => {
+    const persist = vi.fn();
+    const s = {
+      ...createInitialState(c, T0, 1),
+      xp: 60,
+      coins: 200,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => T0, persist);
+    expect(store.build(3, 'paint')).toEqual({ ok: true, value: undefined });
+    expect(store.state.builds).toHaveLength(1);
+    expect(persist).toHaveBeenCalledTimes(1);
+    expect(store.build(3, 'paint')).toEqual({ ok: false, error: 'slot_taken' });
+  });
+});
+
+describe('Store garage actions', () => {
+  it('buys a part, applies a look and persists each change', () => {
+    const persist = vi.fn();
+    const s = {
+      ...createInitialState(c, T0, 1),
+      xp: 20,
+      coins: 1000,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => T0, persist);
+    expect(store.buyPart('car-pitoco', 'engine')).toEqual({ ok: true, value: undefined });
+    expect(store.applyLook('car-pitoco', { paint: 'blue' })).toEqual({ ok: true, value: undefined });
+    expect(store.state.coins).toBe(350);
+    expect(persist).toHaveBeenCalledTimes(2);
+    expect(store.buyCar('brutus_v8')).toEqual({ ok: false, error: 'locked' });
+    expect(store.setActiveCar('car-pitoco')).toEqual({ ok: true, value: undefined });
+  });
+});
+
+describe('Store team actions', () => {
+  it('hires, assigns, trains, buys the clock and clears the idle report', () => {
+    const persist = vi.fn();
+    const s = {
+      ...createInitialState(c, T0, 1),
+      xp: 20,
+      coins: 4000,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => T0, persist);
+    expect(store.hireHelper('ze')).toEqual({ ok: true, value: undefined });
+    expect(store.assignHelper('ze', 'bay1')).toEqual({ ok: true, value: undefined });
+    expect(store.trainHelper('ze')).toEqual({ ok: true, value: undefined });
+    expect(store.buyClock()).toEqual({ ok: true, value: undefined });
+    expect(store.state.helpers).toEqual([{ key: 'ze', level: 2, bayId: 'bay1' }]);
+    expect(store.state.coins).toBe(4000 - 300 - 600 - 3000);
+    store.clearIdleReport();
+    expect(store.state.idleReport).toEqual({ jobs: 0, coins: 0, xp: 0 });
+    expect(persist).toHaveBeenCalledTimes(5);
+  });
+});
+
+describe('Store.present', () => {
+  it('marks the player as active and clears the idle report', () => {
+    let now = T0;
+    const s = {
+      ...createInitialState(c, T0, 1),
+      idleReport: { jobs: 2, coins: 8, xp: 6 },
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => now, vi.fn());
+    now = T0 + 90_000;
+    store.present();
+    expect(store.state.lastActiveAt).toBe(T0 + 90_000);
+    expect(store.state.idleReport).toEqual({ jobs: 0, coins: 0, xp: 0 });
   });
 });

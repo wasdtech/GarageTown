@@ -2,7 +2,7 @@ import type { Content, JobKey } from '@gt/shared';
 import { tick } from './customers';
 import { levelForXp } from './levels';
 import { err, ok, type Result } from './result';
-import type { ActiveJob, GameState } from './state';
+import { type ActiveJob, type GameState, touch, VIP_COIN_MULTIPLIER } from './state';
 
 export interface Reward {
   coins: number;
@@ -46,12 +46,18 @@ export function startJob(
     need: customer.need,
     startedAt: now,
     durationS: def.durationS,
+    ...(customer.vip ? { vip: true } : {}),
   };
-  return ok({
-    ...s,
-    queue: s.queue.filter((q) => q.id !== customer.id),
-    bays: s.bays.map((b) => (b.id === bay.id ? { ...b, job } : b)),
-  });
+  return ok(
+    touch(
+      {
+        ...s,
+        queue: s.queue.filter((q) => q.id !== customer.id),
+        bays: s.bays.map((b) => (b.id === bay.id ? { ...b, job } : b)),
+      },
+      now,
+    ),
+  );
 }
 
 export function jobProgress(
@@ -72,18 +78,35 @@ export function computeReward(
   opts: { minigameBonus: number },
 ): Reward {
   const def = c.jobs.find((j) => j.key === job.jobKey)!;
+  const base = def.coins * (job.vip ? VIP_COIN_MULTIPLIER : 1);
   const matched = job.need === job.jobKey;
-  const tip = matched ? Math.floor(def.coins * TIP_RATE) : 0;
+  const tip = matched ? Math.floor(base * TIP_RATE) : 0;
   const doneAt = job.startedAt + job.durationS * 1000;
   const timelyBonus =
-    opts.minigameBonus === 0 && now <= doneAt + TIMELY_WINDOW_MS ? Math.floor(def.coins * TIMELY_BONUS) : 0;
-  const minigame = Math.floor(def.coins * opts.minigameBonus);
+    opts.minigameBonus === 0 && now <= doneAt + TIMELY_WINDOW_MS ? Math.floor(base * TIMELY_BONUS) : 0;
+  const minigame = Math.floor(base * opts.minigameBonus);
   return {
-    coins: def.coins + tip + timelyBonus + minigame,
+    coins: base + tip + timelyBonus + minigame,
     xp: def.xp,
     tip,
     timelyBonus,
     reputation: matched ? 1 : 0,
+    levelBefore: levelForXp(c, s.xp),
+    levelAfter: levelForXp(c, s.xp + def.xp),
+  };
+}
+
+/** Payout for a job a helper started: coins x share (VIP double first), full XP, no tip/timely/reputation. */
+export function helperReward(c: Content, s: GameState, job: ActiveJob, helper: { level: number }): Reward {
+  const def = c.jobs.find((j) => j.key === job.jobKey)!;
+  const base = def.coins * (job.vip ? VIP_COIN_MULTIPLIER : 1);
+  const share = c.helperLevels[helper.level - 1]?.share ?? c.helperLevels[0]!.share;
+  return {
+    coins: Math.floor(base * share),
+    xp: def.xp,
+    tip: 0,
+    timelyBonus: 0,
+    reputation: 0,
     levelBefore: levelForXp(c, s.xp),
     levelAfter: levelForXp(c, s.xp + def.xp),
   };
@@ -111,6 +134,11 @@ export function collectJob(
   if (!bay) return err('unknown_bay');
   if (!bay.job) return err('empty_bay');
   if (!jobProgress(bay.job, now).done) return err('not_done');
-  const reward = computeReward(c, s, bay.job, now, { minigameBonus: 0 });
-  return ok({ state: applyReward(s, bayId, reward), reward });
+  const helper = bay.job.byHelper
+    ? (s.helpers.find((h) => h.key === bay.job!.byHelper) ?? { level: 1 })
+    : null;
+  const reward = helper
+    ? helperReward(c, s, bay.job, helper)
+    : computeReward(c, s, bay.job, now, { minigameBonus: 0 });
+  return ok({ state: touch(applyReward(s, bayId, reward), now), reward });
 }

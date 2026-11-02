@@ -58,3 +58,14 @@ describe('completeWithMinigame', () => {
     expect(r.value.state.minigameUses.every((t) => t > later - 3_600_000)).toBe(true);
   });
 });
+
+describe('minigameUsesLeft', () => {
+  it('counts the uses left in the rolling hour', async () => {
+    const { minigameUsesLeft } = await import('../src/minigame');
+    const s = withCustomer('wash');
+    expect(minigameUsesLeft(s, T0)).toBe(20);
+    const uses = Array.from({ length: 20 }, (_, i) => T0 + i);
+    expect(minigameUsesLeft({ ...s, minigameUses: uses }, T0 + 100)).toBe(0);
+    expect(minigameUsesLeft({ ...s, minigameUses: uses }, T0 + 3_600_005)).toBe(6);
+  });
+});

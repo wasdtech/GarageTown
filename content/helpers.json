@@ -1,0 +1,73 @@
+{
+  "helpers": [
+    {
+      "key": "ze",
+      "name": "Zé da Chave",
+      "face": "👨‍🔧",
+      "unlockLevel": 2,
+      "price": 300
+    },
+    {
+      "key": "bia",
+      "name": "Bia Faísca",
+      "face": "👩‍🔧",
+      "unlockLevel": 4,
+      "price": 1500
+    },
+    {
+      "key": "tiao",
+      "name": "Tião Turbo",
+      "face": "🧔",
+      "unlockLevel": 7,
+      "price": 4000
+    },
+    {
+      "key": "neusa",
+      "name": "Neusa Polimento",
+      "face": "👵",
+      "unlockLevel": 10,
+      "price": 10000
+    }
+  ],
+  "levels": [
+    {
+      "speed": 1,
+      "share": 0.8,
+      "trainCostMult": 0
+    },
+    {
+      "speed": 0.93,
+      "share": 0.84,
+      "trainCostMult": 2
+    },
+    {
+      "speed": 0.86,
+      "share": 0.88,
+      "trainCostMult": 4
+    },
+    {
+      "speed": 0.79,
+      "share": 0.92,
+      "trainCostMult": 8
+    },
+    {
+      "speed": 0.72,
+      "share": 0.95,
+      "trainCostMult": 16
+    }
+  ],
+  "clockTiers": [
+    {
+      "hours": 4,
+      "cost": 0
+    },
+    {
+      "hours": 6,
+      "cost": 3000
+    },
+    {
+      "hours": 8,
+      "cost": 12000
+    }
+  ]
+}

@@ -1,5 +1,14 @@
 [
-  { "key": "wash", "name": "Lavagem", "bay": "wash", "durationS": 30, "coins": 5, "xp": 3, "unlockLevel": 1 },
+  {
+    "key": "wash",
+    "name": "Lavagem",
+    "bay": "wash",
+    "durationS": 30,
+    "coins": 5,
+    "xp": 3,
+    "unlockLevel": 1,
+    "icon": "wash"
+  },
   {
     "key": "oil",
     "name": "Troca de óleo",
@@ -7,7 +16,8 @@
     "durationS": 120,
     "coins": 15,
     "xp": 6,
-    "unlockLevel": 1
+    "unlockLevel": 1,
+    "icon": "oil"
   },
   {
     "key": "polish",
@@ -16,7 +26,8 @@
     "durationS": 180,
     "coins": 22,
     "xp": 8,
-    "unlockLevel": 2
+    "unlockLevel": 2,
+    "icon": "polish"
   },
   {
     "key": "tires",
@@ -25,7 +36,8 @@
     "durationS": 300,
     "coins": 35,
     "xp": 10,
-    "unlockLevel": 3
+    "unlockLevel": 3,
+    "icon": "tires"
   },
   {
     "key": "engine",
@@ -34,6 +46,67 @@
     "durationS": 3600,
     "coins": 300,
     "xp": 50,
-    "unlockLevel": 4
+    "unlockLevel": 4,
+    "icon": "engine"
+  },
+  {
+    "key": "touchup",
+    "name": "Retoque de pintura",
+    "bay": "paint",
+    "durationS": 600,
+    "coins": 70,
+    "xp": 18,
+    "unlockLevel": 4,
+    "icon": "touchup"
+  },
+  {
+    "key": "alignment",
+    "name": "Alinhamento",
+    "bay": "performance",
+    "durationS": 480,
+    "coins": 60,
+    "xp": 15,
+    "unlockLevel": 6,
+    "icon": "alignment"
+  },
+  {
+    "key": "stickers",
+    "name": "Adesivos",
+    "bay": "paint",
+    "durationS": 1200,
+    "coins": 130,
+    "xp": 28,
+    "unlockLevel": 7,
+    "icon": "stickers"
+  },
+  {
+    "key": "suspension",
+    "name": "Rebaixar suspensão",
+    "bay": "performance",
+    "durationS": 3600,
+    "coins": 360,
+    "xp": 60,
+    "unlockLevel": 9,
+    "icon": "suspension"
+  },
+  {
+    "key": "fullpaint",
+    "name": "Pintura completa",
+    "bay": "paint",
+    "durationS": 2700,
+    "coins": 280,
+    "xp": 50,
+    "unlockLevel": 10,
+    "icon": "fullpaint"
+  },
+  {
+    "key": "turbo",
+    "name": "Turbo",
+    "bay": "performance",
+    "durationS": 14400,
+    "coins": 1200,
+    "xp": 150,
+    "unlockLevel": 13,
+    "icon": "turbo"
   }
 ]

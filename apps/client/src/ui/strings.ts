@@ -1,6 +1,27 @@
-import type { CollectError, MinigameError, StartError } from '@gt/sim';
+import type {
+  AssignError,
+  BuildError,
+  BuyCarError,
+  BuyPartError,
+  CollectError,
+  HireError,
+  LookError,
+  MinigameError,
+  StartError,
+  TrainError,
+} from '@gt/sim';
 
-type ErrorKey = StartError | CollectError | MinigameError;
+type ErrorKey =
+  | StartError
+  | CollectError
+  | MinigameError
+  | BuildError
+  | BuyCarError
+  | BuyPartError
+  | LookError
+  | HireError
+  | TrainError
+  | AssignError;
 
 export const S = {
   coins: 'Moedas',
@@ -21,6 +42,71 @@ export const S = {
   tip: (n: number) => `gorjeta +${n}`,
   timely: (n: number) => `pontual +${n}`,
   levelUp: (lvl: number) => `Subiu para o nível ${lvl}! 🎉`,
+  saveReset: 'Não deu para ler o seu save. Começamos um jogo novo (uma cópia do antigo foi guardada).',
+  tutorialSkip: 'Pular',
+  soundOn: 'Ligar som',
+  soundOff: 'Desligar som',
+  musicOn: 'Ligar música',
+  musicOff: 'Desligar música',
+  showcaseSign: '⭐ Meu carro',
+  team: {
+    pitch: 'Atende e coleta sozinho no box dele, até com o jogo fechado.',
+    hire: (price: number) => `Contratar · ${price} 🪙`,
+    hired: (name: string) => `${name} entrou na equipe! 🤝`,
+    train: (cost: number) => `Treinar · ${cost} 🪙`,
+    trained: (name: string) => `${name} ficou mais rápido! 💪`,
+    stats: (lvl: number, faster: string, share: string) =>
+      `Nível ${lvl} · ${faster} mais rápido · você recebe ${share}`,
+    assignLabel: (name: string) => `Box de ${name}`,
+    noBay: 'Sem box',
+    bay: 'Box',
+    clock: 'Relógio de ponto',
+    shift: (hours: number) => `A equipe trabalha até ${hours} h depois que você sai.`,
+    clockBuy: (hours: number, cost: number) => `Turno de ${hours} h · ${cost} 🪙`,
+    clockBought: 'Turno ampliado! ⏰',
+  },
+  welcome: {
+    title: 'Enquanto você estava fora',
+    away: (ms: number) => {
+      const m = Math.round(ms / 60_000);
+      return m < 60
+        ? `Você ficou fora ${m} min.`
+        : `Você ficou fora ${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}.`;
+    },
+    cars: 'carros',
+    collect: 'Coletar',
+  },
+  garage: {
+    title: 'Minha garagem',
+    open: '🚗 Garagem',
+    tabs: {
+      paint: 'Pintura',
+      finish: 'Acabamento',
+      extras: 'Neon e adesivos',
+      parts: 'Peças',
+      cars: 'Carros',
+      team: 'Equipe',
+    },
+    stat: { power: 'Potência', grip: 'Aderência' },
+    style: 'Estilo',
+    free: 'Grátis',
+    owned: 'Liberado',
+    maxed: 'Nível máximo',
+    noSticker: 'Sem adesivo',
+    showing: 'Em exposição',
+    show: 'Expor este carro',
+    installed: (part: string) => `${part} instalado! 🔧`,
+    bought: (car: string) => `${car} é seu! 🎉`,
+  },
+  buildTitle: 'Construir box',
+  buildPick: 'Escolha o tipo de box',
+  slotUnlocksAt: (lvl: number) => `🔒 Esta vaga libera no nível ${lvl}`,
+  bayTypes: { wash: 'Lavagem', mechanic: 'Mecânica', paint: 'Pintura', performance: 'Performance' },
+  buildInfo: (cost: number, secs: string) => `${cost} 🪙 · obra de ${secs}`,
+  buildStarted: (secs: string) => `Obra iniciada! Fica pronta em ${secs} 🚧`,
+  buildInProgress: (secs: string) => `Obra em andamento: faltam ${secs}`,
+  zoomIn: 'Aproximar',
+  zoomOut: 'Afastar',
   endOfPrototype: 'Fim do protótipo — obrigado por testar!',
   errors: {
     bay_busy: 'Esse box já está ocupado',
@@ -34,6 +120,20 @@ export const S = {
     not_eligible: 'Esse serviço não tem minijogo',
     gesture_too_short: 'Capricha mais um pouco…',
     rate_limited: 'Seus braços cansaram — tente mais tarde',
+    locked: 'Você ainda não tem nível para essa vaga',
+    no_coins: 'Moedas insuficientes',
+    slot_taken: 'Essa vaga já está ocupada',
+    unknown_slot: 'Vaga desconhecida',
+    unknown_model: 'Carro desconhecido',
+    owned: 'Você já tem esse carro',
+    unknown_car: 'Carro desconhecido',
+    unknown_part: 'Peça desconhecida',
+    maxed: 'Essa peça já está no máximo',
+    unknown_option: 'Opção desconhecida',
+    unknown_helper: 'Ajudante desconhecido',
+    hired: 'Já está na sua equipe',
+    not_hired: 'Contrate primeiro',
+    bay_has_helper: 'Esse box já tem um ajudante',
   } satisfies Record<ErrorKey, string>,
 };
 

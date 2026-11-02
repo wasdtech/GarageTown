@@ -16,7 +16,7 @@ describe('startJob', () => {
   it('moves the customer from the queue into the bay', () => {
     const s = started('wash', 'wash', 'bay1');
     expect(s.queue).toHaveLength(0);
-    expect(s.bays[0]!.job).toMatchObject({ jobKey: 'wash', need: 'wash', carKey: 'vespa_gt', startedAt: T0 });
+    expect(s.bays[0]!.job).toMatchObject({ jobKey: 'wash', need: 'wash', carKey: 'pitoco', startedAt: T0 });
   });
 
   it('rejects a job in the wrong bay type', () => {
