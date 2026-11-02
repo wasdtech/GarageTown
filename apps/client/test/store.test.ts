@@ -11,7 +11,7 @@ function setup() {
   const base = createInitialState(c, T0, 1);
   const initial: GameState = {
     ...base,
-    queue: [{ id: 'cx', carKey: 'vespa_gt', need: 'wash', arrivedAt: T0, patienceUntil: T0 + 1e12 }],
+    queue: [{ id: 'cx', carKey: 'pitoco', need: 'wash', arrivedAt: T0, patienceUntil: T0 + 1e12 }],
     nextCustomerAt: Number.MAX_SAFE_INTEGER,
   };
   const persist = vi.fn();
@@ -53,5 +53,41 @@ describe('Store', () => {
     advance(4_000);
     store.tick();
     expect(persist).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Store.build', () => {
+  it('starts a construction and persists it', () => {
+    const persist = vi.fn();
+    const s = {
+      ...createInitialState(c, T0, 1),
+      xp: 60,
+      coins: 200,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => T0, persist);
+    expect(store.build(3, 'paint')).toEqual({ ok: true, value: undefined });
+    expect(store.state.builds).toHaveLength(1);
+    expect(persist).toHaveBeenCalledTimes(1);
+    expect(store.build(3, 'paint')).toEqual({ ok: false, error: 'slot_taken' });
+  });
+});
+
+describe('Store garage actions', () => {
+  it('buys a part, applies a look and persists each change', () => {
+    const persist = vi.fn();
+    const s = {
+      ...createInitialState(c, T0, 1),
+      xp: 20,
+      coins: 1000,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => T0, persist);
+    expect(store.buyPart('car-pitoco', 'engine')).toEqual({ ok: true, value: undefined });
+    expect(store.applyLook('car-pitoco', { paint: 'blue' })).toEqual({ ok: true, value: undefined });
+    expect(store.state.coins).toBe(350);
+    expect(persist).toHaveBeenCalledTimes(2);
+    expect(store.buyCar('brutus_v8')).toEqual({ ok: false, error: 'locked' });
+    expect(store.setActiveCar('car-pitoco')).toEqual({ ok: true, value: undefined });
   });
 });

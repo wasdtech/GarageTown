@@ -1,0 +1,123 @@
+{
+  "paints": [
+    {
+      "key": "red",
+      "name": "Vermelho",
+      "hex": "#e63946",
+      "cost": 0
+    },
+    {
+      "key": "blue",
+      "name": "Azul",
+      "hex": "#3a86ff",
+      "cost": 150
+    },
+    {
+      "key": "yellow",
+      "name": "Amarelo",
+      "hex": "#ffb703",
+      "cost": 150
+    },
+    {
+      "key": "green",
+      "name": "Verde",
+      "hex": "#2a9d8f",
+      "cost": 150
+    },
+    {
+      "key": "orange",
+      "name": "Laranja",
+      "hex": "#fb5607",
+      "cost": 150
+    },
+    {
+      "key": "purple",
+      "name": "Roxo",
+      "hex": "#8338ec",
+      "cost": 150
+    },
+    {
+      "key": "pink",
+      "name": "Rosa",
+      "hex": "#ff5ca8",
+      "cost": 150
+    },
+    {
+      "key": "black",
+      "name": "Preto",
+      "hex": "#2b2d42",
+      "cost": 150
+    },
+    {
+      "key": "white",
+      "name": "Branco",
+      "hex": "#f1f1f1",
+      "cost": 150
+    },
+    {
+      "key": "silver",
+      "name": "Prata",
+      "hex": "#a8b2bd",
+      "cost": 150
+    },
+    {
+      "key": "lime",
+      "name": "Lima",
+      "hex": "#9ef01a",
+      "cost": 150
+    },
+    {
+      "key": "sky",
+      "name": "Céu",
+      "hex": "#4cc9f0",
+      "cost": 150
+    }
+  ],
+  "finishes": [
+    {
+      "key": "matte",
+      "name": "Fosco",
+      "cost": 0,
+      "style": 0
+    },
+    {
+      "key": "metallic",
+      "name": "Metálico",
+      "cost": 1000,
+      "style": 10
+    },
+    {
+      "key": "pearl",
+      "name": "Perolado",
+      "cost": 4000,
+      "style": 20
+    }
+  ],
+  "neon": {
+    "name": "Neon",
+    "cost": 2500,
+    "unlockLevel": 6,
+    "style": 15
+  },
+  "stickers": [
+    {
+      "key": "number",
+      "name": "Número",
+      "cost": 600,
+      "style": 10
+    },
+    {
+      "key": "bolt",
+      "name": "Raio",
+      "cost": 600,
+      "style": 10
+    },
+    {
+      "key": "star",
+      "name": "Estrela",
+      "cost": 600,
+      "style": 10
+    }
+  ],
+  "paintStyle": 10
+}

@@ -1,0 +1,144 @@
+{
+  "assets": [
+    {
+      "asset_id": "b35e52cc-0405-4674-afe2-84c5ca13389e",
+      "sha12": "43ccfe0164ee",
+      "label": "estilo carros (referência)",
+      "file": "art/reference/style-cars.png"
+    },
+    {
+      "asset_id": "05327603-fefe-485e-8eda-6675ff5b1999",
+      "sha12": "fa5b943a15aa",
+      "label": "pitoco",
+      "file": "art/generated/pitoco-test1.png"
+    },
+    {
+      "asset_id": "c2890593-06bf-4c60-a56a-ea723528b38f",
+      "sha12": "ed078274110c",
+      "label": "brutus_v8",
+      "file": "art/generated/brutus-test1.png"
+    },
+    {
+      "asset_id": "81910ebc-1f7d-4b30-8aa0-be4830e6cae3",
+      "sha12": "e290b8ab92b8",
+      "label": "corisco_rs",
+      "file": "art/generated/corisco-test1.png"
+    },
+    {
+      "asset_id": "464f5b97-f922-4052-94cb-a31fe06ad380",
+      "sha12": "64899191a02f",
+      "label": "estilo ícones (referência)",
+      "file": "art/reference/style-icons.png"
+    },
+    {
+      "asset_id": "7c0570fe-b225-44a5-b365-ab4d11e8d159",
+      "sha12": "85920c2ea177",
+      "label": "estilo cena (referência)",
+      "file": "art/reference/style-scene.png"
+    },
+    {
+      "asset_id": "5c3441e0-966f-4e3b-a5f4-6b49ae47b649",
+      "sha12": "4f07223b9f36",
+      "label": "icon wash",
+      "file": "art/generated/icon-wash.png"
+    },
+    {
+      "asset_id": "303eb256-17fd-48b8-8a22-820da62a4628",
+      "sha12": "37e55e8cbe9d",
+      "label": "icon oil",
+      "file": "art/generated/icon-oil.png"
+    },
+    {
+      "asset_id": "01191037-30aa-43b7-bcbd-08c2a888b37c",
+      "sha12": "6347f0386aba",
+      "label": "icon polish",
+      "file": "art/generated/icon-polish.png"
+    },
+    {
+      "asset_id": "ec008bf7-5376-4f83-8ea3-bc5c1ed6b31a",
+      "sha12": "3ae2fe9ad03f",
+      "label": "icon tires",
+      "file": "art/generated/icon-tires.png"
+    },
+    {
+      "asset_id": "101a3342-6935-4748-bbb8-e201e42509d4",
+      "sha12": "31c6e15ac8e0",
+      "label": "icon engine",
+      "file": "art/generated/icon-engine.png"
+    },
+    {
+      "asset_id": "ebfb7e1e-aed2-4254-a198-b5bb88f05639",
+      "sha12": "a7d6ea7fc0f5",
+      "label": "shop",
+      "file": "art/generated/shop.png"
+    },
+    {
+      "asset_id": "8b4e43c6-5209-4ee9-9176-df5084822e69",
+      "sha12": "a1c9f5751729",
+      "label": "tree",
+      "file": "art/generated/tree.png"
+    },
+    {
+      "asset_id": "cd64c627-408d-4c6d-b79f-89be47a43040",
+      "sha12": "e9e32f667b1e",
+      "label": "bay wash pad",
+      "file": "art/generated/bay-wash.png"
+    },
+    {
+      "asset_id": "b7d936cb-fbfb-4332-84ff-cbbd352267e0",
+      "sha12": "cec71cb40948",
+      "label": "bay mechanic pad",
+      "file": "art/generated/bay-mechanic.png"
+    },
+    {
+      "asset_id": "84bd2238-a40f-4d39-963d-b78e99938aec",
+      "sha12": "d2cd907abf2d",
+      "label": "build slot pad",
+      "file": "art/generated/build-slot.png"
+    },
+    {
+      "asset_id": "4d52a100-d061-4150-9127-e33b5ad1505f",
+      "sha12": "c2576a545008",
+      "label": "icon touchup",
+      "file": "art/generated/icon-touchup.png"
+    },
+    {
+      "asset_id": "9a8957c0-2033-431e-9716-f3a7c1172a17",
+      "sha12": "3ec8b05fae39",
+      "label": "icon stickers",
+      "file": "art/generated/icon-stickers.png"
+    },
+    {
+      "asset_id": "3d5eb2cc-2aa6-4487-b018-dcc00c462759",
+      "sha12": "814fee753950",
+      "label": "icon fullpaint",
+      "file": "art/generated/icon-fullpaint.png"
+    },
+    {
+      "asset_id": "d4b55bf2-179a-46a8-a1a0-77a2f35c043a",
+      "sha12": "1c16bec3d15e",
+      "label": "icon alignment",
+      "file": "art/generated/icon-alignment.png"
+    },
+    {
+      "asset_id": "414ce5f5-bcb8-4fa6-84f8-c8eb56cb1e32",
+      "sha12": "39206d89d5f2",
+      "label": "icon suspension",
+      "file": "art/generated/icon-suspension.png"
+    },
+    {
+      "asset_id": "616de044-a6a2-4b01-b92b-ca62546a31f4",
+      "sha12": "da04d7e3dc66",
+      "label": "icon turbo",
+      "file": "art/generated/icon-turbo.png"
+    },
+    {
+      "asset_id": "a1545ab3-4017-4d5e-b0e8-c073b825e845",
+      "sha12": "482e570c17c0",
+      "label": "bay paint pad",
+      "file": "art/generated/bay-paint.png"
+    }
+  ],
+  "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",
+  "notes": "Cars generated with gpt-image-2 (low quality, 2 credits each), painted red, split into layers by tools/split_ai_car.py; floor pads fitted to the exact 2:1 diamond by tools/fit_iso_pad.py"
+}

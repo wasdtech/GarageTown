@@ -141,7 +141,7 @@ tools/                  simulador de economia, build de atlas
 
 ### 2.2 Carros e customização
 - **Base de carros:**
-  - ~15 carros-base fictícios no lançamento (ex.: *Vespa GT*, *Brutus V8*, *Kumo 86*).
+  - ~15 carros-base fictícios no lançamento (ex.: *Pitoco*, *Brutus V8*, *Corisco RS*). Nomes e formas não podem ser modelos reais com nome trocado.
   - Classes: Popular, Clássico, Esportivo, Muscle e Exótico.
   - Raridades: Comum, Incomum, Raro e Lendário.
 - **Visual por camadas:**
@@ -273,11 +273,12 @@ tools/                  simulador de economia, build de atlas
 | Marco | Conteúdo | Saída |
 |---|---|---|
 | **M0** Protótipo local | Oficina isométrica 8×8, 2 boxes, 5 serviços, fila de clientes, 🪙 e XP, níveis 1–5, minijogo de lavagem, save local | Validar a diversão do loop curto |
-| **M1** Online | Login de convidado, servidor como autoridade, conteúdo em JSON, customização em camadas com 5 carros, níveis 1–15, posicionamento de objetos | Jogo persistente e seguro |
-| **M2** Social | Amigos, visitar e ajudar, contratar, comboio, concurso semanal, Dona Cida, rankings | Loop social completo |
+| **M0.1** Ajuste visual | Balões de pedido com ícone, bairro diurno em volta do lote murado, vaga "construir box aqui", botões de zoom, correções pequenas da revisão do M0, carros renomeados | Leitura clara no celular e sensação de lugar |
+| **M1** Online | Login de convidado, servidor como autoridade, conteúdo em JSON, customização em abas (pintura, rodas, pneus, kit, performance, suspensão) com **classe + índice de performance**, 5 carros, níveis 1–15, **editor da oficina (piso e decoração) com inventário** | Jogo persistente e seguro |
+| **M2** Social | Amigos, visitar e ajudar, contratar, comboio, concurso semanal, Dona Cida, rankings, **carros de amigos como clientes (rosto e nome)**, **missões e avaliação da garagem**, **coleções na concessionária** | Loop social completo |
 | **M3** Beta fechado | Loja cosmética (Stripe em modo de teste), telemetria, PT-BR e EN, achados de celeiro, ~50 testers | D1 ≥ 35% e D7 ≥ 12% |
 | **v1.0** | Lançamento público na web, Stripe em produção, nome final aprovado | Público |
-| **v1.1** | Arrancada com timing, Passe da Temporada, push, app via Capacitor | Expansão |
+| **v1.1** | Arrancada com timing e **metas Bronze/Prata/Ouro por pista**, **roleta diária grátis com timing**, Passe da Temporada, push, app via Capacitor | Expansão |
 
 ---
 
@@ -295,7 +296,83 @@ tools/                  simulador de economia, build de atlas
   - O cliente envia só a sequência de entradas com timestamps relativos.
   - O servidor refaz a corrida com `packages/sim` e grava o fantasma.
 
-## 8. Ajustes futuros (lista aberta)
+## 7.5 Bloco "Crescer a oficina" (offline, aprovado em 2026-11-01)
+O online (M1 e M2) foi movido para o final do roadmap a pedido do dono. Os blocos offline vêm antes, com o save local, e o `packages/sim` continua puro para ser reaproveitado no servidor depois.
+
+1. **Animações de trânsito:** chegada à fila, fila → box, box → rua → saída (depois de coletar) e desistência (com fumaça).
+   - São visuais apenas, derivadas da diferença entre o estado anterior e o novo, por uma função pura testada.
+   - A imagem é espelhada para andar no eixo y.
+   - Com `prefers-reduced-motion`, o carro troca de lugar sem viagem.
+2. **Construir boxes** nas vagas definidas em `content/garage.json`.
+   - Tipos: Lavagem, Mecânica, Pintura e Performance.
+   - A obra tem timer, com o mesmo modelo dos serviços.
+   - Box 3: nível 3, 150 🪙, obra de 2 min. Box 4: nível 6, 400 🪙, obra de 10 min.
+   - Boxes 5–8 ficam para "contratar amigos" (online).
+3. **Níveis 1–15:** XP acumulado 0, 20, 60, 130, 250, 420, 650, 950, 1350, 1850, 2500, 3300, 4300, 5500, 7000.
+4. **6 serviços novos:**
+
+   | Serviço | Box | Tempo | Nível |
+   |---|---|---|---|
+   | Retoque | Pintura | 10 min | 4 |
+   | Adesivos | Pintura | 20 min | 7 |
+   | Pintura completa | Pintura | 45 min | 10 |
+   | Alinhamento | Performance | 8 min | 6 |
+   | Suspensão | Performance | 1 h | 9 |
+   | Turbo | Performance | 4 h | 13 |
+
+   Os ícones são gerados por IA.
+5. **Clientes VIP:**
+   - Liberam com reputação ≥ 10, com chance de 10% por chegada.
+   - Paciência de 4 min e pagamento de 2× as moedas.
+   - Pedem só serviços de nível ≥ 4.
+   - Pintura dourada metálica.
+6. **Simulador de economia** (§2.3), com a faixa do jogador médio: nível 10 entre o dia 2 e o dia 4.
+
+Fora deste bloco: expansão do terreno, contratar amigos, carros novos e decoração.
+
+## 7.6 Bloco "Customizar carros" (offline, aprovado em 2026-11-01)
+Usa só a arte existente: carrocerias em cinza pintadas por tint, mais efeitos desenhados por código.
+
+1. **Garagem pessoal e concessionária**
+   - O jogador começa com o Pitoco (presente), exposto numa vaga de exposição no lote.
+   - Concessionária: Brutus V8 (nível 5, 3.000 🪙) e Corisco RS (nível 8, 8.000 🪙).
+   - O jogador escolhe o carro exposto.
+2. **Visual**
+   - 12 cores: cada uma custa 150 🪙 uma vez e fica liberada; o vermelho é grátis.
+   - Acabamento: fosco (grátis), metálico (1.000 🪙) e perolado (4.000 🪙), com brilho animado.
+   - Neon embaixo do carro: 2.500 🪙, a partir do nível 6.
+   - Adesivos desenhados por código: número, raio e estrela, 600 🪙 cada.
+3. **Performance**
+   - Peças: Motor, Turbo, Pneus e Suspensão, com 3 níveis cada, preços crescentes e nível mínimo (`content/parts.json`).
+   - Atributos: Potência, Aderência e Estilo.
+   - Índice de Performance = 2·Potência + 2·Aderência + Estilo.
+   - Classe: D < 200 ≤ C < 260 ≤ B < 320 ≤ A < 380 ≤ S.
+4. **Save v3** com migração (o jogador existente ganha o Pitoco).
+5. **Simulador:** passa a gastar em peças; a faixa do nível 10 entre os dias 2 e 4 continua valendo.
+
+Fora deste bloco: carros novos, rodas e para-choques trocáveis, coleções.
+Depois do bloco: revisão do jogo com as skills de QA e de game design (pedido do dono).
+
+## 8. Lições da referência de gênero (2026-11-01)
+Fonte: prints de um remake de fãs de um jogo social de garagem dos anos 2010, enviados pelo dono. O que vale é a **ideia de gênero**; arte, ícones, layout e nomes não são copiados.
+
+| Observado | Decisão |
+|---|---|
+| Pedido do cliente como **ícone** num balão | Adotar no M0.1 |
+| Garagem como **lugar**: lote murado num quarteirão com ruas, grama, vizinhos, outdoor de ranking, loja de peças como prédio | Adotar no M0.1 (bairro) e M1 (loja como prédio tocável) |
+| Vaga vazia listrada indicando onde construir | Adotar no M0.1 |
+| Clientes são **carros de amigos**, com foto e nome | Adotar no M2 |
+| Decorações que **geram moedas** (brinquedos de moeda) | Avaliar no M1, com limite e manutenção para não quebrar a economia |
+| Customização em **abas**, **classe + índice de performance** | Adotar no M1 |
+| Concessionária com **coleções** e XP pela compra | Coleções no M2; XP por compra a avaliar no balanceamento |
+| Editor da garagem: **piso e decoração** baratos, **inventário**, "resetar" e "concluir" | Adotar no M1 (melhor forma de gastar moedas) |
+| Arrancada com **três metas de tempo por pista** e barra de timing | Adotar na v1.1 (Bronze/Prata/Ouro) |
+| Nível como **velocímetro/conta-giros** | Adotar com desenho próprio (M1) |
+| **Energia/combustível** que limita ações | **Recusar**: frustra e empurra para pagamento; o ritmo já vem dos timers |
+| Carro comprável por **moeda premium**, **caixa misteriosa paga** | **Recusar**: pay-to-win e caixa de recompensa aleatória paga (§5) |
+| Carros reais com nome levemente trocado, marcas licenciadas na tela de carregamento | **Recusar**: risco de marca; tudo original |
+
+## 9. Ajustes futuros (lista aberta)
 - Balanceamento contínuo, guiado pela telemetria.
 - Mais minijogos (pintura, alinhamento, troca de pneu cronometrada).
 - Nome final, com checagem de marca e domínio.

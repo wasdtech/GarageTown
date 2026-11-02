@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: 'e2e',
   testMatch: '*.spec.ts',
   timeout: 30_000,
+  // software-rendered browsers in parallel can stall frames for >0.5s; keep CI serial
+  workers: process.env.CI ? 1 : undefined,
   use: {
     baseURL: 'http://localhost:4174',
     ...(executablePath ? { launchOptions: { executablePath } } : {}),

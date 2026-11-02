@@ -8,7 +8,7 @@ export const content = loadContent();
 export function withCustomer(need: string, c: Content = content, extra: Partial<GameState> = {}): GameState {
   return {
     ...createInitialState(c, T0, 1),
-    queue: [{ id: 'cx', carKey: 'vespa_gt', need, arrivedAt: T0, patienceUntil: T0 + 1e12 }],
+    queue: [{ id: 'cx', carKey: 'pitoco', need, arrivedAt: T0, patienceUntil: T0 + 1e12 }],
     nextCustomerAt: Number.MAX_SAFE_INTEGER,
     ...extra,
   };
