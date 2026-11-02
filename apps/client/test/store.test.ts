@@ -113,3 +113,19 @@ describe('Store team actions', () => {
     expect(persist).toHaveBeenCalledTimes(5);
   });
 });
+
+describe('Store.present', () => {
+  it('marks the player as active and clears the idle report', () => {
+    let now = T0;
+    const s = {
+      ...createInitialState(c, T0, 1),
+      idleReport: { jobs: 2, coins: 8, xp: 6 },
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => now, vi.fn());
+    now = T0 + 90_000;
+    store.present();
+    expect(store.state.lastActiveAt).toBe(T0 + 90_000);
+    expect(store.state.idleReport).toEqual({ jobs: 0, coins: 0, xp: 0 });
+  });
+});

@@ -12,6 +12,7 @@ import { createToaster } from './ui/toast';
 import { createSfx } from './ui/sfx';
 import { createTutorial } from './ui/tutorial';
 import { coinFly, confetti } from './ui/juice';
+import { presenceAction } from './ui/presence';
 import { openWelcomeBack } from './ui/welcomeBack';
 import './ui/theme.css';
 
@@ -72,20 +73,37 @@ scene.onReady = () => {
   });
   render();
   tutorial = createTutorial(ui, scene, store, clock);
-  const report = store.state.idleReport;
-  const awayMs = clock() - store.state.lastActiveAt;
-  if (report.jobs > 0 && awayMs >= 60_000) {
-    openWelcomeBack(ui, report, awayMs, (from) => {
+  // presence: while the player looks at the game the helpers' shift keeps going; coming back
+  // from a real absence (reload or a resumed background tab) shows what the team did
+  let welcomeOpen = false;
+  const checkPresence = () => {
+    const action = presenceAction(store.state, clock(), {
+      visible: document.visibilityState === 'visible',
+      sheetOpen: welcomeOpen,
+    });
+    if (action === 'present') store.present();
+    if (action !== 'welcome') return;
+    welcomeOpen = true;
+    const report = store.state.idleReport;
+    openWelcomeBack(ui, report, clock() - store.state.lastActiveAt, (from) => {
       const coinsEl = ui.querySelector<HTMLElement>('[data-testid="coins"]')?.parentElement;
       if (coinsEl) coinFly(ui, from, coinsEl, report.coins);
       confetti(ui);
       sfx.welcome();
-      store.clearIdleReport();
+      welcomeOpen = false;
+      store.present();
     });
-  } else if (report.jobs > 0) {
-    store.clearIdleReport();
-  }
-  setInterval(() => store.tick(), 1000);
+  };
+  checkPresence();
+  setInterval(() => {
+    store.tick();
+    checkPresence();
+  }, 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    store.tick();
+    checkPresence();
+  });
   ui.append(
     h(
       'button',

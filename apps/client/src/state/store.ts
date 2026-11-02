@@ -25,6 +25,7 @@ import {
   type Result,
   type Reward,
   startBuild,
+  touch,
   startJob,
   type StartError,
   tick,
@@ -134,6 +135,12 @@ export class Store {
 
   clearIdleReport(): void {
     this.commit(clearIdleReport(this.s), true);
+  }
+
+  /** The player is looking at the game: keep the helpers' shift going and drop in-session work from the report. */
+  present(): void {
+    const now = this.clock();
+    this.commit(clearIdleReport(touch(tick(this.c, this.s, now), now)), false);
   }
 
   minigame(bayId: string, gestureMs: number): Result<Reward, MinigameError> {
