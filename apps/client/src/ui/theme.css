@@ -431,8 +431,8 @@ body {
 /* Dona Cida tutorial */
 .gt-cida {
   position: absolute;
-  /* above the garage button and the two zoom buttons (2 x 48px + gap) */
-  bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 120px);
+  /* above the garage button and the mute + zoom buttons (3 x 48px + gaps) */
+  bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 176px);
   left: 50%;
   transform: translateX(-50%);
   width: min(460px, calc(100vw - 32px));
@@ -463,4 +463,39 @@ body {
   min-height: 32px;
   padding: 0 8px;
   font-size: 14px;
+}
+
+/* Juice */
+.gt-coin-fly {
+  position: fixed;
+  font-size: 22px;
+  pointer-events: none;
+  z-index: 50;
+}
+.gt-float-text {
+  position: fixed;
+  font-weight: 800;
+  font-size: 20px;
+  color: #fff;
+  text-shadow:
+    0 2px 0 var(--gt-ink),
+    0 0 4px var(--gt-ink);
+  pointer-events: none;
+  z-index: 50;
+}
+.gt-confetti {
+  position: fixed;
+  top: 0;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 60;
+}
+/* overlays that must never swallow taps (beats the `#ui > *` rule above) */
+#ui > .gt-toasts,
+#ui > .gt-coin-fly,
+#ui > .gt-float-text,
+#ui > .gt-confetti {
+  pointer-events: none;
 }
