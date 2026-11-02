@@ -4,6 +4,7 @@ import type { Store } from '../state/store';
 import { drawCarPreview } from './carPreview';
 import { h } from './dom';
 import { errorText, S } from './strings';
+import { garageKey } from './garageKey';
 import { teamTab } from './teamTab';
 
 type Tab = 'paint' | 'finish' | 'extras' | 'parts' | 'cars' | 'team';
@@ -25,17 +26,11 @@ export function openGarage(
   backdrop.addEventListener('click', (e) => e.target === backdrop && close());
   root.append(backdrop);
   // redraw only when something the sheet shows changed (the store ticks every second)
-  const keyOf = (s: GameState) =>
-    JSON.stringify([
-      s.coins,
-      levelForXp(c, s.xp),
-      s.collection,
-      s.helpers,
-      s.clockTier,
-      s.bays.map((b) => b.id),
-    ]);
+  const keyOf = (s: GameState) => garageKey(c, s);
   let lastKey = '';
   const unsub = store.subscribe((s) => {
+    // never rebuild under a select the player is using
+    if (panel.contains(document.activeElement) && document.activeElement?.tagName === 'SELECT') return;
     if (keyOf(s) !== lastKey) render();
   });
   function close() {
