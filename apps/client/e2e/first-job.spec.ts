@@ -32,9 +32,3 @@ test('zoom buttons change the camera zoom', async ({ page }) => {
   await page.getByRole('button', { name: 'Afastar' }).click();
   expect(await zoom()).toBeLessThan(before);
 });
-
-test('the empty build slot explains it is coming soon', async ({ page }) => {
-  await open(page);
-  await tapAnchor(page, 'build-slot');
-  await expect(page.getByText('Em breve: construir mais boxes')).toBeVisible();
-});

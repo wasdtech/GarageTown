@@ -16,7 +16,7 @@ describe('initial state', () => {
       ['wash', 2, 3, null],
       ['mechanic', 5, 3, null],
     ]);
-    expect(s.nextCustomerAt).toBe(T0 + 20_000);
+    expect(s.nextCustomerAt).toBe(T0 + 2_000); // first customer almost immediately
   });
 
   it('rng yields values in [0,1) deterministically', () => {

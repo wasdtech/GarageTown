@@ -15,6 +15,7 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  { rules: { '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] } },
   {
     files: ['packages/sim/src/**/*.ts'],
     rules: {

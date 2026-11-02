@@ -296,6 +296,63 @@ tools/                  simulador de economia, build de atlas
   - O cliente envia só a sequência de entradas com timestamps relativos.
   - O servidor refaz a corrida com `packages/sim` e grava o fantasma.
 
+## 7.5 Bloco "Crescer a oficina" (offline, aprovado em 2026-11-01)
+O online (M1 e M2) foi movido para o final do roadmap a pedido do dono. Os blocos offline vêm antes, com o save local, e o `packages/sim` continua puro para ser reaproveitado no servidor depois.
+
+1. **Animações de trânsito:** chegada à fila, fila → box, box → rua → saída (depois de coletar) e desistência (com fumaça).
+   - São visuais apenas, derivadas da diferença entre o estado anterior e o novo, por uma função pura testada.
+   - A imagem é espelhada para andar no eixo y.
+   - Com `prefers-reduced-motion`, o carro troca de lugar sem viagem.
+2. **Construir boxes** nas vagas definidas em `content/garage.json`.
+   - Tipos: Lavagem, Mecânica, Pintura e Performance.
+   - A obra tem timer, com o mesmo modelo dos serviços.
+   - Box 3: nível 3, 150 🪙, obra de 2 min. Box 4: nível 6, 400 🪙, obra de 10 min.
+   - Boxes 5–8 ficam para "contratar amigos" (online).
+3. **Níveis 1–15:** XP acumulado 0, 20, 60, 130, 250, 420, 650, 950, 1350, 1850, 2500, 3300, 4300, 5500, 7000.
+4. **6 serviços novos:**
+
+   | Serviço | Box | Tempo | Nível |
+   |---|---|---|---|
+   | Retoque | Pintura | 10 min | 4 |
+   | Adesivos | Pintura | 20 min | 7 |
+   | Pintura completa | Pintura | 45 min | 10 |
+   | Alinhamento | Performance | 8 min | 6 |
+   | Suspensão | Performance | 1 h | 9 |
+   | Turbo | Performance | 4 h | 13 |
+
+   Os ícones são gerados por IA.
+5. **Clientes VIP:**
+   - Liberam com reputação ≥ 10, com chance de 10% por chegada.
+   - Paciência de 4 min e pagamento de 2× as moedas.
+   - Pedem só serviços de nível ≥ 4.
+   - Pintura dourada metálica.
+6. **Simulador de economia** (§2.3), com a faixa do jogador médio: nível 10 entre o dia 2 e o dia 4.
+
+Fora deste bloco: expansão do terreno, contratar amigos, carros novos e decoração.
+
+## 7.6 Bloco "Customizar carros" (offline, aprovado em 2026-11-01)
+Usa só a arte existente: carrocerias em cinza pintadas por tint, mais efeitos desenhados por código.
+
+1. **Garagem pessoal e concessionária**
+   - O jogador começa com o Pitoco (presente), exposto numa vaga de exposição no lote.
+   - Concessionária: Brutus V8 (nível 5, 3.000 🪙) e Corisco RS (nível 8, 8.000 🪙).
+   - O jogador escolhe o carro exposto.
+2. **Visual**
+   - 12 cores: cada uma custa 150 🪙 uma vez e fica liberada; o vermelho é grátis.
+   - Acabamento: fosco (grátis), metálico (1.000 🪙) e perolado (4.000 🪙), com brilho animado.
+   - Neon embaixo do carro: 2.500 🪙, a partir do nível 6.
+   - Adesivos desenhados por código: número, raio e estrela, 600 🪙 cada.
+3. **Performance**
+   - Peças: Motor, Turbo, Pneus e Suspensão, com 3 níveis cada, preços crescentes e nível mínimo (`content/parts.json`).
+   - Atributos: Potência, Aderência e Estilo.
+   - Índice de Performance = 2·Potência + 2·Aderência + Estilo.
+   - Classe: D < 200 ≤ C < 260 ≤ B < 320 ≤ A < 380 ≤ S.
+4. **Save v3** com migração (o jogador existente ganha o Pitoco).
+5. **Simulador:** passa a gastar em peças; a faixa do nível 10 entre os dias 2 e 4 continua valendo.
+
+Fora deste bloco: carros novos, rodas e para-choques trocáveis, coleções.
+Depois do bloco: revisão do jogo com as skills de QA e de game design (pedido do dono).
+
 ## 8. Lições da referência de gênero (2026-11-01)
 Fonte: prints de um remake de fãs de um jogo social de garagem dos anos 2010, enviados pelo dono. O que vale é a **ideia de gênero**; arte, ícones, layout e nomes não são copiados.
 

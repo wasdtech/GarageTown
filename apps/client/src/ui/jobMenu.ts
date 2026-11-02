@@ -1,4 +1,4 @@
-import type { Content, JobDef } from '@gt/shared';
+import type { BayType, Content, JobDef } from '@gt/shared';
 import { type Bay, type Customer, jobProgress, levelForXp } from '@gt/sim';
 import { fmt } from './format';
 import { h } from './dom';
@@ -95,4 +95,35 @@ export function openBayStatus(
   const timer = setInterval(update, 500);
   sheet(root, name, remaining, ...extra);
   update();
+}
+
+/** Lets the player pick a bay type for an empty garage slot. */
+export function openBuildMenu(
+  root: HTMLElement,
+  opts: { level: number; coins: number; slotLevel: number; cost: number; buildS: number },
+  onPick: (type: BayType) => void,
+) {
+  const locked = opts.level < opts.slotLevel;
+  const types: BayType[] = ['wash', 'mechanic', 'paint', 'performance'];
+  const items = types.map((t) => {
+    const disabled = locked || opts.coins < opts.cost;
+    const btn = h(
+      'button',
+      { class: 'gt-job', 'data-bay-type': t, ...(disabled ? { disabled: '' } : {}) },
+      h('strong', {}, S.bayTypes[t]),
+      h('span', {}, S.buildInfo(opts.cost, fmt(opts.buildS))),
+    );
+    btn.addEventListener('click', () => {
+      if (btn.hasAttribute('disabled')) return;
+      closeSheet();
+      onPick(t);
+    });
+    return btn;
+  });
+  const note = locked
+    ? S.slotUnlocksAt(opts.slotLevel)
+    : opts.coins < opts.cost
+      ? S.errors.no_coins
+      : S.buildPick;
+  sheet(root, S.buildTitle, h('p', { class: 'gt-muted', 'data-testid': 'build-note' }, note), ...items);
 }

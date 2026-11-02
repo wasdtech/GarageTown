@@ -293,3 +293,209 @@ body {
   line-height: 1;
   background: var(--gt-panel);
 }
+
+/* Garage */
+.gt-garage-btn {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left, 0px));
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+}
+.gt-garage-sheet {
+  width: min(560px, 100vw);
+  max-height: 92vh;
+  overflow-y: auto;
+}
+.gt-garage-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gt-garage-head h2 {
+  flex: 1;
+}
+.gt-class {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--gt-accent);
+  border: 3px solid var(--gt-ink);
+  font-weight: 800;
+  font-size: 22px;
+}
+.gt-pi {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.gt-preview {
+  width: 100%;
+  height: auto;
+  background: radial-gradient(ellipse at 50% 75%, #fff3c4 0%, #f1ebe0 60%);
+  border: 3px solid var(--gt-ink);
+  border-radius: var(--gt-radius);
+}
+.gt-stats {
+  display: grid;
+  gap: 4px;
+}
+.gt-stat {
+  display: grid;
+  grid-template-columns: 90px 1fr 36px;
+  align-items: center;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.gt-stat-bar {
+  height: 10px;
+  border: 2px solid var(--gt-ink);
+  border-radius: 999px;
+  background: #e9e4d8;
+  overflow: hidden;
+}
+.gt-stat-bar div {
+  height: 100%;
+  background: var(--gt-blue);
+}
+.gt-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.gt-tab {
+  font: inherit;
+  font-weight: 700;
+  color: var(--gt-ink);
+  border: 3px solid var(--gt-ink);
+  border-radius: 999px;
+  background: #fff;
+  padding: 4px 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.gt-tab-active {
+  background: var(--gt-accent);
+}
+.gt-opts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+.gt-opt {
+  font: inherit;
+  color: var(--gt-ink);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: center;
+  text-align: left;
+  min-height: 48px;
+  padding: 6px 10px;
+  border: 3px solid var(--gt-ink);
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+}
+.gt-opt strong {
+  grid-column: 2;
+}
+.gt-opt span:last-child {
+  grid-column: 2;
+  font-size: 13px;
+  opacity: 0.75;
+}
+.gt-opt-active {
+  background: #fff3c4;
+  box-shadow: inset 0 0 0 2px var(--gt-accent);
+}
+.gt-opt[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.gt-swatch {
+  grid-row: 1 / span 2;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--gt-ink);
+}
+/* the sheet scrolls as a whole; children must not shrink (the tab row has overflow and would collapse to 0) */
+.gt-garage-sheet > * {
+  flex-shrink: 0;
+}
+.gt-garage .gt-garage-sheet {
+  max-height: calc(100vh - 70px - env(safe-area-inset-top, 0px));
+}
+
+/* Dona Cida tutorial */
+.gt-cida {
+  position: absolute;
+  /* above the garage button and the mute + zoom buttons (3 x 48px + gaps) */
+  bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 176px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(460px, calc(100vw - 32px));
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 10px;
+  padding: 10px 12px;
+  background: var(--gt-panel);
+  border: 3px solid var(--gt-ink);
+  border-radius: var(--gt-radius);
+  box-shadow: var(--gt-shadow);
+  animation: gt-up 0.25s ease-out;
+}
+.gt-cida-face {
+  grid-row: 1 / span 2;
+  font-size: 40px;
+  line-height: 1;
+}
+.gt-cida-text {
+  margin: 0;
+  font-weight: 600;
+}
+.gt-cida-skip {
+  justify-self: end;
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 14px;
+}
+
+/* Juice */
+.gt-coin-fly {
+  position: fixed;
+  font-size: 22px;
+  pointer-events: none;
+  z-index: 50;
+}
+.gt-float-text {
+  position: fixed;
+  font-weight: 800;
+  font-size: 20px;
+  color: #fff;
+  text-shadow:
+    0 2px 0 var(--gt-ink),
+    0 0 4px var(--gt-ink);
+  pointer-events: none;
+  z-index: 50;
+}
+.gt-confetti {
+  position: fixed;
+  top: 0;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 60;
+}
+/* overlays that must never swallow taps (beats the `#ui > *` rule above) */
+#ui > .gt-toasts,
+#ui > .gt-coin-fly,
+#ui > .gt-float-text,
+#ui > .gt-confetti {
+  pointer-events: none;
+}

@@ -1,5 +1,14 @@
-import type { Content, JobKey } from '@gt/shared';
+import type { BayType, Content, JobKey } from '@gt/shared';
 import {
+  applyLook,
+  type BuyCarError,
+  type BuyPartError,
+  buyCar,
+  buyPart,
+  type CarLook,
+  type LookError,
+  setActiveCar,
+  type BuildError,
   collectJob,
   type CollectError,
   completeWithMinigame,
@@ -7,6 +16,7 @@ import {
   type MinigameError,
   type Result,
   type Reward,
+  startBuild,
   startJob,
   type StartError,
   tick,
@@ -66,6 +76,36 @@ export class Store {
     if (!r.ok) return r;
     this.commit(r.value.state, true);
     return { ok: true, value: r.value.reward };
+  }
+
+  build(slot: number, type: BayType): Result<void, BuildError> {
+    const r = startBuild(this.c, this.s, { slot, type }, this.clock());
+    if (!r.ok) return r;
+    this.commit(r.value, true);
+    return { ok: true, value: undefined };
+  }
+
+  /** Runs a pure garage action and commits it when it succeeds. */
+  private act<E extends string>(r: Result<GameState, E>): Result<void, E> {
+    if (!r.ok) return r;
+    this.commit(r.value, true);
+    return { ok: true, value: undefined };
+  }
+
+  buyCar(model: string): Result<void, BuyCarError> {
+    return this.act(buyCar(this.c, this.s, model, this.clock()));
+  }
+
+  setActiveCar(carId: string): Result<void, 'unknown_car'> {
+    return this.act(setActiveCar(this.s, carId));
+  }
+
+  buyPart(carId: string, part: string): Result<void, BuyPartError> {
+    return this.act(buyPart(this.c, this.s, { carId, part }, this.clock()));
+  }
+
+  applyLook(carId: string, look: Partial<CarLook>): Result<void, LookError> {
+    return this.act(applyLook(this.c, this.s, { carId, ...look }, this.clock()));
   }
 
   minigame(bayId: string, gestureMs: number): Result<Reward, MinigameError> {

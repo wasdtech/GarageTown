@@ -9,6 +9,8 @@ import { createHud } from './ui/hud';
 import { h } from './ui/dom';
 import { S } from './ui/strings';
 import { createToaster } from './ui/toast';
+import { createSfx } from './ui/sfx';
+import { createTutorial } from './ui/tutorial';
 import './ui/theme.css';
 
 const content = loadContent();
@@ -20,19 +22,32 @@ const loaded = loadGame(content, clock());
 const store = new Store(content, loaded.state, clock, saveGame);
 const updateHud = createHud(ui, content);
 const toast = createToaster(ui);
+const sfx = createSfx(
+  (() => {
+    try {
+      return localStorage;
+    } catch {
+      return null;
+    }
+  })(),
+  globalThis.AudioContext,
+);
 store.subscribe(updateHud);
 updateHud(store.state);
 if (loaded.recovered === 'corrupt' || loaded.recovered === 'unknown_version') toast(S.saveReset, 'bad', 5000);
 
 const scene = new GarageScene();
 scene.onReady = () => {
-  const { render } = createController({
+  let tutorial: { emit: (e: 'select' | 'start' | 'collect' | 'garage') => void } | null = null;
+  const { render, garage } = createController({
     content,
     store,
     scene,
     ui,
     clock,
     toast,
+    sfx,
+    onEvent: (e) => tutorial?.emit(e),
     openMinigame: (carKey) =>
       new Promise((resolve) => {
         const sprite = content.cars.find((c) => c.key === carKey)?.sprite ?? content.cars[0]!.sprite;
@@ -40,11 +55,20 @@ scene.onReady = () => {
       }),
   });
   render();
+  tutorial = createTutorial(ui, scene, store, clock);
   setInterval(() => store.tick(), 1000);
+  ui.append(
+    h(
+      'button',
+      { class: 'gt-btn gt-garage-btn', 'data-testid': 'open-garage', onclick: garage },
+      S.garage.open,
+    ),
+  );
   ui.append(
     h(
       'div',
       { class: 'gt-zoom' },
+      muteButton(),
       h(
         'button',
         { class: 'gt-btn', 'aria-label': S.zoomIn, title: S.zoomIn, onclick: () => scene.zoomBy(1.2) },
@@ -75,8 +99,26 @@ new Phaser.Game({
   parent: 'game',
   backgroundColor: '#86c96b',
   scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight },
+  // only the canvas feeds the scene: clicks on DOM menus must not fall through to cars behind them
+  input: { windowEvents: false },
   scene: [],
 }).scene.add('garage', scene, true, { content });
+
+function muteButton() {
+  const b = h('button', { class: 'gt-btn', 'data-testid': 'mute' });
+  const paint = () => {
+    b.textContent = sfx.muted ? '🔇' : '🔊';
+    b.setAttribute('aria-label', sfx.muted ? S.soundOn : S.soundOff);
+    b.setAttribute('aria-pressed', String(sfx.muted));
+  };
+  b.addEventListener('click', () => {
+    sfx.setMuted(!sfx.muted);
+    paint();
+    sfx.click();
+  });
+  paint();
+  return b;
+}
 
 document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && store.save());
 window.addEventListener('pagehide', () => store.save());
