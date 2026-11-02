@@ -1,7 +1,7 @@
 import { BayTypeSchema, type Content } from '@gt/shared';
 import { z } from 'zod';
 import { tick } from './customers';
-import { createInitialState, type GameState } from './state';
+import { createInitialState, type GameState, starterCollection } from './state';
 
 const int = z.number().int();
 const nonneg = int.nonnegative();
@@ -16,8 +16,31 @@ const ActiveJobSchema = z.object({
   vip: z.boolean().optional(),
 });
 
+const CollectionSchema = z.object({
+  cars: z
+    .array(
+      z.object({
+        id: z.string(),
+        model: z.string(),
+        look: z.object({
+          paint: z.string(),
+          finish: z.string(),
+          neon: z.boolean(),
+          sticker: z.string().nullable(),
+        }),
+        parts: z.record(z.string(), int.min(1).max(3)),
+      }),
+    )
+    .min(1),
+  activeCarId: z.string(),
+  paints: z.array(z.string()),
+  finishes: z.array(z.string()),
+  stickers: z.array(z.string()),
+  neon: z.boolean(),
+});
+
 const GameStateSchema = z.object({
-  version: z.literal(2),
+  version: z.literal(3),
   coins: nonneg,
   xp: nonneg,
   reputation: nonneg,
@@ -46,6 +69,7 @@ const GameStateSchema = z.object({
   minigameUses: z.array(int),
   rngState: nonneg,
   nextId: int.positive(),
+  collection: CollectionSchema,
   builds: z.array(
     z.object({ slot: int.positive(), type: BayTypeSchema, startedAt: int, durationS: int.positive() }),
   ),
@@ -86,12 +110,17 @@ export function deserialize(
     return fresh('corrupt');
   }
   if (typeof data === 'object' && data !== null && 'version' in data) {
-    const d = data as { version: unknown; builds?: unknown };
+    const d = data as { version: unknown; builds?: unknown; collection?: unknown };
     if (d.version === 1) {
       // v1 -> v2: construction queue added
       d.version = 2;
       d.builds = [];
-    } else if (d.version !== 2) {
+    }
+    if (d.version === 2) {
+      // v2 -> v3: personal garage, starting with the gift car
+      d.version = 3;
+      d.collection = starterCollection(c);
+    } else if (d.version !== 3) {
       return fresh('unknown_version');
     }
   }
@@ -103,7 +132,10 @@ export function deserialize(
   const carKeys = new Set(c.cars.map((k) => k.key));
   const refsOk =
     s.bays.every((b) => !b.job || (jobKeys.has(b.job.jobKey) && carKeys.has(b.job.carKey))) &&
-    s.queue.every((q) => jobKeys.has(q.need) && carKeys.has(q.carKey));
+    s.queue.every((q) => jobKeys.has(q.need) && carKeys.has(q.carKey)) &&
+    s.collection.cars.every((car) => carKeys.has(car.model)) &&
+    s.collection.cars.some((car) => car.id === s.collection.activeCarId) &&
+    s.collection.paints.every((p) => c.looks.paints.some((x) => x.key === p));
   if (!refsOk) return fresh('corrupt');
   return { state: tick(c, s, now), recovered: 'ok' };
 }

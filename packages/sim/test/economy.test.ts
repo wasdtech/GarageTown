@@ -18,3 +18,17 @@ describe('economy simulator (spec §2.3)', () => {
     for (const r of [casual, medio, intenso]) expect(r!.final.bays).toHaveLength(4);
   });
 });
+
+describe('economy sinks', () => {
+  it('the average player can afford all cars within a month but not every part', () => {
+    const { final } = simulate(c, profile('medio'), 30);
+    expect(final.collection.cars).toHaveLength(3);
+    const tiers = final.collection.cars.flatMap((car) => c.parts.map((p) => car.parts[p.key] ?? 0));
+    expect(tiers.some((t) => t < 3)).toBe(true);
+  });
+
+  it('a casual player still owns only the gift car after 3 days', () => {
+    const { final } = simulate(c, profile('casual'), 3);
+    expect(final.collection.cars).toHaveLength(1);
+  });
+});

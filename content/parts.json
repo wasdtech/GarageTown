@@ -1,0 +1,90 @@
+[
+  {
+    "key": "engine",
+    "name": "Motor",
+    "stat": "power",
+    "tiers": [
+      {
+        "bonus": 10,
+        "cost": 500,
+        "level": 2
+      },
+      {
+        "bonus": 20,
+        "cost": 2500,
+        "level": 6
+      },
+      {
+        "bonus": 35,
+        "cost": 9000,
+        "level": 10
+      }
+    ]
+  },
+  {
+    "key": "turbo",
+    "name": "Turbo",
+    "stat": "power",
+    "tiers": [
+      {
+        "bonus": 15,
+        "cost": 1500,
+        "level": 5
+      },
+      {
+        "bonus": 30,
+        "cost": 6000,
+        "level": 9
+      },
+      {
+        "bonus": 50,
+        "cost": 20000,
+        "level": 13
+      }
+    ]
+  },
+  {
+    "key": "tires",
+    "name": "Pneus",
+    "stat": "grip",
+    "tiers": [
+      {
+        "bonus": 10,
+        "cost": 400,
+        "level": 2
+      },
+      {
+        "bonus": 20,
+        "cost": 2000,
+        "level": 5
+      },
+      {
+        "bonus": 30,
+        "cost": 8000,
+        "level": 9
+      }
+    ]
+  },
+  {
+    "key": "suspension",
+    "name": "Suspensão",
+    "stat": "grip",
+    "tiers": [
+      {
+        "bonus": 8,
+        "cost": 800,
+        "level": 4
+      },
+      {
+        "bonus": 16,
+        "cost": 3500,
+        "level": 8
+      },
+      {
+        "bonus": 28,
+        "cost": 12000,
+        "level": 12
+      }
+    ]
+  }
+]

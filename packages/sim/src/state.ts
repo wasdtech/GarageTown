@@ -35,8 +35,54 @@ export interface Build {
   durationS: number;
 }
 
+export interface CarLook {
+  paint: string;
+  finish: string;
+  neon: boolean;
+  sticker: string | null;
+}
+
+/** A car the player owns; `parts` maps a part key to its installed tier (1..3). */
+export interface OwnedCar {
+  id: string;
+  model: string;
+  look: CarLook;
+  parts: Record<string, number>;
+}
+
+/** The player's personal garage and the looks they have unlocked. */
+export interface Collection {
+  cars: OwnedCar[];
+  activeCarId: string;
+  paints: string[];
+  finishes: string[];
+  stickers: string[];
+  neon: boolean;
+}
+
+export const carId = (model: string) => `car-${model}`;
+
+export function starterCollection(c: Content): Collection {
+  const model = c.cars[0]!.key;
+  return {
+    cars: [
+      {
+        id: carId(model),
+        model,
+        look: { paint: c.looks.paints[0]!.key, finish: c.looks.finishes[0]!.key, neon: false, sticker: null },
+        parts: {},
+      },
+    ],
+    activeCarId: carId(model),
+    paints: [c.looks.paints[0]!.key],
+    finishes: [c.looks.finishes[0]!.key],
+    stickers: [],
+    neon: false,
+  };
+}
+
 export interface GameState {
-  version: 2;
+  version: 3;
   coins: number;
   xp: number;
   reputation: number;
@@ -49,10 +95,13 @@ export interface GameState {
   rngState: number;
   nextId: number;
   builds: Build[];
+  collection: Collection;
 }
 
 export const QUEUE_MAX = 6;
 export const ARRIVAL_MS = 20_000;
+/** A new garage gets its first customer almost immediately (onboarding). */
+export const FIRST_CUSTOMER_MS = 2_000;
 export const PATIENCE_MS = 120_000;
 export const VIP_PATIENCE_MS = 240_000;
 export const VIP_MIN_REPUTATION = 10;
@@ -72,7 +121,7 @@ export const bayId = (slot: number) => `bay${slot}`;
 
 export function createInitialState(c: Content, now: number, seed: number): GameState {
   return {
-    version: 2,
+    version: 3,
     coins: 0,
     xp: 0,
     reputation: 0,
@@ -85,11 +134,12 @@ export function createInitialState(c: Content, now: number, seed: number): GameS
         job: null,
       })),
     queue: [],
-    nextCustomerAt: now + ARRIVAL_MS,
+    nextCustomerAt: now + FIRST_CUSTOMER_MS,
     lastTickAt: now,
     minigameUses: [],
     rngState: seed >>> 0,
     nextId: 1,
     builds: [],
+    collection: starterCollection(c),
   };
 }

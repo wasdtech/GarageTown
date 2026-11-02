@@ -61,3 +61,12 @@ describe('diffTransitions', () => {
     ]);
   });
 });
+
+describe('VIP journeys', () => {
+  it('carry the vip flag so the travelling car is gold', () => {
+    const a = withQueue();
+    const b = { ...a, queue: [{ ...a.queue[0]!, vip: true }, ...a.queue.slice(1)] };
+    const gone = { ...b, queue: b.queue.slice(1) };
+    expect(diffTransitions(b, gone)[0]).toMatchObject({ kind: 'giveUp', vip: true });
+  });
+});

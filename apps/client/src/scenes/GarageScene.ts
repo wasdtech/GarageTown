@@ -3,6 +3,7 @@ import { bayId, buildProgress, type GameState, jobProgress, TIMELY_WINDOW_MS } f
 import Phaser from 'phaser';
 import { depthOf, isoToScreen, type Point } from '../iso/iso';
 import { collectLabel, fmt } from '../ui/format';
+import { S } from '../ui/strings';
 import { structureKey } from './structureKey';
 import { diffTransitions, type Transition } from './transitions';
 
@@ -16,6 +17,9 @@ const CAR_TEXTURE_SCALE = 0.5;
 // Phaser skips input on objects that won't render (alpha 0), so in-flight cars stay barely visible.
 const IN_FLIGHT_ALPHA = 0.01;
 const VIP_GOLD = 0xe9b949;
+/** Showcase spot for the player's own car (back corner: clear of the queue and of every bay's tap area). */
+const SHOWCASE = { x: 0, y: 0 };
+const STICKER_GLYPH: Record<string, string> = { number: '7', bolt: '⚡', star: '★' };
 const ORIGIN: Point = { x: 0, y: 0 };
 const GRASS = '#86c96b';
 const CROSS_STREET_COL = 9; // the side street along the lot's right edge
@@ -75,6 +79,8 @@ export class GarageScene extends Phaser.Scene {
   private carSprites = new Map<string, Phaser.GameObjects.Container>();
   /** Customers shown as a travelling car; their resting sprite stays transparent (but tappable) until arrival. */
   private inFlight = new Set<string>();
+  /** Bays whose job was already finished at the last rebuild (to celebrate newly finished ones once). */
+  private doneBays = new Set<string>();
   private updaters: ((now: number) => void)[] = [];
   onReady?: () => void;
   /** World positions of tappable things from the last render (bay ids and customer ids). */
@@ -176,12 +182,13 @@ export class GarageScene extends Phaser.Scene {
   /** Fits the lot plus the street queue (tiles x -2..8, y 0..9) to the screen. */
   fitCamera() {
     const cam = this.cameras.main;
-    const left = isoToScreen(-2, STREET_ROW + 1, ORIGIN).x - 32;
+    // include the first queue spot (QUEUE_START) with a car-width margin
+    const left = isoToScreen(QUEUE_START - 1.5, STREET_ROW + 1, ORIGIN).x - 32;
     const right = isoToScreen(LOT_SIZE, 0, ORIGIN).x + 32;
     const bottom = isoToScreen(LOT_SIZE, STREET_ROW + 1, ORIGIN).y;
     cam.centerOn((left + right) / 2, bottom / 2 + 10);
     const fit = Math.min(this.scale.width / (right - left), (this.scale.height - 120) / (bottom + 80));
-    cam.setZoom(Phaser.Math.Clamp(fit, 0.5, 1.3));
+    cam.setZoom(Phaser.Math.Clamp(fit, 0.45, 1.3));
   }
 
   zoomBy(factor: number) {
@@ -223,6 +230,31 @@ export class GarageScene extends Phaser.Scene {
   }
 
   isDragging: () => boolean = () => false;
+
+  private pointer: Phaser.GameObjects.Text | null = null;
+  private pointerTarget: string | null = null;
+
+  /** Bouncing arrow over an anchor (tutorial); null hides it. Re-resolved on every render. */
+  pointAt(anchorId: string | null) {
+    this.pointerTarget = anchorId;
+    this.placePointer();
+  }
+
+  private placePointer() {
+    const a = this.pointerTarget ? this.anchors.get(this.pointerTarget) : undefined;
+    if (!a) {
+      this.pointer?.setVisible(false);
+      return;
+    }
+    if (!this.pointer) {
+      this.pointer = this.add
+        .text(0, 0, '▼', { fontSize: '34px', color: '#ffd166', stroke: '#1d1d2b', strokeThickness: 6 })
+        .setOrigin(0.5, 1)
+        .setDepth(6000);
+      this.tweens.add({ targets: this.pointer, scale: 1.2, yoyo: true, repeat: -1, duration: 420 });
+    }
+    this.pointer.setPosition(a.x, a.y - 58).setVisible(true);
+  }
 
   /** Page coordinates of an anchor (used by end-to-end tests). */
   screenOf(id: string): Point | null {
@@ -323,6 +355,7 @@ export class GarageScene extends Phaser.Scene {
       this.dynamic.add([g, t]);
     }
 
+    const nowDone = new Set<string>();
     for (const bay of s.bays) {
       const pad = isoToScreen(bay.tile.x, bay.tile.y, ORIGIN);
       const padImg = this.add
@@ -350,6 +383,8 @@ export class GarageScene extends Phaser.Scene {
       const prog = jobProgress(bay.job, now);
       const top = centre.y - 64;
       if (prog.done) {
+        if (!this.doneBays.has(bay.id) && this.prevState) this.hop(car, centre);
+        nowDone.add(bay.id);
         const doneAt = bay.job.startedAt + bay.job.durationS * 1000;
         const timely = now <= doneAt + TIMELY_WINDOW_MS;
         const coins = this.content.jobs.find((j) => j.key === bay.job!.jobKey)?.coins ?? 0;
@@ -437,11 +472,82 @@ export class GarageScene extends Phaser.Scene {
           this.tweens.add({ targets: car, y: at.y - 6, yoyo: true, repeat: -1, duration: 300 }),
         );
     });
+    this.doneBays = nowDone;
+    this.drawShowcase(s);
     // children of a Container ignore depth unless sorted explicitly
     this.dynamic.sort('depth');
     for (const id of this.inFlight) this.carSprites.get(id)?.setAlpha(IN_FLIGHT_ALPHA);
     this.playTransitions(diffTransitions(this.prevState, s), s);
     this.prevState = s;
+    this.placePointer();
+  }
+
+  /** The player's own car on a spotlit pad, wearing its paint, finish, neon and sticker. */
+  private drawShowcase(s: GameState) {
+    const car = s.collection.cars.find((x) => x.id === s.collection.activeCarId);
+    if (!car) return;
+    const L = this.content.looks;
+    const top = isoToScreen(SHOWCASE.x, SHOWCASE.y, ORIGIN);
+    const centre = isoToScreen(SHOWCASE.x + 1, SHOWCASE.y + 1, ORIGIN);
+    const pad = this.add.graphics().setDepth(-500);
+    const diamond = [
+      new Phaser.Math.Vector2(top.x, top.y + 4),
+      new Phaser.Math.Vector2(top.x + 60, top.y + 34),
+      new Phaser.Math.Vector2(top.x, top.y + 64),
+      new Phaser.Math.Vector2(top.x - 60, top.y + 34),
+    ];
+    pad.fillStyle(0xfff3c4, 1).fillPoints(diamond, true);
+    pad.lineStyle(4, 0xe9b949, 1).strokePoints(diamond, true);
+    pad.setInteractive(new Phaser.Geom.Polygon(diamond), Phaser.Geom.Polygon.Contains);
+    pad.on('pointerup', () => !this.isDragging() && this.events.emit('showcase:tap'));
+    this.dynamic.add(pad);
+    this.anchors.set('showcase', { x: centre.x, y: centre.y - 10 });
+    // a sign so the player's own car never reads as a customer
+    const sign = this.label(centre.x, centre.y - 58, S.showcaseSign, '#ffd166').setDepth(2500);
+    this.dynamic.add(sign);
+    if (car.look.neon) {
+      const glow = this.add
+        .ellipse(centre.x, centre.y + 2, 120, 52, 0x4cc9f0, 0.55)
+        .setDepth(depthOf(SHOWCASE.x + 1, SHOWCASE.y + 1) - 0.5);
+      this.dynamicTweens.push(
+        this.tweens.add({ targets: glow, alpha: 0.2, yoyo: true, repeat: -1, duration: 700 }),
+      );
+      this.dynamic.add(glow);
+    }
+    const hex = L.paints.find((p) => p.key === car.look.paint)?.hex ?? '#e63946';
+    const sprite = this.car(car.id, car.model, centre, 1).setDepth(depthOf(SHOWCASE.x + 1, SHOWCASE.y + 1));
+    const body = sprite.getAt(1) as Phaser.GameObjects.Image;
+    body.setTint(Phaser.Display.Color.HexStringToColor(hex).color);
+    if (car.look.finish !== 'matte') {
+      const shine = this.add
+        .image(0, 0, body.texture.key)
+        .setOrigin(body.originX, body.originY)
+        .setScale(body.scaleX)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setAlpha(0);
+      if (car.look.finish === 'pearl') shine.setTint(0xb8f2ff, 0xffc4f0, 0xffc4f0, 0xb8f2ff);
+      sprite.addAt(shine, 2);
+      this.dynamicTweens.push(
+        this.tweens.add({ targets: shine, alpha: 0.35, yoyo: true, repeat: -1, duration: 1100 }),
+      );
+    }
+    if (car.look.sticker) {
+      const glyph = STICKER_GLYPH[car.look.sticker] ?? '★';
+      const t = this.add
+        .text(-14, -16, glyph, {
+          fontFamily: '"Baloo 2", system-ui, sans-serif',
+          fontSize: '18px',
+          fontStyle: '800',
+          color: '#ffffff',
+          stroke: '#1d1d2b',
+          strokeThickness: 4,
+        })
+        .setOrigin(0.5);
+      sprite.add(t);
+    }
+    sprite.setSize(96, 56).setInteractive({ useHandCursor: true });
+    sprite.on('pointerup', () => !this.isDragging() && this.events.emit('showcase:tap'));
+    this.dynamic.add(sprite);
   }
 
   private queueSpot(slot: number): Point {
@@ -460,20 +566,36 @@ export class GarageScene extends Phaser.Scene {
     for (const t of list) {
       if (t.kind === 'arrive') {
         const to = this.queueSpot(t.slot);
-        this.trip(t.customerId, t.carKey, 0.75, street(-12), [{ to, mirror: false }]);
+        this.trip(t.customerId, t.carKey, 0.75, street(-12), [{ to, mirror: false }], true, t.vip);
       } else if (t.kind === 'giveUp') {
         const from = this.queueSpot(t.slot);
         this.puff(from);
-        this.trip(t.customerId, t.carKey, 0.75, from, [{ to: street(LOT_SIZE + 14), mirror: false }], false);
+        this.trip(
+          t.customerId,
+          t.carKey,
+          0.75,
+          from,
+          [{ to: street(LOT_SIZE + 14), mirror: false }],
+          false,
+          t.vip,
+        );
       } else if (t.kind === 'toBay') {
         const bay = bayCentre(t.bayId);
         if (!bay) continue;
         const from = this.queueSpot(t.fromSlot);
         // drive along the street to the bay's column, then reverse up into the bay
-        this.trip(t.customerId, t.carKey, 1, from, [
-          { to: street(bay.tile.x + 1), mirror: false },
-          { to: bay.at, mirror: false },
-        ]);
+        this.trip(
+          t.customerId,
+          t.carKey,
+          1,
+          from,
+          [
+            { to: street(bay.tile.x + 1), mirror: false },
+            { to: bay.at, mirror: false },
+          ],
+          true,
+          t.vip,
+        );
       } else {
         const bay = bayCentre(t.bayId);
         if (!bay) continue;
@@ -488,6 +610,7 @@ export class GarageScene extends Phaser.Scene {
             { to: street(LOT_SIZE + 14), mirror: false },
           ],
           false,
+          t.vip,
         );
       }
     }
@@ -500,8 +623,9 @@ export class GarageScene extends Phaser.Scene {
     from: Point,
     legs: { to: Point; mirror: boolean }[],
     landsOnSprite = true,
+    vip = false,
   ) {
-    const car = this.car(id, carKey, from, scale).setDepth(20);
+    const car = this.car(id, carKey, from, scale, vip).setDepth(20);
     if (landsOnSprite) {
       this.inFlight.add(id);
       this.carSprites.get(id)?.setAlpha(IN_FLIGHT_ALPHA);
@@ -526,6 +650,39 @@ export class GarageScene extends Phaser.Scene {
       };
     });
     this.tweens.chain({ tweens, onComplete: finish });
+  }
+
+  /** A little bounce and sparkles when a car's job finishes. */
+  private hop(car: Phaser.GameObjects.Container, at: Point) {
+    if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    this.tweens.add({
+      targets: car,
+      y: car.y - 14,
+      yoyo: true,
+      repeat: 1,
+      duration: 140,
+      ease: 'Quad.easeOut',
+    });
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const star = this.add.text(at.x, at.y - 30, '✦', {
+        fontSize: '16px',
+        color: '#ffd166',
+        stroke: '#1d1d2b',
+        strokeThickness: 3,
+      });
+      star.setOrigin(0.5).setDepth(3000);
+      this.tweens.add({
+        targets: star,
+        x: at.x + Math.cos(a) * 46,
+        y: at.y - 30 + Math.sin(a) * 26,
+        alpha: 0,
+        scale: 1.4,
+        duration: 600,
+        ease: 'Quad.easeOut',
+        onComplete: () => star.destroy(),
+      });
+    }
   }
 
   private puff(at: Point) {

@@ -70,3 +70,42 @@ describe('content', () => {
     expect(() => parseContent(r)).toThrow();
   });
 });
+
+describe('customization content', () => {
+  it('gives every car base stats, a price and an unlock level', () => {
+    const cars = loadContent().cars;
+    expect(cars.map((x) => [x.key, x.price, x.unlockLevel])).toEqual([
+      ['pitoco', 0, 1],
+      ['brutus_v8', 3000, 5],
+      ['corisco_rs', 8000, 8],
+    ]);
+    for (const car of cars) expect(car.power).toBeGreaterThan(0);
+  });
+
+  it('has 4 parts with 3 tiers each, prices rising', () => {
+    const parts = loadContent().parts;
+    expect(parts.map((p) => p.key)).toEqual(['engine', 'turbo', 'tires', 'suspension']);
+    for (const p of parts) {
+      expect(p.tiers).toHaveLength(3);
+      expect(p.tiers[0]!.cost).toBeLessThan(p.tiers[1]!.cost);
+      expect(p.tiers[1]!.cost).toBeLessThan(p.tiers[2]!.cost);
+    }
+  });
+
+  it('has 12 paints (red free) and the look options', () => {
+    const looks = loadContent().looks;
+    expect(looks.paints).toHaveLength(12);
+    expect(looks.paints[0]).toMatchObject({ key: 'red', cost: 0 });
+    expect(looks.finishes.map((f) => [f.key, f.cost])).toEqual([
+      ['matte', 0],
+      ['metallic', 1000],
+      ['pearl', 4000],
+    ]);
+    expect(looks.neon).toMatchObject({ cost: 2500, unlockLevel: 6 });
+    expect(looks.stickers.map((s) => [s.key, s.cost])).toEqual([
+      ['number', 600],
+      ['bolt', 600],
+      ['star', 600],
+    ]);
+  });
+});
