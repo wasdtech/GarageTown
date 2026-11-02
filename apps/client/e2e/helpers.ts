@@ -14,9 +14,11 @@ declare global {
 }
 
 /** Opens the game, failing the test on any page error. */
-export async function open(page: Page) {
+export async function open(page: Page, opts: { tutorial?: boolean } = {}) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
+  // most specs test other flows; Dona Cida's walkthrough is covered by tutorial.spec
+  if (!opts.tutorial) await page.addInitScript(() => localStorage.setItem('gt.tutorial', '4'));
   await page.goto('/');
   await page.waitForFunction(() => !!window.__gt);
   return errors;

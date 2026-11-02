@@ -31,6 +31,10 @@ export const S = {
   timely: (n: number) => `pontual +${n}`,
   levelUp: (lvl: number) => `Subiu para o nível ${lvl}! 🎉`,
   saveReset: 'Não deu para ler o seu save. Começamos um jogo novo (uma cópia do antigo foi guardada).',
+  tutorialSkip: 'Pular',
+  soundOn: 'Ligar som',
+  soundOff: 'Desligar som',
+  showcaseSign: '⭐ Meu carro',
   garage: {
     title: 'Minha garagem',
     open: '🚗 Garagem',
@@ -54,6 +58,7 @@ export const S = {
   },
   buildTitle: 'Construir box',
   buildPick: 'Escolha o tipo de box',
+  slotUnlocksAt: (lvl: number) => `🔒 Esta vaga libera no nível ${lvl}`,
   bayTypes: { wash: 'Lavagem', mechanic: 'Mecânica', paint: 'Pintura', performance: 'Performance' },
   buildInfo: (cost: number, secs: string) => `${cost} 🪙 · obra de ${secs}`,
   buildStarted: (secs: string) => `Obra iniciada! Fica pronta em ${secs} 🚧`,
