@@ -44,3 +44,20 @@ test('coming back after hours shows what the team earned', async ({ page }) => {
   expect(Number(await page.getByTestId('coins').textContent())).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
+
+test('a level-up earned by a helper is celebrated', async ({ page }) => {
+  const now = Date.now();
+  await seedSave(page, {
+    version: 4,
+    xp: 19,
+    queue: [{ id: 'w1', carKey: 'pitoco', need: 'wash', arrivedAt: now, patienceUntil: now + 120_000 }],
+    nextCustomerAt: now + 3_600_000,
+    helpers: [{ key: 'ze', level: 1, bayId: 'bay1' }],
+    clockTier: 0,
+    lastActiveAt: now,
+    idleReport: { jobs: 0, coins: 0, xp: 0 },
+  });
+  await open(page);
+  await advance(page, 31_000);
+  await expect(page.getByText('Subiu para o nível 2')).toBeVisible();
+});

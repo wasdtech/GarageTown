@@ -54,16 +54,24 @@ export function createController(d: ControllerDeps) {
       floatText(d.ui, { x: from.x, y: from.y - 30 }, `+${r.xp} XP`);
     }
     d.sfx?.coin();
-    if (r.levelAfter > r.levelBefore) {
-      confetti(d.ui);
-      setTimeout(() => d.sfx?.levelUp(), 250);
-    }
     const extras = [r.tip ? S.tip(r.tip) : '', r.timelyBonus ? S.timely(r.timelyBonus) : ''].filter(Boolean);
     d.toast(`${S.reward(r.coins, r.xp)}${extras.length ? `  (${extras.join(', ')})` : ''}`, 'good');
-    if (r.levelAfter > r.levelBefore) d.toast(S.levelUp(r.levelAfter), 'big');
-    if (r.levelAfter >= maxLevel(d.content) && r.levelBefore < r.levelAfter)
-      showBanner(d.ui, S.endOfPrototype);
   };
+
+  // level-ups are celebrated from any XP source: the player's own jobs, the minigame or helpers
+  let level = levelForXp(d.content, d.store.state.xp);
+  d.store.subscribe((s) => {
+    const now = levelForXp(d.content, s.xp);
+    if (now <= level) {
+      level = now;
+      return;
+    }
+    level = now;
+    confetti(d.ui);
+    setTimeout(() => d.sfx?.levelUp(), 250);
+    d.toast(S.levelUp(now), 'big');
+    if (now >= maxLevel(d.content)) showBanner(d.ui, S.endOfPrototype);
+  });
 
   const runMinigame = async (bayId: string, carKey: string) => {
     if (!d.openMinigame) return;
