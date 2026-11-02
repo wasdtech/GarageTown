@@ -96,6 +96,22 @@ export function computeReward(
   };
 }
 
+/** Payout for a job a helper started: coins x share (VIP double first), full XP, no tip/timely/reputation. */
+export function helperReward(c: Content, s: GameState, job: ActiveJob, helper: { level: number }): Reward {
+  const def = c.jobs.find((j) => j.key === job.jobKey)!;
+  const base = def.coins * (job.vip ? VIP_COIN_MULTIPLIER : 1);
+  const share = c.helperLevels[helper.level - 1]?.share ?? c.helperLevels[0]!.share;
+  return {
+    coins: Math.floor(base * share),
+    xp: def.xp,
+    tip: 0,
+    timelyBonus: 0,
+    reputation: 0,
+    levelBefore: levelForXp(c, s.xp),
+    levelAfter: levelForXp(c, s.xp + def.xp),
+  };
+}
+
 /** Applies a reward and frees the bay. */
 export function applyReward(s: GameState, bayId: string, reward: Reward): GameState {
   return {
@@ -118,6 +134,11 @@ export function collectJob(
   if (!bay) return err('unknown_bay');
   if (!bay.job) return err('empty_bay');
   if (!jobProgress(bay.job, now).done) return err('not_done');
-  const reward = computeReward(c, s, bay.job, now, { minigameBonus: 0 });
+  const helper = bay.job.byHelper
+    ? (s.helpers.find((h) => h.key === bay.job!.byHelper) ?? { level: 1 })
+    : null;
+  const reward = helper
+    ? helperReward(c, s, bay.job, helper)
+    : computeReward(c, s, bay.job, now, { minigameBonus: 0 });
   return ok({ state: touch(applyReward(s, bayId, reward), now), reward });
 }
