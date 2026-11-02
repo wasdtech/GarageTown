@@ -2,6 +2,7 @@ import { z } from 'zod';
 import brand from '../../../content/brand.json';
 import cars from '../../../content/cars.json';
 import garage from '../../../content/garage.json';
+import helpers from '../../../content/helpers.json';
 import looks from '../../../content/looks.json';
 import parts from '../../../content/parts.json';
 import jobs from '../../../content/jobs.json';
@@ -59,6 +60,31 @@ const PartDefSchema = z.object({
     )
     .min(1),
 });
+const HelpersSchema = z.object({
+  helpers: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        name: z.string().min(1),
+        face: z.string().min(1),
+        unlockLevel: z.number().int().positive(),
+        price: z.number().int().positive(),
+      }),
+    )
+    .min(1),
+  levels: z
+    .array(
+      z.object({
+        speed: z.number().positive().max(1),
+        share: z.number().positive().max(1),
+        trainCostMult: z.number().nonnegative(),
+      }),
+    )
+    .min(1),
+  clockTiers: z
+    .array(z.object({ hours: z.number().positive(), cost: z.number().int().nonnegative() }))
+    .min(1),
+});
 const priced = { key: z.string().min(1), name: z.string().min(1), cost: z.number().int().nonnegative() };
 const LooksSchema = z.object({
   paints: z.array(z.object({ ...priced, hex: z.string().regex(/^#[0-9a-f]{6}$/i) })).min(1),
@@ -82,6 +108,9 @@ export const ContentSchema = z
     garage: z.object({ bays: z.array(BaySlotSchema).min(1) }),
     parts: z.array(PartDefSchema),
     looks: LooksSchema,
+    helpers: HelpersSchema.shape.helpers,
+    helperLevels: HelpersSchema.shape.levels,
+    clockTiers: HelpersSchema.shape.clockTiers,
   })
   .superRefine((c, ctx) => {
     c.levels.forEach((l, i) => {
@@ -118,6 +147,7 @@ export type BaySlot = z.infer<typeof BaySlotSchema>;
 export type PartDef = z.infer<typeof PartDefSchema>;
 export type Looks = z.infer<typeof LooksSchema>;
 export type Stat = z.infer<typeof StatSchema>;
+export type HelperDef = z.infer<typeof HelpersSchema>['helpers'][number];
 export type Content = z.infer<typeof ContentSchema>;
 
 export function parseContent(raw: unknown): Content {
@@ -125,5 +155,16 @@ export function parseContent(raw: unknown): Content {
 }
 
 export function loadContent(): Content {
-  return parseContent({ brand, jobs, levels, cars, garage, parts, looks });
+  return parseContent({
+    brand,
+    jobs,
+    levels,
+    cars,
+    garage,
+    parts,
+    looks,
+    helpers: helpers.helpers,
+    helperLevels: helpers.levels,
+    clockTiers: helpers.clockTiers,
+  });
 }

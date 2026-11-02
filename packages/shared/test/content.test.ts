@@ -109,3 +109,26 @@ describe('customization content', () => {
     ]);
   });
 });
+
+describe('helpers content', () => {
+  it('has the four helpers with unlock levels and prices', () => {
+    expect(loadContent().helpers.map((h) => [h.key, h.unlockLevel, h.price])).toEqual([
+      ['ze', 2, 300],
+      ['bia', 4, 1500],
+      ['tiao', 7, 4000],
+      ['neusa', 10, 10000],
+    ]);
+  });
+
+  it('has 5 training levels and 3 clock tiers', () => {
+    const c = loadContent();
+    expect(c.helperLevels.map((l) => l.speed)).toEqual([1, 0.93, 0.86, 0.79, 0.72]);
+    expect(c.helperLevels.map((l) => l.share)).toEqual([0.8, 0.84, 0.88, 0.92, 0.95]);
+    expect(c.helperLevels.map((l) => l.trainCostMult)).toEqual([0, 2, 4, 8, 16]);
+    expect(c.clockTiers).toEqual([
+      { hours: 4, cost: 0 },
+      { hours: 6, cost: 3000 },
+      { hours: 8, cost: 12000 },
+    ]);
+  });
+});
