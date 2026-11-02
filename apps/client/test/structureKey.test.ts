@@ -70,3 +70,20 @@ describe('structureKey and the showcase car', () => {
     expect(structureKey(r.value, T0, ui)).not.toBe(structureKey(s0, T0, ui));
   });
 });
+
+describe('structureKey and helpers', () => {
+  it('changes when a helper is assigned to a bay', async () => {
+    const { hireHelper, assignHelper } = await import('@gt/sim');
+    const s0 = {
+      ...createInitialState(c, T0, 1),
+      xp: 20,
+      coins: 300,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const hired = hireHelper(c, s0, 'ze', T0);
+    if (!hired.ok) throw new Error(hired.error);
+    const on = assignHelper(hired.value, 'ze', 'bay1', T0);
+    if (!on.ok) throw new Error(on.error);
+    expect(structureKey(on.value, T0, ui)).not.toBe(structureKey(hired.value, T0, ui));
+  });
+});

@@ -370,6 +370,19 @@ export class GarageScene extends Phaser.Scene {
       this.dynamic.add(padImg);
       const centre = isoToScreen(bay.tile.x + 1, bay.tile.y + 1, ORIGIN);
       this.anchors.set(bay.id, { x: centre.x, y: centre.y - 10 });
+      const helper = s.helpers.find((h) => h.bayId === bay.id);
+      const helperDef = helper && this.content.helpers.find((d) => d.key === helper.key);
+      if (helperDef) {
+        // name badge at the front corner of the pad: this bay works on its own
+        const badge = this.label(
+          centre.x,
+          centre.y + 30,
+          `${helperDef.face} ${helperDef.name.split(' ')[0]} · auto`,
+          '#caffbf',
+        );
+        badge.setDepth(2100).setScale(0.85);
+        this.dynamic.add(badge);
+      }
       if (!bay.job) {
         if (ui.selectedCustomerId) this.dynamic.add(this.label(centre.x, centre.y - 6, 'Livre', '#caffbf'));
         continue;

@@ -4,8 +4,9 @@ import type { Store } from '../state/store';
 import { drawCarPreview } from './carPreview';
 import { h } from './dom';
 import { errorText, S } from './strings';
+import { teamTab } from './teamTab';
 
-type Tab = 'paint' | 'finish' | 'extras' | 'parts' | 'cars';
+type Tab = 'paint' | 'finish' | 'extras' | 'parts' | 'cars' | 'team';
 let openTab: Tab = 'paint';
 
 /** Full-screen garage: preview, stats and tabs for looks, parts and the dealership. */
@@ -14,14 +15,24 @@ export function openGarage(
   c: Content,
   store: Store,
   toast: (t: string, k?: 'good' | 'bad') => void,
+  opts: { tab?: Tab; sfx?: { hired(): void } } = {},
 ) {
+  if (opts.tab) openTab = opts.tab;
   root.querySelector('.gt-garage')?.remove();
   const panel = h('div', { class: 'gt-sheet gt-garage-sheet', role: 'dialog', 'aria-label': S.garage.title });
   const backdrop = h('div', { class: 'gt-backdrop gt-garage' }, panel);
   backdrop.addEventListener('click', (e) => e.target === backdrop && close());
   root.append(backdrop);
   // redraw only when something the sheet shows changed (the store ticks every second)
-  const keyOf = (s: GameState) => JSON.stringify([s.coins, levelForXp(c, s.xp), s.collection]);
+  const keyOf = (s: GameState) =>
+    JSON.stringify([
+      s.coins,
+      levelForXp(c, s.xp),
+      s.collection,
+      s.helpers,
+      s.clockTier,
+      s.bays.map((b) => b.id),
+    ]);
   let lastKey = '';
   const unsub = store.subscribe((s) => {
     if (keyOf(s) !== lastKey) render();
@@ -108,6 +119,7 @@ export function openGarage(
         ),
       ];
     }
+    if (openTab === 'team') return teamTab(c, s, store, toast, opts.sfx);
     if (openTab === 'parts') {
       return c.parts.map((p) => {
         const tier = car.parts[p.key] ?? 0;
@@ -162,7 +174,7 @@ export function openGarage(
         h('div', { class: 'gt-stat-bar' }, h('div', { style: `width:${Math.min(100, (v / max) * 100)}%` })),
         h('b', {}, String(v)),
       );
-    const tabs = (['paint', 'finish', 'extras', 'parts', 'cars'] as Tab[]).map((t) => {
+    const tabs = (['paint', 'finish', 'extras', 'parts', 'cars', 'team'] as Tab[]).map((t) => {
       const b = h(
         'button',
         { class: `gt-tab${openTab === t ? ' gt-tab-active' : ''}`, 'data-tab': t },

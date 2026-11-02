@@ -91,3 +91,25 @@ describe('Store garage actions', () => {
     expect(store.setActiveCar('car-pitoco')).toEqual({ ok: true, value: undefined });
   });
 });
+
+describe('Store team actions', () => {
+  it('hires, assigns, trains, buys the clock and clears the idle report', () => {
+    const persist = vi.fn();
+    const s = {
+      ...createInitialState(c, T0, 1),
+      xp: 20,
+      coins: 4000,
+      nextCustomerAt: Number.MAX_SAFE_INTEGER,
+    };
+    const store = new Store(c, s, () => T0, persist);
+    expect(store.hireHelper('ze')).toEqual({ ok: true, value: undefined });
+    expect(store.assignHelper('ze', 'bay1')).toEqual({ ok: true, value: undefined });
+    expect(store.trainHelper('ze')).toEqual({ ok: true, value: undefined });
+    expect(store.buyClock()).toEqual({ ok: true, value: undefined });
+    expect(store.state.helpers).toEqual([{ key: 'ze', level: 2, bayId: 'bay1' }]);
+    expect(store.state.coins).toBe(4000 - 300 - 600 - 3000);
+    store.clearIdleReport();
+    expect(store.state.idleReport).toEqual({ jobs: 0, coins: 0, xp: 0 });
+    expect(persist).toHaveBeenCalledTimes(5);
+  });
+});

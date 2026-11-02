@@ -29,6 +29,7 @@ export interface ControllerDeps {
   /** Opens the hand-wash minigame; resolves with the gesture time, or null if cancelled. */
   openMinigame?: (carKey: string) => Promise<number | null>;
   sfx?: Sfx;
+  garageOpts?: Parameters<typeof openGarage>[4];
   /** Notified of player milestones (used by the tutorial). */
   onEvent?: (e: 'select' | 'start' | 'collect' | 'garage') => void;
 }
@@ -83,7 +84,7 @@ export function createController(d: ControllerDeps) {
 
   const garage = () => {
     d.onEvent?.('garage');
-    openGarage(d.ui, d.content, d.store, d.toast);
+    openGarage(d.ui, d.content, d.store, d.toast, d.garageOpts);
   };
   d.scene.events.on('showcase:tap', garage);
 

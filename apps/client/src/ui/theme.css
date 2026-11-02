@@ -499,3 +499,57 @@ body {
 #ui > .gt-confetti {
   pointer-events: none;
 }
+
+/* Team tab and welcome back */
+.gt-team-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 3px solid var(--gt-ink);
+  border-radius: 12px;
+  background: #fff;
+}
+.gt-team-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gt-team-face {
+  font-size: 28px;
+  line-height: 1;
+}
+.gt-btn-small {
+  min-height: 40px;
+  font-size: 15px;
+}
+.gt-select {
+  font: inherit;
+  color: var(--gt-ink);
+  min-height: 40px;
+  border: 2px solid var(--gt-ink);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 8px;
+}
+.gt-welcome-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+.gt-welcome-stats div {
+  display: grid;
+  border: 3px solid var(--gt-ink);
+  border-radius: 12px;
+  background: #fff3c4;
+  padding: 8px 4px;
+}
+.gt-welcome-stats b {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.gt-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}

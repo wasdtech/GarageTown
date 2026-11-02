@@ -11,6 +11,8 @@ import { S } from './ui/strings';
 import { createToaster } from './ui/toast';
 import { createSfx } from './ui/sfx';
 import { createTutorial } from './ui/tutorial';
+import { coinFly, confetti } from './ui/juice';
+import { openWelcomeBack } from './ui/welcomeBack';
 import './ui/theme.css';
 
 const content = loadContent();
@@ -40,6 +42,7 @@ const scene = new GarageScene();
 scene.onReady = () => {
   let tutorial: { emit: (e: 'select' | 'start' | 'collect' | 'garage') => void } | null = null;
   const { render, garage } = createController({
+    garageOpts: { sfx: { hired: () => sfx.click() } },
     content,
     store,
     scene,
@@ -56,6 +59,19 @@ scene.onReady = () => {
   });
   render();
   tutorial = createTutorial(ui, scene, store, clock);
+  const report = store.state.idleReport;
+  const awayMs = clock() - store.state.lastActiveAt;
+  if (report.jobs > 0 && awayMs >= 60_000) {
+    openWelcomeBack(ui, report, awayMs, (from) => {
+      const coinsEl = ui.querySelector<HTMLElement>('[data-testid="coins"]')?.parentElement;
+      if (coinsEl) coinFly(ui, from, coinsEl, report.coins);
+      confetti(ui);
+      sfx.levelUp();
+      store.clearIdleReport();
+    });
+  } else if (report.jobs > 0) {
+    store.clearIdleReport();
+  }
   setInterval(() => store.tick(), 1000);
   ui.append(
     h(

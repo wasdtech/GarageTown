@@ -1,15 +1,27 @@
 import type {
+  AssignError,
   BuildError,
   BuyCarError,
   BuyPartError,
   CollectError,
+  HireError,
   LookError,
   MinigameError,
   StartError,
+  TrainError,
 } from '@gt/sim';
 
 type ErrorKey =
-  StartError | CollectError | MinigameError | BuildError | BuyCarError | BuyPartError | LookError;
+  | StartError
+  | CollectError
+  | MinigameError
+  | BuildError
+  | BuyCarError
+  | BuyPartError
+  | LookError
+  | HireError
+  | TrainError
+  | AssignError;
 
 export const S = {
   coins: 'Moedas',
@@ -35,6 +47,33 @@ export const S = {
   soundOn: 'Ligar som',
   soundOff: 'Desligar som',
   showcaseSign: '⭐ Meu carro',
+  team: {
+    pitch: 'Atende e coleta sozinho no box dele, até com o jogo fechado.',
+    hire: (price: number) => `Contratar · ${price} 🪙`,
+    hired: (name: string) => `${name} entrou na equipe! 🤝`,
+    train: (cost: number) => `Treinar · ${cost} 🪙`,
+    trained: (name: string) => `${name} ficou mais rápido! 💪`,
+    stats: (lvl: number, faster: string, share: string) =>
+      `Nível ${lvl} · ${faster} mais rápido · você recebe ${share}`,
+    assignLabel: (name: string) => `Box de ${name}`,
+    noBay: 'Sem box',
+    bay: 'Box',
+    clock: 'Relógio de ponto',
+    shift: (hours: number) => `A equipe trabalha até ${hours} h depois que você sai.`,
+    clockBuy: (hours: number, cost: number) => `Turno de ${hours} h · ${cost} 🪙`,
+    clockBought: 'Turno ampliado! ⏰',
+  },
+  welcome: {
+    title: 'Enquanto você estava fora',
+    away: (ms: number) => {
+      const m = Math.round(ms / 60_000);
+      return m < 60
+        ? `Você ficou fora ${m} min.`
+        : `Você ficou fora ${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}.`;
+    },
+    cars: 'carros',
+    collect: 'Coletar',
+  },
   garage: {
     title: 'Minha garagem',
     open: '🚗 Garagem',
@@ -44,6 +83,7 @@ export const S = {
       extras: 'Neon e adesivos',
       parts: 'Peças',
       cars: 'Carros',
+      team: 'Equipe',
     },
     stat: { power: 'Potência', grip: 'Aderência' },
     style: 'Estilo',
@@ -88,6 +128,10 @@ export const S = {
     unknown_part: 'Peça desconhecida',
     maxed: 'Essa peça já está no máximo',
     unknown_option: 'Opção desconhecida',
+    unknown_helper: 'Ajudante desconhecido',
+    hired: 'Já está na sua equipe',
+    not_hired: 'Contrate primeiro',
+    bay_has_helper: 'Esse box já tem um ajudante',
   } satisfies Record<ErrorKey, string>,
 };
 

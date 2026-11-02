@@ -14,10 +14,12 @@ export function structureKey(s: GameState, now: number, ui: { selectedCustomerId
   const builds = s.builds.map((b) => `${b.slot}:${b.type}`).join(',');
   const active = s.collection.cars.find((x) => x.id === s.collection.activeCarId);
   const showcase = active ? `${active.model}:${JSON.stringify(active.look)}` : '';
+  const helpers = s.helpers.map((h) => `${h.key}@${h.bayId ?? '-'}`).join(',');
   return [
     bays.join(','),
     builds,
     showcase,
+    helpers,
     s.queue.map((q) => q.id).join(','),
     ui.selectedCustomerId ?? '',
   ].join('|');

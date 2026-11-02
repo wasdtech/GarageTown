@@ -1,5 +1,13 @@
 import type { BayType, Content, JobKey } from '@gt/shared';
 import {
+  type AssignError,
+  assignHelper,
+  buyClock,
+  clearIdleReport,
+  type HireError,
+  hireHelper,
+  type TrainError,
+  trainHelper,
   applyLook,
   type BuyCarError,
   type BuyPartError,
@@ -106,6 +114,26 @@ export class Store {
 
   applyLook(carId: string, look: Partial<CarLook>): Result<void, LookError> {
     return this.act(applyLook(this.c, this.s, { carId, ...look }, this.clock()));
+  }
+
+  hireHelper(key: string): Result<void, HireError> {
+    return this.act(hireHelper(this.c, this.s, key, this.clock()));
+  }
+
+  trainHelper(key: string): Result<void, TrainError> {
+    return this.act(trainHelper(this.c, this.s, key, this.clock()));
+  }
+
+  assignHelper(key: string, bayId: string | null): Result<void, AssignError> {
+    return this.act(assignHelper(this.s, key, bayId, this.clock()));
+  }
+
+  buyClock(): Result<void, 'maxed' | 'no_coins'> {
+    return this.act(buyClock(this.c, this.s, this.clock()));
+  }
+
+  clearIdleReport(): void {
+    this.commit(clearIdleReport(this.s), true);
   }
 
   minigame(bayId: string, gestureMs: number): Result<Reward, MinigameError> {
