@@ -2,6 +2,7 @@ import type { Content } from '@gt/shared';
 import type { GameState } from '@gt/sim';
 import type { Store } from '../state/store';
 import { h } from './dom';
+import { icon } from './icon';
 import { branchPreview, perkLine } from './franchise';
 import { errorText, S } from './strings';
 
@@ -23,9 +24,14 @@ export function franchiseTab(
     h(
       'div',
       { class: 'gt-team-head' },
-      h('span', { class: 'gt-team-face', 'aria-hidden': 'true' }, '🏢'),
+      h('span', { class: 'gt-team-face' }, icon('franchise')),
       h('strong', {}, S.franchise.title(s.prestige.branch)),
-      h('span', { class: 'gt-seals', 'data-testid': 'seals' }, S.franchise.seals(s.prestige.seals)),
+      h(
+        'span',
+        { class: 'gt-seals' },
+        icon('seal'),
+        h('span', { 'data-testid': 'seals' }, S.franchise.seals(s.prestige.seals)),
+      ),
     ),
     h('span', { class: 'gt-muted' }, S.franchise.runCoins(s.prestige.runCoins.toLocaleString('pt-BR'))),
   );
@@ -81,7 +87,7 @@ export function franchiseTab(
     const buy = h(
       'button',
       { class: 'gt-btn', 'data-testid': `perk-${def.key}`, ...(can ? {} : { disabled: '' }) },
-      line.cost === null ? S.franchise.max : S.franchise.buy(line.cost),
+      ...(line.cost === null ? [S.franchise.max] : [S.franchise.buy(line.cost), icon('seal')]),
     );
     buy.addEventListener('click', () => {
       const r = store.buyPerk(def.key);

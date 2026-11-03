@@ -2,6 +2,7 @@ import { loadContent } from '@gt/shared';
 import Phaser from 'phaser';
 import { createController } from './controller';
 import type { Menu } from './ui/garageSheet';
+import { icon, type IconName } from './ui/icon';
 import { openScrubMinigame } from './minigames/scrub';
 import { GarageScene } from './scenes/GarageScene';
 import { loadGame, saveGame } from './state/storage';
@@ -120,6 +121,12 @@ scene.onReady = () => {
     checkPresence();
   });
   // bottom bar: one button per menu (the car menu only configures the showcase car)
+  const MENU_ICON: Record<Menu, IconName> = {
+    car: 'car',
+    dealer: 'dealer',
+    team: 'team',
+    franchise: 'franchise',
+  };
   const MENUS: [Menu, string][] = [
     ['car', 'menu-car'],
     ['dealer', 'menu-dealer'],
@@ -134,7 +141,7 @@ scene.onReady = () => {
         h(
           'button',
           { class: 'gt-btn gt-menu-btn', 'data-testid': testid, onclick: () => openMenu(menu) },
-          h('span', { class: 'gt-menu-icon', 'aria-hidden': 'true' }, S.menus.icon[menu]),
+          icon(MENU_ICON[menu], 'gt-menu-icon'),
           h('span', { class: 'gt-menu-label' }, S.menus.label[menu]),
         ),
       ),
@@ -143,18 +150,18 @@ scene.onReady = () => {
   ui.append(
     h(
       'div',
-      { class: 'gt-zoom' },
+      { class: 'gt-zoom', 'data-testid': 'controls' },
       musicButton(),
       muteButton(),
       h(
         'button',
         { class: 'gt-btn', 'aria-label': S.zoomIn, title: S.zoomIn, onclick: () => scene.zoomBy(1.2) },
-        '+',
+        icon('zoom_in'),
       ),
       h(
         'button',
         { class: 'gt-btn', 'aria-label': S.zoomOut, title: S.zoomOut, onclick: () => scene.zoomBy(1 / 1.2) },
-        '−',
+        icon('zoom_out'),
       ),
     ),
   );
@@ -184,8 +191,8 @@ new Phaser.Game({
 function musicButton() {
   const b = h('button', { class: 'gt-btn', 'data-testid': 'music' });
   const paint = () => {
-    b.textContent = sfx.musicOn ? '🎵' : '🎵̸';
-    b.style.opacity = sfx.musicOn ? '1' : '0.55';
+    // music off: the same notes, greyed out
+    b.replaceChildren(icon('music', sfx.musicOn ? '' : 'gt-off'));
     b.setAttribute('aria-label', sfx.musicOn ? S.musicOff : S.musicOn);
     b.setAttribute('aria-pressed', String(!sfx.musicOn));
   };
@@ -200,7 +207,7 @@ function musicButton() {
 function muteButton() {
   const b = h('button', { class: 'gt-btn', 'data-testid': 'mute' });
   const paint = () => {
-    b.textContent = sfx.muted ? '🔇' : '🔊';
+    b.replaceChildren(icon(sfx.muted ? 'sound_off' : 'sound'));
     b.setAttribute('aria-label', sfx.muted ? S.soundOn : S.soundOff);
     b.setAttribute('aria-pressed', String(sfx.muted));
   };
