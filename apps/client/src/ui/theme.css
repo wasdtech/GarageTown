@@ -582,3 +582,7 @@ body {
 .gt-branch[hidden] {
   display: none;
 }
+/* full-row cards in the options grid (franchise header, branch card, section titles) */
+.gt-wide {
+  grid-column: 1 / -1;
+}

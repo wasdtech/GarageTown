@@ -19,7 +19,7 @@ export function franchiseTab(
   const p = branchPreview(c, s);
   const head = h(
     'div',
-    { class: 'gt-team-card' },
+    { class: 'gt-team-card gt-wide' },
     h(
       'div',
       { class: 'gt-team-head' },
@@ -65,7 +65,7 @@ export function franchiseTab(
   }
   const branch = h(
     'div',
-    { class: 'gt-team-card' },
+    { class: 'gt-team-card gt-wide' },
     h('strong', {}, S.franchise.preview(p.seals)),
     p.reason === 'level'
       ? null
@@ -100,5 +100,5 @@ export function franchiseTab(
       buy,
     );
   });
-  return [head, branch, h('h3', { class: 'gt-perks-title' }, S.franchise.perksTitle), ...perks];
+  return [head, branch, h('h3', { class: 'gt-perks-title gt-wide' }, S.franchise.perksTitle), ...perks];
 }
