@@ -112,7 +112,6 @@ export const S = {
   buildInProgress: (secs: string) => `Obra em andamento: faltam ${secs}`,
   zoomIn: 'Aproximar',
   zoomOut: 'Afastar',
-  endOfPrototype: 'Fim do protótipo — obrigado por testar!',
   franchise: {
     title: (n: number) => `Filial ${n}`,
     seals: (n: number) => `🏅 ${n} selos`,
@@ -127,6 +126,7 @@ export const S = {
     cancel: 'Cancelar',
     opened: (n: number, s: number) => `Filial ${n} aberta! +${s} selos`,
     available: 'Você já pode abrir uma nova filial! Veja em Garagem → Franquia.',
+    topLevel: 'Nível máximo! Abra uma nova filial em Garagem → Franquia para ganhar selos.',
     buy: (n: number) => `Comprar (${n} 🏅)`,
     max: 'Máximo',
     perksTitle: 'Melhorias permanentes',

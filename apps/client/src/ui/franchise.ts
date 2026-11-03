@@ -1,5 +1,5 @@
 import type { Content } from '@gt/shared';
-import { type GameState, levelForXp, perkCost, perkLevel, sealsFor } from '@gt/sim';
+import { type GameState, levelForXp, maxLevel, perkCost, perkLevel, sealsFor } from '@gt/sim';
 import { S } from './strings';
 
 /** What opening a branch right now would give, and why it can't happen yet. */
@@ -34,7 +34,12 @@ export function levelEvents(
   c: Content,
   before: number,
   after: number,
-): { levelUp: boolean; franchise: boolean } {
+): { levelUp: boolean; franchise: boolean; top: boolean } {
   const levelUp = after > before;
-  return { levelUp, franchise: levelUp && before < c.prestige.minLevel && after >= c.prestige.minLevel };
+  return {
+    levelUp,
+    franchise: levelUp && before < c.prestige.minLevel && after >= c.prestige.minLevel,
+    // the top level is not the end any more: it points to opening a new branch
+    top: levelUp && after >= maxLevel(c),
+  };
 }

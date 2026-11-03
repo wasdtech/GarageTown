@@ -3,7 +3,13 @@ import type { GarageScene } from '../scenes/GarageScene';
 import type { Store } from '../state/store';
 import { h } from './dom';
 import { S } from './strings';
-import { advanceTutorial, TUTORIAL_DONE, TUTORIAL_STEPS, type TutorialEvent } from './tutorialSteps';
+import {
+  advanceTutorial,
+  initialTutorialStep,
+  TUTORIAL_DONE,
+  TUTORIAL_STEPS,
+  type TutorialEvent,
+} from './tutorialSteps';
 
 export const TUTORIAL_KEY = 'gt.tutorial';
 
@@ -26,7 +32,7 @@ function writeStep(step: number) {
 
 /** Dona Cida's walkthrough for brand-new garages: a speech panel plus an arrow in the scene. */
 export function createTutorial(root: HTMLElement, scene: GarageScene, store: Store, clock: () => number) {
-  let step = readStep() ?? (store.state.xp === 0 ? 0 : TUTORIAL_DONE);
+  let step = initialTutorialStep(readStep(), store.state);
   const text = h('p', { class: 'gt-cida-text' });
   const skip = h('button', { class: 'gt-btn gt-btn-ghost gt-cida-skip' }, S.tutorialSkip);
   const panel = h(

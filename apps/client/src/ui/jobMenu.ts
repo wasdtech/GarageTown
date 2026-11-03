@@ -1,5 +1,14 @@
 import type { BayType, Content, JobDef } from '@gt/shared';
-import { type Bay, type Customer, jobProgress, levelForXp } from '@gt/sim';
+import {
+  type Bay,
+  boostCoins,
+  boostDuration,
+  boostXp,
+  type Customer,
+  type GameState,
+  jobProgress,
+  levelForXp,
+} from '@gt/sim';
 import { fmt } from './format';
 import { h } from './dom';
 import { S } from './strings';
@@ -27,15 +36,20 @@ function sheet(root: HTMLElement, title: string, ...body: Node[]) {
 }
 
 /** Lists the jobs for an empty bay; locked jobs are shown disabled. */
+/** A job's time, coins and XP as this garage would get them now (perks included). */
+export function jobSummary(c: Content, s: GameState, j: JobDef): string {
+  return `${fmt(boostDuration(c, s, j.durationS))} · ${boostCoins(c, s, j.coins)} 🪙 · ${boostXp(c, s, j.xp)} XP`;
+}
+
 export function openJobMenu(
   root: HTMLElement,
   c: Content,
-  xp: number,
+  s: GameState,
   bay: Bay,
   customer: Customer,
   onPick: (job: JobDef) => void,
 ) {
-  const level = levelForXp(c, xp);
+  const level = levelForXp(c, s.xp);
   const items = c.jobs
     .filter((j) => j.bay === bay.type)
     .map((j) => {
@@ -53,11 +67,7 @@ export function openJobMenu(
           h('img', { src: `icons/${j.icon}.png`, alt: '', class: 'gt-job-icon' }),
           `${j.key === customer.need ? '★ ' : ''}${j.name}`,
         ),
-        h(
-          'span',
-          {},
-          locked ? S.lockedAt(j.unlockLevel) : `${fmt(j.durationS)} · ${j.coins} 🪙 · ${j.xp} XP`,
-        ),
+        h('span', {}, locked ? S.lockedAt(j.unlockLevel) : jobSummary(c, s, j)),
       );
       btn.addEventListener('click', () => {
         if (btn.hasAttribute('disabled')) return;
