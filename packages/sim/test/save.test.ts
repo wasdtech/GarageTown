@@ -85,3 +85,36 @@ describe('renamed cars', () => {
     expect(r.state.queue.map((q) => q.carKey)).toEqual(['pitoco', 'corisco_rs']);
   });
 });
+
+describe('save v5 (franchise)', () => {
+  const v4 = () => {
+    const d = JSON.parse(serialize(createInitialState(c, T0, 1)));
+    delete d.prestige;
+    return { ...d, version: 4 };
+  };
+  const v5 = (prestige: unknown) =>
+    JSON.stringify({ ...JSON.parse(serialize(createInitialState(c, T0, 1))), prestige });
+
+  it('a v4 save migrates to v5 at branch 1 with no seals', () => {
+    const r = deserialize(c, JSON.stringify(v4()), T0, 1);
+    expect(r.recovered).toBe('ok');
+    expect(r.state.version).toBe(5);
+    expect(r.state.prestige).toEqual({ branch: 1, seals: 0, perks: {}, runCoins: 0 });
+  });
+
+  it('a save with a perk above its max is corrupt', () => {
+    const r = deserialize(c, v5({ branch: 2, seals: 0, perks: { lucro: 11 }, runCoins: 0 }), T0, 1);
+    expect(r.recovered).toBe('corrupt');
+  });
+
+  it('a save with negative seals is corrupt', () => {
+    const r = deserialize(c, v5({ branch: 2, seals: -1, perks: {}, runCoins: 0 }), T0, 1);
+    expect(r.recovered).toBe('corrupt');
+  });
+
+  it('unknown perk keys are dropped', () => {
+    const r = deserialize(c, v5({ branch: 3, seals: 4, perks: { lucro: 2, turbo: 3 }, runCoins: 10 }), T0, 1);
+    expect(r.recovered).toBe('ok');
+    expect(r.state.prestige).toEqual({ branch: 3, seals: 4, perks: { lucro: 2 }, runCoins: 10 });
+  });
+});
