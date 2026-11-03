@@ -82,7 +82,6 @@ export const S = {
   },
   menus: {
     bar: 'Menus',
-    icon: { car: '🚗', dealer: '🏪', team: '👷', franchise: '🏢' },
     label: { car: 'Meu carro', dealer: 'Concessionária', team: 'Equipe', franchise: 'Franquia' },
     title: { car: 'Meu carro', dealer: 'Concessionária', team: 'Equipe', franchise: 'Franquia' },
   },
@@ -116,7 +115,7 @@ export const S = {
   zoomOut: 'Afastar',
   franchise: {
     title: (n: number) => `Filial ${n}`,
-    seals: (n: number) => `🏅 ${n} selos`,
+    seals: (n: number) => `${n} selos`,
     runCoins: (n: string) => `Moedas ganhas nesta filial: ${n} 🪙`,
     preview: (n: number) => `Abrir agora: +${n} selos`,
     nextSeal: (n: string) => `faltam ${n} 🪙 para o próximo selo`,
@@ -129,7 +128,7 @@ export const S = {
     opened: (n: number, s: number) => `Filial ${n} aberta! +${s} selos`,
     available: 'Você já pode abrir uma nova filial! Toque em 🏢 Franquia.',
     topLevel: 'Nível máximo! Abra uma nova filial em 🏢 Franquia para ganhar selos.',
-    buy: (n: number) => `Comprar (${n} 🏅)`,
+    buy: (n: number) => `Comprar · ${n}`,
     max: 'Máximo',
     perksTitle: 'Melhorias permanentes',
     effect: {

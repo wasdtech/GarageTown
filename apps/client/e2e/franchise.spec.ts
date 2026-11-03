@@ -59,7 +59,7 @@ test('opening a branch resets the garage but keeps the cars', async ({ page }) =
   await page.getByTestId('confirm-branch').click();
   await expect(page.getByTestId('coins')).toHaveText('0');
   await expect(page.getByTestId('level')).toHaveText('1');
-  await expect(page.getByTestId('branch')).toHaveText('🏢 2');
+  await expect(page.getByTestId('branch')).toHaveText('2');
   const s = await page.evaluate(() => {
     const st = window.__gt.store.state as unknown as {
       collection: { cars: unknown[] };
@@ -76,7 +76,7 @@ test('opening a branch resets the garage but keeps the cars', async ({ page }) =
   });
   expect(s).toEqual({ cars: 2, helpers: 0, bays: 2, seals: 5 });
   await openFranchiseTab(page);
-  await expect(page.getByTestId('seals')).toHaveText('🏅 5 selos');
+  await expect(page.getByTestId('seals')).toHaveText('5 selos');
   expect(errors).toEqual([]);
 });
 
@@ -97,7 +97,7 @@ test('buying a perk raises it', async ({ page }) => {
   await open(page);
   await openFranchiseTab(page);
   await page.getByTestId('perk-lucro').click();
-  await expect(page.getByTestId('seals')).toHaveText('🏅 1 selos');
+  await expect(page.getByTestId('seals')).toHaveText('1 selos');
   await expect(page.getByText('1/10')).toBeVisible();
 });
 

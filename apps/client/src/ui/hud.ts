@@ -1,6 +1,7 @@
 import type { Content } from '@gt/shared';
 import { type GameState, levelForXp, maxLevel } from '@gt/sim';
 import { h } from './dom';
+import { icon } from './icon';
 import { S } from './strings';
 
 /** Fraction of the way from the current level to the next (1 at max level). */
@@ -18,11 +19,17 @@ export function createHud(root: HTMLElement, c: Content) {
   const xpFill = h('div', { class: 'gt-xp-fill' });
   const xpText = h('span', { class: 'gt-xp-text', 'data-testid': 'xp' });
   const rep = h('span', { 'data-testid': 'reputation' });
-  const branch = h('span', { class: 'gt-branch', 'data-testid': 'branch', title: S.franchise.title(1) });
+  const branchNo = h('span', {});
+  const branch = h(
+    'span',
+    { class: 'gt-branch', 'data-testid': 'branch', title: S.franchise.title(1) },
+    icon('franchise'),
+    branchNo,
+  );
   const bar = h(
     'header',
-    { class: 'gt-hud' },
-    h('div', { class: 'gt-pill', title: S.coins }, '🪙 ', coins),
+    { class: 'gt-hud', 'data-testid': 'hud' },
+    h('div', { class: 'gt-pill', title: S.coins }, icon('coin'), coins),
     h(
       'div',
       { class: 'gt-pill gt-xp', title: S.level },
@@ -30,7 +37,7 @@ export function createHud(root: HTMLElement, c: Content) {
       h('div', { class: 'gt-xp-bar' }, xpFill, xpText),
       branch,
     ),
-    h('div', { class: 'gt-pill', title: S.reputation }, '⭐ ', rep),
+    h('div', { class: 'gt-pill', title: S.reputation }, icon('star'), rep),
   );
   root.append(bar);
   return (s: GameState) => {
@@ -39,9 +46,9 @@ export function createHud(root: HTMLElement, c: Content) {
     xpText.textContent = `${s.xp} XP`;
     xpFill.style.width = `${Math.round(xpFraction(c, s.xp) * 100)}%`;
     rep.textContent = String(s.reputation);
-    // from the second branch on, a small 🏢 N badge next to the level
+    // from the second branch on, a small franchise badge with the branch number next to the level
     branch.hidden = s.prestige.branch < 2;
-    branch.textContent = `🏢 ${s.prestige.branch}`;
+    branchNo.textContent = String(s.prestige.branch);
     branch.title = S.franchise.title(s.prestige.branch);
   };
 }

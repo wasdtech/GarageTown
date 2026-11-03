@@ -161,6 +161,78 @@
       "sha12": "eee5052a1032",
       "label": "mecânico: spray (8 quadros, fundo magenta)",
       "file": "art/generated/workers/spray-sheet.png"
+    },
+    {
+      "asset_id": "bb18ed50-bfd6-421c-84f3-ffdeb4ee0b54",
+      "sha12": "9b50ab822cca",
+      "label": "ui icon car",
+      "file": "art/generated/ui/car.png"
+    },
+    {
+      "asset_id": "cb4ce616-32be-4211-a463-c245d0c02e85",
+      "sha12": "7fb3a94d297a",
+      "label": "ui icon dealer",
+      "file": "art/generated/ui/dealer.png"
+    },
+    {
+      "asset_id": "f034ad39-59b8-4f8d-9237-901d3ed5a861",
+      "sha12": "25508c6bbce6",
+      "label": "ui icon team",
+      "file": "art/generated/ui/team.png"
+    },
+    {
+      "asset_id": "db4b6044-b4de-41d5-bd2e-7d3263bbc03e",
+      "sha12": "5293bfc704e2",
+      "label": "ui icon franchise",
+      "file": "art/generated/ui/franchise.png"
+    },
+    {
+      "asset_id": "d5be0436-29a9-4ef2-a3c1-190424d20c0d",
+      "sha12": "436cc9041c29",
+      "label": "ui icon coin",
+      "file": "art/generated/ui/coin.png"
+    },
+    {
+      "asset_id": "65fc68db-0bc6-45bd-b297-f9b5bb8e5fc5",
+      "sha12": "7b0147b6da12",
+      "label": "ui icon star",
+      "file": "art/generated/ui/star.png"
+    },
+    {
+      "asset_id": "c3adae67-440d-4bc3-94ed-270b75b85cab",
+      "sha12": "bb0c7676b086",
+      "label": "ui icon seal",
+      "file": "art/generated/ui/seal.png"
+    },
+    {
+      "asset_id": "b39652dd-b4c1-4935-83e1-450c0ac6e0ec",
+      "sha12": "5f93fe2991c8",
+      "label": "ui icon music",
+      "file": "art/generated/ui/music.png"
+    },
+    {
+      "asset_id": "981a78ea-f1d5-4259-a963-42e18c73af29",
+      "sha12": "fb53bf708ba0",
+      "label": "ui icon sound",
+      "file": "art/generated/ui/sound.png"
+    },
+    {
+      "asset_id": "c4678ec3-959e-48dd-9c92-7c8ecc4d5741",
+      "sha12": "f927b60b4c92",
+      "label": "ui icon sound_off",
+      "file": "art/generated/ui/sound_off.png"
+    },
+    {
+      "asset_id": "8ea7ed1d-b7eb-472f-b9df-3a98cb1fae4a",
+      "sha12": "4296a0486537",
+      "label": "ui icon zoom_in",
+      "file": "art/generated/ui/zoom_in.png"
+    },
+    {
+      "asset_id": "c3319428-d2e9-430c-9c74-0b4f203b123d",
+      "sha12": "7c129e30ac79",
+      "label": "ui icon zoom_out",
+      "file": "art/generated/ui/zoom_out.png"
     }
   ],
   "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",
