@@ -131,4 +131,26 @@ describe('helpers content', () => {
       { hours: 8, cost: 12000 },
     ]);
   });
+  it('prestige content has the five perks with spec values', () => {
+    const p = loadContent().prestige;
+    expect(p.minLevel).toBe(12);
+    expect(p.sealDivisor).toBe(500);
+    expect(p.perks.map((k) => k.key)).toEqual([
+      'lucro',
+      'agilidade',
+      'paciencia',
+      'experiencia',
+      'recrutamento',
+    ]);
+    expect(p.perks[0]).toMatchObject({ effect: 0.1, max: 10, baseCost: 2, step: 1 });
+  });
+
+  it('rejects duplicate perk keys and non-positive effects', () => {
+    const dup = raw() as unknown as { prestige: { perks: Record<string, unknown>[] } };
+    dup.prestige.perks[1]!.key = 'lucro';
+    expect(() => parseContent(dup)).toThrow();
+    const zero = raw() as unknown as { prestige: { perks: Record<string, unknown>[] } };
+    zero.prestige.perks[0]!.effect = 0;
+    expect(() => parseContent(zero)).toThrow();
+  });
 });
