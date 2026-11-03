@@ -47,8 +47,7 @@ async function seedLateBranch(page: Page, over: Record<string, unknown> = {}) {
 }
 
 async function openFranchiseTab(page: Page) {
-  await page.getByTestId('open-garage').click();
-  await page.getByTestId('tab-franquia').click();
+  await page.getByTestId('menu-franchise').click();
 }
 
 test('opening a branch resets the garage but keeps the cars', async ({ page }) => {

@@ -1,6 +1,7 @@
 import { loadContent } from '@gt/shared';
 import Phaser from 'phaser';
 import { createController } from './controller';
+import type { Menu } from './ui/garageSheet';
 import { openScrubMinigame } from './minigames/scrub';
 import { GarageScene } from './scenes/GarageScene';
 import { loadGame, saveGame } from './state/storage';
@@ -56,7 +57,7 @@ const scene = new GarageScene();
 scene.onReady = () => {
   scene.onImpatient = () => sfx.horn();
   let tutorial: { emit: (e: 'select' | 'start' | 'collect' | 'garage') => void } | null = null;
-  const { render, garage } = createController({
+  const { render, openMenu } = createController({
     garageOpts: {
       sfx: {
         hired: () => sfx.hired(),
@@ -118,11 +119,25 @@ scene.onReady = () => {
     store.tick();
     checkPresence();
   });
+  // bottom bar: one button per menu (the car menu only configures the showcase car)
+  const MENUS: [Menu, string][] = [
+    ['car', 'menu-car'],
+    ['dealer', 'menu-dealer'],
+    ['team', 'menu-team'],
+    ['franchise', 'menu-franchise'],
+  ];
   ui.append(
     h(
-      'button',
-      { class: 'gt-btn gt-garage-btn', 'data-testid': 'open-garage', onclick: garage },
-      S.garage.open,
+      'nav',
+      { class: 'gt-menu-bar', 'data-testid': 'menu-bar', 'aria-label': S.menus.bar },
+      ...MENUS.map(([menu, testid]) =>
+        h(
+          'button',
+          { class: 'gt-btn gt-menu-btn', 'data-testid': testid, onclick: () => openMenu(menu) },
+          h('span', { class: 'gt-menu-icon', 'aria-hidden': 'true' }, S.menus.icon[menu]),
+          h('span', { class: 'gt-menu-label' }, S.menus.label[menu]),
+        ),
+      ),
     ),
   );
   ui.append(

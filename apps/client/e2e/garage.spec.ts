@@ -17,11 +17,10 @@ test('customise the showcase car: paint and an engine part', async ({ page }) =>
   expect(errors).toEqual([]);
 });
 
-test('the dealership shows locked cars and the garage button opens it', async ({ page }) => {
+test('the dealership shows locked cars and its menu button opens it', async ({ page }) => {
   await seedSave(page, { xp: 0, coins: 99999 });
   await open(page);
-  await page.getByTestId('open-garage').click();
-  await page.locator('[data-tab="cars"]').click();
+  await page.getByTestId('menu-dealer').click();
   await expect(page.getByTestId('car-brutus_v8')).toBeDisabled();
   await expect(page.getByTestId('car-brutus_v8')).toContainText('Nível 5');
 });
