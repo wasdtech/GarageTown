@@ -1,6 +1,7 @@
 import type { Content } from '@gt/shared';
 import { makeCustomer } from './customers';
 import { applyReward, helperReward } from './jobs';
+import { boostDuration } from './perks';
 import { ARRIVAL_MS, type GameState, QUEUE_MAX } from './state';
 
 const MAX_EVENTS = 10_000;
@@ -29,7 +30,7 @@ function assignWork(c: Content, s: GameState, t: number): GameState {
       carKey: customer.carKey,
       need: customer.need,
       startedAt: t,
-      durationS: Math.max(1, Math.round(def.durationS * speed)),
+      durationS: boostDuration(c, s, def.durationS, speed),
       byHelper: helper.key,
       ...(customer.vip ? { vip: true } : {}),
     };

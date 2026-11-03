@@ -1,6 +1,7 @@
 import type { Content } from '@gt/shared';
 import { tick } from './customers';
 import { levelForXp } from './levels';
+import { perkLevel } from './perks';
 import { err, ok, type Result } from './result';
 import { createInitialState, type GameState, touch } from './state';
 
@@ -9,21 +10,13 @@ export function sealsFor(c: Content, runCoins: number): number {
   return Math.floor(Math.sqrt(runCoins / c.prestige.sealDivisor));
 }
 
-export function perkLevel(s: GameState, key: string): number {
-  return s.prestige.perks[key] ?? 0;
-}
-
 /** Seals needed to raise `key` to `nextLevel`. */
 export function perkCost(c: Content, key: string, nextLevel: number): number {
   const def = c.prestige.perks.find((p) => p.key === key)!;
   return def.baseCost + def.step * (nextLevel - 1);
 }
 
-/** The perk's total effect at its current level (e.g. 0.2 for lucro level 2). */
-export function perkFactor(c: Content, s: GameState, key: string): number {
-  const def = c.prestige.perks.find((p) => p.key === key);
-  return def ? def.effect * perkLevel(s, key) : 0;
-}
+export * from './perks';
 
 export type BranchError = 'level' | 'no_seals';
 

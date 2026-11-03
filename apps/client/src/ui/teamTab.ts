@@ -1,5 +1,5 @@
 import type { Content } from '@gt/shared';
-import { type GameState, levelForXp, trainCost } from '@gt/sim';
+import { type GameState, levelForXp, recruitPrice, trainCost } from '@gt/sim';
 import type { Store } from '../state/store';
 import { h } from './dom';
 import { errorText, S } from './strings';
@@ -34,7 +34,7 @@ export function teamTab(
       const b = h(
         'button',
         { class: 'gt-btn', 'data-testid': `hire-${def.key}`, ...(locked ? { disabled: '' } : {}) },
-        locked ? S.lockedAt(def.unlockLevel) : S.team.hire(def.price),
+        locked ? S.lockedAt(def.unlockLevel) : S.team.hire(recruitPrice(c, s, def.price)),
       );
       b.addEventListener('click', () => {
         const r = store.hireHelper(def.key);
@@ -47,7 +47,7 @@ export function teamTab(
     const train = h(
       'button',
       { class: 'gt-btn gt-btn-small', 'data-testid': `train-${def.key}`, ...(next ? {} : { disabled: '' }) },
-      next ? S.team.train(trainCost(c, def.key, hired.level + 1)) : S.garage.maxed,
+      next ? S.team.train(trainCost(c, s, def.key, hired.level + 1)) : S.garage.maxed,
     );
     train.addEventListener('click', () => run(store.trainHelper(def.key), S.team.trained(def.name)));
     const select = h('select', {

@@ -1,6 +1,7 @@
 import type { Content, JobKey } from '@gt/shared';
 import { tick } from './customers';
 import { levelForXp } from './levels';
+import { boostCoins, boostDuration, boostXp } from './perks';
 import { err, ok, type Result } from './result';
 import { type ActiveJob, type GameState, touch, VIP_COIN_MULTIPLIER } from './state';
 
@@ -45,7 +46,7 @@ export function startJob(
     carKey: customer.carKey,
     need: customer.need,
     startedAt: now,
-    durationS: def.durationS,
+    durationS: boostDuration(c, s, def.durationS),
     ...(customer.vip ? { vip: true } : {}),
   };
   return ok(
@@ -84,15 +85,18 @@ export function computeReward(
   const doneAt = job.startedAt + job.durationS * 1000;
   const timelyBonus =
     opts.minigameBonus === 0 && now <= doneAt + TIMELY_WINDOW_MS ? Math.floor(base * TIMELY_BONUS) : 0;
-  const minigame = Math.floor(base * opts.minigameBonus);
+  // lucro boosts the job's coins (and the minigame bonus on them), not the tip or the timely bonus
+  const boosted = boostCoins(c, s, base);
+  const minigame = Math.floor(boosted * opts.minigameBonus);
+  const xp = boostXp(c, s, def.xp);
   return {
-    coins: base + tip + timelyBonus + minigame,
-    xp: def.xp,
+    coins: boosted + tip + timelyBonus + minigame,
+    xp,
     tip,
     timelyBonus,
     reputation: matched ? 1 : 0,
     levelBefore: levelForXp(c, s.xp),
-    levelAfter: levelForXp(c, s.xp + def.xp),
+    levelAfter: levelForXp(c, s.xp + xp),
   };
 }
 
@@ -101,14 +105,15 @@ export function helperReward(c: Content, s: GameState, job: ActiveJob, helper: {
   const def = c.jobs.find((j) => j.key === job.jobKey)!;
   const base = def.coins * (job.vip ? VIP_COIN_MULTIPLIER : 1);
   const share = c.helperLevels[helper.level - 1]?.share ?? c.helperLevels[0]!.share;
+  const xp = boostXp(c, s, def.xp);
   return {
-    coins: Math.floor(base * share),
-    xp: def.xp,
+    coins: boostCoins(c, s, Math.floor(base * share)),
+    xp,
     tip: 0,
     timelyBonus: 0,
     reputation: 0,
     levelBefore: levelForXp(c, s.xp),
-    levelAfter: levelForXp(c, s.xp + def.xp),
+    levelAfter: levelForXp(c, s.xp + xp),
   };
 }
 
