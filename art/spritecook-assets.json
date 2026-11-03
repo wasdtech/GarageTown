@@ -137,6 +137,30 @@
       "sha12": "482e570c17c0",
       "label": "bay paint pad",
       "file": "art/generated/bay-paint.png"
+    },
+    {
+      "asset_id": "d1fae395-81ad-4854-9b00-2a6e698adbd1",
+      "sha12": "fe5a305b594b",
+      "label": "mecânico base (macacão cinza)",
+      "file": "art/generated/workers/mech-a.png"
+    },
+    {
+      "asset_id": "14e3d173-9761-461b-a67e-689c91d24641",
+      "sha12": "3aa88a29eaa6",
+      "label": "mecânico: chave inglesa (8 quadros)",
+      "file": "art/generated/workers/wrench-sheet.png"
+    },
+    {
+      "asset_id": "1611abdd-cfb5-4255-bc9d-11968230f013",
+      "sha12": "56d6bc4ca299",
+      "label": "mecânico: esfregar (8 quadros)",
+      "file": "art/generated/workers/scrub-sheet.png"
+    },
+    {
+      "asset_id": "3778652c-88a5-48d0-a65d-13658cea7bfa",
+      "sha12": "4771e68bcd59",
+      "label": "mecânico: spray (8 quadros)",
+      "file": "art/generated/workers/spray-sheet.png"
     }
   ],
   "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",

@@ -7,6 +7,7 @@ import { S } from '../ui/strings';
 import { structureKey } from './structureKey';
 import { diffTransitions, type Transition } from './transitions';
 import { type Ambient, ambientFor, IMPATIENT_BELOW } from './ambient';
+import { type Worker, type WorkerAction, workersFor } from './worker';
 
 export const LOT_SIZE = 8;
 export const STREET_ROW = 8;
@@ -18,6 +19,11 @@ const CAR_TEXTURE_SCALE = 0.5;
 // Phaser skips input on objects that won't render (alpha 0), so in-flight cars stay barely visible.
 const IN_FLIGHT_ALPHA = 0.01;
 const VIP_GOLD = 0xe9b949;
+/** Mechanic animation strips (art/src/workers): frames per strip; each has a gray `_cloth` layer to tint. */
+const WORKER_FRAMES: Record<WorkerAction, number> = { scrub: 5, wrench: 4, spray: 5 };
+const WORKER_FPS = 8;
+/** Where the mechanic stands, relative to the centre of the car's pad (on the car's left, facing it). */
+const WORKER_OFFSET = { x: -58, y: 10 };
 /** Showcase spot for the player's own car (back corner: clear of the queue and of every bay's tap area). */
 const SHOWCASE = { x: 0, y: 0 };
 const STICKER_GLYPH: Record<string, string> = { number: '7', bolt: '⚡', star: '★' };
@@ -117,10 +123,15 @@ export class GarageScene extends Phaser.Scene {
         this.load.image(`${car.sprite}_${layer}`, `cars/${car.sprite}/${layer}.png`);
       }
     }
+    for (const a of Object.keys(WORKER_FRAMES)) {
+      this.load.image(`worker_${a}`, `workers/${a}.png`);
+      this.load.image(`worker_${a}_cloth`, `workers/${a}_cloth.png`);
+    }
   }
 
   create() {
     this.cameras.main.setBackgroundColor(GRASS);
+    this.makeWorkerAnims();
     this.buildWorld();
     this.dynamic = this.add.container(0, 0).setDepth(10);
     this.setupCamera();
@@ -369,6 +380,7 @@ export class GarageScene extends Phaser.Scene {
     }
 
     const nowDone = new Set<string>();
+    const workers = workersFor(s, now);
     for (const bay of s.bays) {
       const pad = isoToScreen(bay.tile.x, bay.tile.y, ORIGIN);
       const padImg = this.add
@@ -406,6 +418,8 @@ export class GarageScene extends Phaser.Scene {
       car.setSize(128, 80).setInteractive({ useHandCursor: true });
       car.on('pointerup', () => !this.isDragging() && this.events.emit('bay:tap', bay.id));
       this.dynamic.add(car);
+      const worker = workers.find((w) => w.bayId === bay.id);
+      if (worker) this.drawWorker(worker, centre, car.depth);
       const prog = jobProgress(bay.job, now);
       const top = centre.y - 64;
       if (prog.done) {
@@ -711,6 +725,45 @@ export class GarageScene extends Phaser.Scene {
 
   private reducedMotion() {
     return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  }
+
+  /** Slices each loaded mechanic strip into frames and registers its looping animation. */
+  private makeWorkerAnims() {
+    for (const [action, n] of Object.entries(WORKER_FRAMES)) {
+      for (const layer of ['', '_cloth']) {
+        const key = `worker_${action}${layer}`;
+        if (!this.textures.exists(key)) continue;
+        const tex = this.textures.get(key);
+        const src = tex.getSourceImage();
+        const fw = Math.floor(src.width / n);
+        for (let i = 0; i < n; i++) tex.add(i, 0, i * fw, 0, fw, src.height);
+        this.anims.create({
+          key,
+          frames: Array.from({ length: n }, (_, i) => ({ key, frame: i })),
+          frameRate: WORKER_FPS,
+          repeat: -1,
+        });
+      }
+    }
+  }
+
+  /** The mechanic (or the bay's helper, in their overalls colour) working beside a car in service. */
+  private drawWorker(w: Worker, centre: Point, carDepth: number) {
+    const key = `worker_${w.action}`;
+    if (!this.anims.exists(key) || !this.anims.exists(`${key}_cloth`)) return; // art failed to load
+    const at = { x: centre.x + WORKER_OFFSET.x, y: centre.y + WORKER_OFFSET.y };
+    const body = this.add.sprite(0, 0, key, 0).setOrigin(0.5, 1).setScale(0.5);
+    const cloth = this.add.sprite(0, 0, `${key}_cloth`, 0).setOrigin(0.5, 1).setScale(0.5).setTint(w.tint);
+    const shadow = this.add.ellipse(0, -2, 34, 10, 0x000000, 0.22);
+    const c = this.add.container(at.x, at.y, [shadow, body, cloth]).setDepth(carDepth + 1);
+    c.setName(`worker:${w.bayId}`);
+    if (!this.reducedMotion()) {
+      // a per-bay phase so neighbouring mechanics don't move in lockstep
+      const delay = (w.bayId.length * 173) % 500;
+      body.play({ key, delay });
+      cloth.play({ key: `${key}_cloth`, delay });
+    }
+    this.dynamic!.add(c);
   }
 
   /** Short-lived particle with a global cap and an off-screen skip. */
