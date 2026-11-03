@@ -233,6 +233,60 @@
       "sha12": "7c129e30ac79",
       "label": "ui icon zoom_out",
       "file": "art/generated/ui/zoom_out.png"
+    },
+    {
+      "asset_id": "cf5676ed-9e88-40cc-8378-e2cb9bfa9c6b",
+      "sha12": "ca5e6237147d",
+      "label": "ui helper_ze",
+      "file": "art/generated/ui/helper_ze.png"
+    },
+    {
+      "asset_id": "c2347670-0498-4a48-8726-7ad2413ddb8f",
+      "sha12": "26080d54c882",
+      "label": "ui helper_bia",
+      "file": "art/generated/ui/helper_bia.png"
+    },
+    {
+      "asset_id": "a6b30bd9-3ca1-4cf2-af2f-a7f13da2b63d",
+      "sha12": "991edac616f5",
+      "label": "ui helper_tiao",
+      "file": "art/generated/ui/helper_tiao.png"
+    },
+    {
+      "asset_id": "4740d804-4340-4133-a47b-0b9f49fbc329",
+      "sha12": "66fabc87e8a0",
+      "label": "ui helper_neusa",
+      "file": "art/generated/ui/helper_neusa.png"
+    },
+    {
+      "asset_id": "dc340160-c567-41e7-b6e2-e0ed50d6b14a",
+      "sha12": "47468fbb1a6b",
+      "label": "ui perk_lucro",
+      "file": "art/generated/ui/perk_lucro.png"
+    },
+    {
+      "asset_id": "917d021f-f56c-4554-8062-6f43a08c6136",
+      "sha12": "bc29c37bbd86",
+      "label": "ui perk_agilidade",
+      "file": "art/generated/ui/perk_agilidade.png"
+    },
+    {
+      "asset_id": "c08e12c5-1f33-47dc-9d42-26504403982c",
+      "sha12": "b999f083ef8a",
+      "label": "ui perk_paciencia",
+      "file": "art/generated/ui/perk_paciencia.png"
+    },
+    {
+      "asset_id": "c0bf68ee-9f28-4527-8cae-c1d9bd62acc6",
+      "sha12": "86976f86ac6f",
+      "label": "ui perk_experiencia",
+      "file": "art/generated/ui/perk_experiencia.png"
+    },
+    {
+      "asset_id": "2b679e00-1ffe-48bd-bee7-8e8e2be7dea1",
+      "sha12": "f173641094fc",
+      "label": "ui perk_recrutamento",
+      "file": "art/generated/ui/perk_recrutamento.png"
     }
   ],
   "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",

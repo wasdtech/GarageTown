@@ -13,7 +13,9 @@ export type IconName =
   | 'sound'
   | 'sound_off'
   | 'zoom_in'
-  | 'zoom_out';
+  | 'zoom_out'
+  | `helper_${string}`
+  | `perk_${string}`;
 
 /** A decorative icon: the text or aria-label next to it carries the meaning. */
 export function icon(name: IconName, cls = ''): HTMLImageElement {

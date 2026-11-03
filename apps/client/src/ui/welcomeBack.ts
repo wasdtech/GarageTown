@@ -1,5 +1,6 @@
 import type { IdleReport } from '@gt/sim';
 import { h } from './dom';
+import { sheetHead } from './frame';
 import { S } from './strings';
 
 /** "While you were away" sheet; the coins are already counted, the button is the celebration. */
@@ -13,12 +14,12 @@ export function openWelcomeBack(
   const panel = h(
     'div',
     {
-      class: 'gt-sheet gt-welcome',
+      class: 'gt-sheet gt-welcome gt-tone-welcome',
       role: 'dialog',
       'aria-label': S.welcome.title,
       'data-testid': 'welcome-back',
     },
-    h('h2', {}, S.welcome.title),
+    sheetHead(S.welcome.title, 'ui/coin.png', null),
     h('p', { class: 'gt-muted' }, S.welcome.away(awayMs)),
     h(
       'div',

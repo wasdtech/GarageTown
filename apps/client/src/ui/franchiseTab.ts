@@ -99,10 +99,26 @@ export function franchiseTab(
       h(
         'div',
         { class: 'gt-team-head' },
-        h('strong', {}, def.name),
-        h('span', { class: 'gt-muted' }, `${level}/${def.max}`),
+        h('img', { class: 'gt-perk-icon', src: `ui/perk_${def.key}.png`, alt: '', draggable: 'false' }),
+        h(
+          'div',
+          { class: 'gt-team-name' },
+          h('strong', {}, def.name),
+          // level as a short meter (some perks have 10 levels: too many pips for a card)
+          h(
+            'span',
+            { class: 'gt-meter', 'aria-hidden': 'true' },
+            h('span', { style: `width:${Math.round((level / def.max) * 100)}%` }),
+          ),
+          h('span', { class: 'gt-level-count' }, `${level}/${def.max}`),
+        ),
       ),
-      h('span', { class: 'gt-muted' }, line.next ? `${line.now} → ${line.next}` : line.now),
+      h(
+        'div',
+        { class: 'gt-chips' },
+        h('span', { class: 'gt-chip' }, line.now),
+        line.next ? h('span', { class: 'gt-chip gt-chip-next' }, `→ ${line.next}`) : null,
+      ),
       buy,
     );
   });

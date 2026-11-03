@@ -8,7 +8,7 @@ test('hire Zé, put him on the wash bay and he works on his own', async ({ page 
   await page.getByTestId('hire-ze').click();
   await expect(page.getByTestId('coins')).toHaveText('700');
   await page.getByTestId('assign-ze').selectOption('bay1');
-  await page.locator('.gt-garage-sheet .gt-btn-ghost').last().click();
+  await page.locator('.gt-garage-sheet .gt-close').click();
   await advance(page, 5 * 60_000);
   await expect
     .poll(() =>
