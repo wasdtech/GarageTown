@@ -1,5 +1,6 @@
 import type {
   AssignError,
+  BranchError,
   BuildError,
   BuyCarError,
   BuyPartError,
@@ -7,6 +8,7 @@ import type {
   HireError,
   LookError,
   MinigameError,
+  PerkError,
   StartError,
   TrainError,
 } from '@gt/sim';
@@ -21,7 +23,9 @@ type ErrorKey =
   | LookError
   | HireError
   | TrainError
-  | AssignError;
+  | AssignError
+  | BranchError
+  | PerkError;
 
 export const S = {
   coins: 'Moedas',
@@ -86,6 +90,7 @@ export const S = {
       parts: 'Peças',
       cars: 'Carros',
       team: 'Equipe',
+      franquia: '🏢 Franquia',
     },
     stat: { power: 'Potência', grip: 'Aderência' },
     style: 'Estilo',
@@ -108,6 +113,31 @@ export const S = {
   zoomIn: 'Aproximar',
   zoomOut: 'Afastar',
   endOfPrototype: 'Fim do protótipo — obrigado por testar!',
+  franchise: {
+    title: (n: number) => `Filial ${n}`,
+    seals: (n: number) => `🏅 ${n} selos`,
+    runCoins: (n: string) => `Moedas ganhas nesta filial: ${n} 🪙`,
+    preview: (n: number) => `Abrir agora: +${n} selos`,
+    nextSeal: (n: string) => `faltam ${n} 🪙 para o próximo selo`,
+    keeps: 'Você mantém seus carros. Recomeçam: moedas, nível, boxes e ajudantes.',
+    lockedLevel: 'Disponível no nível 12',
+    noSeals: 'Ganhe mais moedas nesta filial',
+    confirm: 'Tem certeza? A oficina recomeça do zero.',
+    open: 'Abrir filial',
+    cancel: 'Cancelar',
+    opened: (n: number, s: number) => `Filial ${n} aberta! +${s} selos`,
+    available: 'Você já pode abrir uma nova filial! Veja em Garagem → Franquia.',
+    buy: (n: number) => `Comprar (${n} 🏅)`,
+    max: 'Máximo',
+    perksTitle: 'Melhorias permanentes',
+    effect: {
+      lucro: (p: number) => `+${p}% moedas`,
+      agilidade: (p: number) => `−${p}% tempo`,
+      paciencia: (p: number) => `+${p}% paciência`,
+      experiencia: (p: number) => `+${p}% XP`,
+      recrutamento: (p: number) => `−${p}% custo de ajudantes`,
+    } as Record<string, (p: number) => string>,
+  },
   errors: {
     bay_busy: 'Esse box já está ocupado',
     wrong_bay_type: 'Esse serviço precisa de outro box',
@@ -134,6 +164,9 @@ export const S = {
     hired: 'Já está na sua equipe',
     not_hired: 'Contrate primeiro',
     bay_has_helper: 'Esse box já tem um ajudante',
+    level: 'Disponível no nível 12',
+    no_seals: 'Selos insuficientes',
+    unknown_perk: 'Melhoria desconhecida',
   } satisfies Record<ErrorKey, string>,
 };
 

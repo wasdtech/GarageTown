@@ -5,9 +5,11 @@ import { drawCarPreview } from './carPreview';
 import { h } from './dom';
 import { errorText, S } from './strings';
 import { garageKey } from './garageKey';
+import { franchiseTab } from './franchiseTab';
+import { confetti } from './juice';
 import { teamTab } from './teamTab';
 
-type Tab = 'paint' | 'finish' | 'extras' | 'parts' | 'cars' | 'team';
+type Tab = 'paint' | 'finish' | 'extras' | 'parts' | 'cars' | 'team' | 'franquia';
 let openTab: Tab = 'paint';
 
 /** Full-screen garage: preview, stats and tabs for looks, parts and the dealership. */
@@ -16,7 +18,7 @@ export function openGarage(
   c: Content,
   store: Store,
   toast: (t: string, k?: 'good' | 'bad') => void,
-  opts: { tab?: Tab; sfx?: { hired(): void; register?(): void; menu?(): void } } = {},
+  opts: { tab?: Tab; sfx?: { hired(): void; register?(): void; menu?(): void; branch?(): void } } = {},
 ) {
   if (opts.tab) openTab = opts.tab;
   opts.sfx?.menu?.();
@@ -37,6 +39,7 @@ export function openGarage(
     unsub();
     backdrop.remove();
   }
+  let confirming = false;
   const run = (r: { ok: true } | { ok: false; error: string }, okText?: string) => {
     if (r.ok) {
       opts.sfx?.register?.();
@@ -117,6 +120,20 @@ export function openGarage(
       ];
     }
     if (openTab === 'team') return teamTab(c, s, store, toast, opts.sfx);
+    if (openTab === 'franquia')
+      return franchiseTab(c, s, store, toast, {
+        confirming,
+        setConfirming(v) {
+          confirming = v;
+          render();
+        },
+        onOpened(branch, seals) {
+          close();
+          confetti(root);
+          opts.sfx?.branch?.();
+          toast(S.franchise.opened(branch, seals), 'good');
+        },
+      });
     if (openTab === 'parts') {
       return c.parts.map((p) => {
         const tier = car.parts[p.key] ?? 0;
@@ -171,14 +188,15 @@ export function openGarage(
         h('div', { class: 'gt-stat-bar' }, h('div', { style: `width:${Math.min(100, (v / max) * 100)}%` })),
         h('b', {}, String(v)),
       );
-    const tabs = (['paint', 'finish', 'extras', 'parts', 'cars', 'team'] as Tab[]).map((t) => {
+    const tabs = (['paint', 'finish', 'extras', 'parts', 'cars', 'team', 'franquia'] as Tab[]).map((t) => {
       const b = h(
         'button',
-        { class: `gt-tab${openTab === t ? ' gt-tab-active' : ''}`, 'data-tab': t },
+        { class: `gt-tab${openTab === t ? ' gt-tab-active' : ''}`, 'data-tab': t, 'data-testid': `tab-${t}` },
         S.garage.tabs[t],
       );
       b.addEventListener('click', () => {
         openTab = t;
+        confirming = false;
         render();
       });
       return b;

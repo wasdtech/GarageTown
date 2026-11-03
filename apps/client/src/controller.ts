@@ -17,6 +17,7 @@ import { coinFly, confetti, floatText } from './ui/juice';
 import type { Sfx } from './ui/sfx';
 import { closeSheet, openBayStatus, openBuildMenu, openJobMenu } from './ui/jobMenu';
 import { errorText, S } from './ui/strings';
+import { levelEvents } from './ui/franchise';
 import { showBanner } from './ui/toast';
 
 export interface ControllerDeps {
@@ -62,14 +63,14 @@ export function createController(d: ControllerDeps) {
   let level = levelForXp(d.content, d.store.state.xp);
   d.store.subscribe((s) => {
     const now = levelForXp(d.content, s.xp);
-    if (now <= level) {
-      level = now;
-      return;
-    }
+    const ev = levelEvents(d.content, level, now);
     level = now;
+    // a new branch drops the level back to 1: nothing to celebrate
+    if (!ev.levelUp) return;
     confetti(d.ui);
     setTimeout(() => d.sfx?.levelUp(), 250);
     d.toast(S.levelUp(now), 'big');
+    if (ev.franchise) setTimeout(() => d.toast(S.franchise.available, 'good'), 1200);
     if (now >= maxLevel(d.content)) showBanner(d.ui, S.endOfPrototype);
   });
 
