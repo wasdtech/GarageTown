@@ -23,7 +23,7 @@ const VIP_GOLD = 0xe9b949;
 const WORKER_FRAMES: Record<WorkerAction, number> = { scrub: 3, wrench: 2, spray: 5 };
 const WORKER_FPS = 8;
 /** Where the mechanic stands, relative to the centre of the car's pad (on the car's left, facing it). */
-const WORKER_OFFSET = { x: -58, y: 10 };
+const WORKER_OFFSET = { x: -52, y: 26 };
 /** Showcase spot for the player's own car (back corner: clear of the queue and of every bay's tap area). */
 const SHOWCASE = { x: 0, y: 0 };
 const STICKER_GLYPH: Record<string, string> = { number: '7', bolt: '⚡', star: '★' };
@@ -400,7 +400,7 @@ export class GarageScene extends Phaser.Scene {
       if (helperDef) {
         // name badge at the front corner of the pad: this bay works on its own
         const badge = this.label(
-          centre.x,
+          centre.x + 22, // clear of the mechanic standing at the pad's left corner
           centre.y + 30,
           `${helperDef.face} ${helperDef.name.split(' ')[0]} · auto`,
           '#caffbf',

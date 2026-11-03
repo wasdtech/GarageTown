@@ -24,7 +24,61 @@ def is_cloth(r: int, g: int, b: int, a: int) -> bool:
     return max(r, g, b) - min(r, g, b) < 12 and (r + g + b) / 3 > 135 and b >= r - 3
 
 
-MAX_HOLE_SHARE = 0.005
+MAX_HOLE_SHARE = 0.01  # the broken sheets were 5-10%; clean ones stay well under 1%
+# the tool (wrench, spray mist) sits right of the hand: only gray pieces that start left of this
+# share of the figure's width are overalls/cap
+CLOTH_MAX_X = 0.6
+
+
+def is_matte(r: int, g: int, b: int) -> bool:
+    """Magenta left over from the animation's matte background."""
+    return r > g + 30 and b > g + 30
+
+
+def defringe(frame: Image.Image) -> Image.Image:
+    """Drops matte-coloured pixels on the figure's edge (a pink fringe around the outline)."""
+    out = frame.copy()
+    for _ in range(2):
+        alpha = out.getchannel("A")
+        edge = ImageChops.subtract(alpha, alpha.filter(ImageFilter.MinFilter(3)))
+        px, ep = out.load(), edge.load()
+        for y in range(out.height):
+            for x in range(out.width):
+                if ep[x, y] and is_matte(*px[x, y][:3]):
+                    px[x, y] = (0, 0, 0, 0)
+    return out
+
+
+def cloth_mask(frame: Image.Image) -> Image.Image:
+    """Overalls and cap: light-gray pieces left of the hand, at full resolution."""
+    mask = Image.new("L", frame.size)
+    fp, mp = frame.load(), mask.load()
+    for y in range(frame.height):
+        for x in range(frame.width):
+            if is_cloth(*fp[x, y]):
+                mp[x, y] = 255
+    left, _, right, _ = frame.getbbox()
+    limit = left + (right - left) * CLOTH_MAX_X
+    # label each connected gray piece and keep it only if it starts left of the limit
+    label = 1
+    sums: dict[int, list[int]] = {}
+    for y in range(frame.height):
+        for x in range(frame.width):
+            if mp[x, y] == 255:
+                label = label % 254 + 1
+                ImageDraw.floodfill(mask, (x, y), label)
+    for y in range(frame.height):
+        for x in range(frame.width):
+            v = mp[x, y]
+            if v and x < sums.setdefault(v, [x])[0]:
+                sums[v][0] = x
+    keep = {v for v, (min_x,) in sums.items() if min_x < limit}
+    return mask.point(lambda v: 255 if v in keep else 0)
+
+
+def shrink(img: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """Downscales with premultiplied alpha, so see-through pixels don't bleed into the edges."""
+    return img.convert("RGBa").resize(size, Image.LANCZOS).convert("RGBA")
 
 
 def hole_share(frame: Image.Image) -> float:
@@ -44,7 +98,7 @@ def main() -> None:
     n = sheet.width // fh
     keep = [int(i) for i in frames_arg.split(",")]
     assert all(0 <= i < n for i in keep), f"sheet has {n} frames"
-    frames = [sheet.crop((i * fh, 0, (i + 1) * fh, fh)) for i in keep]
+    frames = [defringe(sheet.crop((i * fh, 0, (i + 1) * fh, fh))) for i in keep]
     for i, f in zip(keep, frames):
         share = hole_share(f)
         if share > MAX_HOLE_SHARE:
@@ -64,14 +118,8 @@ def main() -> None:
     for k, f in enumerate(frames):
         big = f.crop(box)
         # mask at full resolution, grown by a pixel and downscaled smoothly, so outline edges don't speckle
-        mask = Image.new("L", big.size)
-        bp, mp = big.load(), mask.load()
-        for y in range(big.height):
-            for x in range(big.width):
-                if is_cloth(*bp[x, y]):
-                    mp[x, y] = 255
-        mask = mask.filter(ImageFilter.MaxFilter(3)).resize((w, TARGET_H), Image.LANCZOS)
-        small = big.resize((w, TARGET_H), Image.LANCZOS)
+        mask = cloth_mask(big).filter(ImageFilter.MaxFilter(3)).resize((w, TARGET_H), Image.LANCZOS)
+        small = shrink(big, (w, TARGET_H))
         full.paste(small, (k * w, 0))
         layer = small.copy()
         layer.putalpha(ImageChops.multiply(small.getchannel("A"), mask))
