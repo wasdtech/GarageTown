@@ -11,7 +11,7 @@ import { fmt } from './ui/format';
 import type { GarageScene } from './scenes/GarageScene';
 import type { Store } from './state/store';
 import { h } from './ui/dom';
-import { openGarage } from './ui/garageSheet';
+import { type Menu, openGarage } from './ui/garageSheet';
 import { coinFly, confetti, floatText } from './ui/juice';
 import type { Sfx } from './ui/sfx';
 import { closeSheet, openBayStatus, openBuildMenu, openJobMenu } from './ui/jobMenu';
@@ -89,10 +89,12 @@ export function createController(d: ControllerDeps) {
     render();
   });
 
-  const garage = () => {
-    d.onEvent?.('garage');
-    openGarage(d.ui, d.content, d.store, d.toast, d.garageOpts);
+  /** Opens a bottom-bar menu; the car menu is also where Dona Cida's last step leads. */
+  const openMenu = (menu: Menu) => {
+    if (menu === 'car') d.onEvent?.('garage');
+    openGarage(d.ui, d.content, d.store, d.toast, { ...d.garageOpts, menu });
   };
+  const garage = () => openMenu('car');
   d.scene.events.on('showcase:tap', garage);
 
   d.scene.events.on('slot:tap', (slot: number) => {
@@ -177,5 +179,5 @@ export function createController(d: ControllerDeps) {
   });
 
   d.store.subscribe(render);
-  return { render, garage };
+  return { render, garage, openMenu };
 }

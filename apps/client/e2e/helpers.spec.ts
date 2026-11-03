@@ -4,8 +4,7 @@ import { advance, open, seedSave } from './helpers';
 test('hire Zé, put him on the wash bay and he works on his own', async ({ page }) => {
   await seedSave(page, { xp: 20, coins: 1000 });
   const errors = await open(page);
-  await page.getByTestId('open-garage').click();
-  await page.locator('[data-tab="team"]').click();
+  await page.getByTestId('menu-team').click();
   await page.getByTestId('hire-ze').click();
   await expect(page.getByTestId('coins')).toHaveText('700');
   await page.getByTestId('assign-ze').selectOption('bay1');

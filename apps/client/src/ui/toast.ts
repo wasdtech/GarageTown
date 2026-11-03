@@ -9,10 +9,3 @@ export function createToaster(root: HTMLElement) {
     setTimeout(() => t.remove(), ms);
   };
 }
-
-export function showBanner(root: HTMLElement, text: string) {
-  if (root.querySelector('.gt-banner')) return;
-  const b = h('div', { class: 'gt-banner', 'data-testid': 'banner' }, text);
-  b.addEventListener('click', () => b.remove());
-  root.append(b);
-}
