@@ -10,6 +10,7 @@ import {
   levelForXp,
 } from '@gt/sim';
 import { fmt } from './format';
+import { sheetHead } from './frame';
 import { h } from './dom';
 import { S } from './strings';
 
@@ -24,10 +25,9 @@ function sheet(root: HTMLElement, title: string, ...body: Node[]) {
   closeSheet();
   const panel = h(
     'div',
-    { class: 'gt-sheet', role: 'dialog', 'aria-label': title },
-    h('h2', {}, title),
-    ...body,
-    h('button', { class: 'gt-btn gt-btn-ghost', onclick: closeSheet }, S.close),
+    { class: 'gt-sheet gt-tone-jobs', role: 'dialog', 'aria-label': title },
+    sheetHead(title, 'ui/team.png', closeSheet),
+    h('div', { class: 'gt-sheet-body' }, ...body),
   );
   const backdrop = h('div', { class: 'gt-backdrop' }, panel);
   backdrop.addEventListener('click', (e) => e.target === backdrop && closeSheet());

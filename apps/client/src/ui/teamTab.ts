@@ -23,11 +23,23 @@ export function teamTab(
   const cards = c.helpers.map((def) => {
     const hired = s.helpers.find((x) => x.key === def.key);
     const lv = c.helperLevels[(hired?.level ?? 1) - 1]!;
+    // portrait first, then name and level pips
+    const pips = (lvl: number) =>
+      h(
+        'span',
+        { class: 'gt-pips', 'aria-label': `${lvl}/${c.helperLevels.length}` },
+        '●'.repeat(lvl) + '○'.repeat(c.helperLevels.length - lvl),
+      );
     const head = h(
       'div',
       { class: 'gt-team-head' },
-      h('span', { class: 'gt-team-face', 'aria-hidden': 'true' }, def.face),
-      h('strong', {}, def.name),
+      h('img', {
+        class: `gt-portrait gt-portrait-${def.key}`,
+        src: `ui/helper_${def.key}.png`,
+        alt: '',
+        draggable: 'false',
+      }),
+      h('div', { class: 'gt-team-name' }, h('strong', {}, def.name), hired ? pips(hired.level) : null),
     );
     if (!hired) {
       const locked = level < def.unlockLevel;
@@ -41,7 +53,17 @@ export function teamTab(
         if (r.ok) sfx?.hired();
         run(r, S.team.hired(def.name));
       });
-      return h('div', { class: 'gt-team-card' }, head, h('span', { class: 'gt-muted' }, S.team.pitch), b);
+      return h(
+        'div',
+        { class: `gt-team-card${locked ? ' gt-locked' : ''}` },
+        head,
+        h(
+          'div',
+          { class: 'gt-chips' },
+          h('span', { class: 'gt-chip' }, locked ? S.team.unlocksAt(def.unlockLevel) : S.team.pitchShort),
+        ),
+        b,
+      );
     }
     const next = c.helperLevels[hired.level];
     const train = h(
@@ -71,7 +93,12 @@ export function teamTab(
       'div',
       { class: 'gt-team-card' },
       head,
-      h('span', { class: 'gt-muted' }, S.team.stats(hired.level, pct(1 - lv.speed), pct(lv.share))),
+      h(
+        'div',
+        { class: 'gt-chips' },
+        h('span', { class: 'gt-chip' }, S.team.faster(pct(1 - lv.speed))),
+        h('span', { class: 'gt-chip' }, S.team.share(pct(lv.share))),
+      ),
       select,
       train,
     );
@@ -85,6 +112,8 @@ export function teamTab(
   clock.addEventListener('click', () => run(store.buyClock(), S.team.clockBought));
   const shift = c.clockTiers[s.clockTier]!.hours;
   return [
+    // what helpers do, said once for the whole team
+    h('p', { class: 'gt-intro gt-wide' }, S.team.pitch),
     ...cards,
     h(
       'div',

@@ -9,7 +9,7 @@ test('menu text stays dark on the light sheet under a dark color scheme', async 
   await tapAnchor(page, await firstCustomer(page));
   await tapAnchor(page, 'bay1');
   const ink = 'rgb(29, 29, 43)';
-  for (const sel of ['.gt-job', '.gt-job[disabled]', '.gt-btn-ghost']) {
+  for (const sel of ['.gt-job', '.gt-job[disabled]', '.gt-close']) {
     await expect(page.locator(sel).first()).toHaveCSS('color', ink);
   }
 });

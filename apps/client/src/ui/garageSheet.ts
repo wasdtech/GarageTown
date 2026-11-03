@@ -6,6 +6,7 @@ import { h } from './dom';
 import { errorText, S } from './strings';
 import { garageKey } from './garageKey';
 import { franchiseTab } from './franchiseTab';
+import { sheetHead } from './frame';
 import { confetti } from './juice';
 import { teamTab } from './teamTab';
 
@@ -35,7 +36,7 @@ export function openGarage(
   opts.sfx?.menu?.();
   root.querySelector('.gt-garage')?.remove();
   const panel = h('div', {
-    class: 'gt-sheet gt-garage-sheet',
+    class: `gt-sheet gt-garage-sheet gt-tone-${menu}`,
     role: 'dialog',
     'aria-label': S.menus.title[menu],
     'data-menu': menu,
@@ -63,22 +64,47 @@ export function openGarage(
     } else toast(errorText(r.error as never), 'bad');
   };
 
+  /** A shop tile: picture first (paint blob, icon or car), then the name and a price/state pill. */
   function option(
     label: string,
     sub: string,
-    opts: { active?: boolean; disabled?: boolean; swatch?: string; testid?: string },
+    opts: {
+      active?: boolean;
+      disabled?: boolean;
+      swatch?: string;
+      art?: string;
+      media?: Node;
+      /** a short extra line above the price (e.g. a part's bonus) */
+      note?: string;
+      testid?: string;
+    },
     onPick: () => void,
   ) {
+    const media = opts.media
+      ? h('span', { class: 'gt-opt-media' }, opts.media)
+      : opts.swatch
+        ? h(
+            'span',
+            { class: 'gt-opt-media' },
+            h('span', { class: 'gt-blob', style: `background:${opts.swatch}` }),
+          )
+        : opts.art
+          ? h('span', { class: 'gt-opt-media' }, h('img', { src: opts.art, alt: '', draggable: 'false' }))
+          : null;
+    const priced = sub.includes('🪙');
     const b = h(
       'button',
       {
-        class: `gt-opt${opts.active ? ' gt-opt-active' : ''}`,
+        class: `gt-opt${opts.active ? ' gt-opt-active' : ''}${media ? '' : ' gt-opt-plain'}`,
         ...(opts.disabled ? { disabled: '' } : {}),
         ...(opts.testid ? { 'data-testid': opts.testid } : {}),
       },
-      opts.swatch ? h('span', { class: 'gt-swatch', style: `background:${opts.swatch}` }) : null,
+      media,
       h('strong', {}, label),
-      h('span', {}, sub),
+      opts.note ? h('span', { class: 'gt-opt-sub' }, opts.note) : null,
+      h('span', { class: priced ? 'gt-pill-price' : 'gt-opt-sub' }, sub),
+      opts.active ? h('span', { class: 'gt-badge-ok', 'aria-hidden': 'true' }, '✓') : null,
+      opts.disabled ? h('span', { class: 'gt-badge-lock', 'aria-hidden': 'true' }, '🔒') : null,
     );
     b.addEventListener('click', () => !b.hasAttribute('disabled') && onPick());
     return b;
@@ -129,7 +155,7 @@ export function openGarage(
           option(
             st.name,
             owned(s.collection.stickers, st.key) ? S.garage.owned : price(st.cost),
-            { active: car.look.sticker === st.key, testid: `sticker-${st.key}` },
+            { active: car.look.sticker === st.key, art: 'icons/stickers.png', testid: `sticker-${st.key}` },
             () => run(store.applyLook(car.id, { sticker: st.key })),
           ),
         ),
@@ -140,15 +166,16 @@ export function openGarage(
       return c.parts.map((p) => {
         const tier = car.parts[p.key] ?? 0;
         const next = p.tiers[tier];
-        const sub = !next
-          ? S.garage.maxed
-          : level < next.level
-            ? S.lockedAt(next.level)
-            : `+${next.bonus} ${S.garage.stat[p.stat]} · ${next.cost} 🪙`;
+        const sub = !next ? S.garage.maxed : level < next.level ? S.lockedAt(next.level) : `${next.cost} 🪙`;
         return option(
           `${p.name} ${'●'.repeat(tier)}${'○'.repeat(p.tiers.length - tier)}`,
           sub,
-          { disabled: !next || level < next.level, testid: `part-${p.key}` },
+          {
+            disabled: !next || level < next.level,
+            art: `icons/${p.key}.png`,
+            note: next ? `+${next.bonus} ${S.garage.stat[p.stat]}` : undefined,
+            testid: `part-${p.key}`,
+          },
           () => run(store.buyPart(car.id, p.key), S.garage.installed(p.name)),
         );
       });
@@ -158,13 +185,30 @@ export function openGarage(
   /** The dealership: buy new cars and pick which one stands on the showcase. */
   function dealerContent(s: GameState): Node[] {
     const level = levelForXp(c, s.xp);
+    // a small drawing of each car: yours in its own paint, the ones for sale in the first paint
+    const thumb = (sprite: string, look: OwnedCar['look']) => {
+      const cv = h('canvas', { class: 'gt-car-thumb', width: '480', height: '300' });
+      const hex = c.looks.paints.find((p) => p.key === look.paint)?.hex ?? '#e63946';
+      void drawCarPreview(cv, sprite, look, hex).catch(() => undefined);
+      return cv;
+    };
+    const showroom: OwnedCar['look'] = {
+      paint: c.looks.paints[0]!.key,
+      finish: c.looks.finishes[0]!.key,
+      neon: false,
+      sticker: null,
+    };
     return c.cars.map((m) => {
       const mine = s.collection.cars.find((x) => x.model === m.key);
       if (mine) {
         return option(
           m.name,
           mine.id === s.collection.activeCarId ? S.garage.showing : S.garage.show,
-          { active: mine.id === s.collection.activeCarId, testid: `car-${m.key}` },
+          {
+            active: mine.id === s.collection.activeCarId,
+            media: thumb(m.sprite, mine.look),
+            testid: `car-${m.key}`,
+          },
           () => run(store.setActiveCar(mine.id)),
         );
       }
@@ -172,7 +216,7 @@ export function openGarage(
       return option(
         m.name,
         locked ? S.lockedAt(m.unlockLevel) : `${m.price} 🪙`,
-        { disabled: locked, testid: `car-${m.key}` },
+        { disabled: locked, media: thumb(m.sprite, showroom), testid: `car-${m.key}` },
         () => run(store.buyCar(m.key), S.garage.bought(m.name)),
       );
     });
@@ -202,9 +246,8 @@ export function openGarage(
     lastKey = keyOf(s);
     if (menu !== 'car') {
       panel.replaceChildren(
-        h('div', { class: 'gt-garage-head' }, h('h2', {}, S.menus.title[menu])),
-        h('div', { class: 'gt-opts' }, ...menuContent(s)),
-        h('button', { class: 'gt-btn gt-btn-ghost', onclick: close }, S.close),
+        sheetHead(S.menus.title[menu], `ui/${menu}.png`, close),
+        h('div', { class: 'gt-sheet-body' }, h('div', { class: 'gt-opts' }, ...menuContent(s))),
       );
       return;
     }
@@ -236,24 +279,27 @@ export function openGarage(
       return b;
     });
     panel.replaceChildren(
-      h(
-        'div',
-        { class: 'gt-garage-head' },
-        h('h2', {}, model.name),
+      sheetHead(
+        model.name,
+        'ui/car.png',
+        close,
         h('span', { class: 'gt-class', 'data-testid': 'car-class' }, st.cls),
         h('span', { class: 'gt-pi', 'data-testid': 'car-pi' }, `PI ${st.pi}`),
       ),
-      canvas,
       h(
         'div',
-        { class: 'gt-stats' },
-        bar(S.garage.stat.power, st.power, 200),
-        bar(S.garage.stat.grip, st.grip, 200),
-        bar(S.garage.style, st.style, 60),
+        { class: 'gt-sheet-body' },
+        canvas,
+        h(
+          'div',
+          { class: 'gt-stats' },
+          bar(S.garage.stat.power, st.power, 200),
+          bar(S.garage.stat.grip, st.grip, 200),
+          bar(S.garage.style, st.style, 60),
+        ),
+        h('div', { class: 'gt-tabs', role: 'tablist' }, ...tabs),
+        h('div', { class: 'gt-opts' }, ...tabContent(s, car)),
       ),
-      h('div', { class: 'gt-tabs', role: 'tablist' }, ...tabs),
-      h('div', { class: 'gt-opts' }, ...tabContent(s, car)),
-      h('button', { class: 'gt-btn gt-btn-ghost', onclick: close }, S.close),
     );
   }
   render();

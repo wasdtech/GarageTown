@@ -123,6 +123,7 @@ export class GarageScene extends Phaser.Scene {
         this.load.image(`${car.sprite}_${layer}`, `cars/${car.sprite}/${layer}.png`);
       }
     }
+    this.load.image('ui_coin', 'ui/coin.png');
     for (const a of Object.keys(WORKER_FRAMES)) {
       this.load.image(`worker_${a}`, `workers/${a}.png`);
       this.load.image(`worker_${a}_cloth`, `workers/${a}_cloth.png`);
@@ -428,9 +429,20 @@ export class GarageScene extends Phaser.Scene {
         const doneAt = bay.job.startedAt + bay.job.durationS * 1000;
         const timely = now <= doneAt + TIMELY_WINDOW_MS;
         const coins = this.content.jobs.find((j) => j.key === bay.job!.jobKey)?.coins ?? 0;
-        const tag = this.label(centre.x, top, collectLabel(coins, timely), '#ffd166');
+        // the bonus coin is the drawn coin, not the emoji: room is left for it on the right of the label
+        const text = collectLabel(coins, timely);
+        const hasCoin = text.includes('🪙');
+        const tag = this.label(centre.x, top, text.replace('🪙', '').trimEnd(), '#ffd166');
+        if (hasCoin) tag.setPadding(7, 2, 28, 2);
         tag.setDepth(2000).setInteractive({ useHandCursor: true });
         tag.on('pointerup', () => !this.isDragging() && this.events.emit('bay:tap', bay.id));
+        if (hasCoin) {
+          const coin = this.add
+            .image(tag.x + tag.width / 2 - 15, tag.y - tag.height / 2, 'ui_coin')
+            .setDisplaySize(19, 19)
+            .setDepth(2001);
+          this.dynamic.add(coin);
+        }
         this.dynamicTweens.push(
           this.tweens.add({ targets: tag, scale: 1.08, yoyo: true, repeat: -1, duration: 450 }),
         );

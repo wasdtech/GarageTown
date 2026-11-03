@@ -33,3 +33,29 @@ test('each bottom-bar button opens its own menu; the car menu only configures th
   await expect(page.getByTestId('car-pi')).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('menus look like a game: a coloured header with icon and close button, pictures on every card', async ({
+  page,
+}) => {
+  await seedSave(page, { xp: 2500, coins: 1000 });
+  const errors = await open(page);
+  const head = (menu: string) => page.locator(`[data-menu="${menu}"] .gt-sheet-head`);
+
+  for (const menu of ['car', 'dealer', 'team', 'franchise']) {
+    await page.getByTestId(`menu-${menu}`).click();
+    await expect(head(menu).locator('img.gt-icon')).toBeVisible();
+    await expect(head(menu).getByRole('button', { name: 'Fechar' })).toBeVisible();
+    // no plain "Fechar" text button at the end of the list any more
+    await expect(page.locator('.gt-sheet .gt-btn-ghost', { hasText: 'Fechar' })).toHaveCount(0);
+    if (menu === 'dealer') await expect(page.locator('[data-testid="car-pitoco"] canvas')).toBeVisible();
+    if (menu === 'team') await expect(page.locator('img[src="ui/helper_ze.png"]').first()).toBeVisible();
+    if (menu === 'franchise')
+      await expect(page.locator('img[src="ui/perk_lucro.png"]').first()).toBeVisible();
+    await head(menu).getByRole('button', { name: 'Fechar' }).click();
+  }
+  // prices show the drawn coin instead of the emoji
+  await page.getByTestId('menu-car').click();
+  await expect(page.getByTestId('paint-blue').locator('img.gt-coin')).toBeVisible();
+  await expect(page.getByTestId('paint-blue')).not.toContainText('🪙');
+  expect(errors).toEqual([]);
+});

@@ -54,13 +54,15 @@ export const S = {
   musicOff: 'Desligar música',
   showcaseSign: '⭐ Meu carro',
   team: {
-    pitch: 'Atende e coleta sozinho no box dele, até com o jogo fechado.',
+    pitch: 'Cada ajudante atende e coleta sozinho no box dele, até com o jogo fechado.',
+    pitchShort: 'Pronto pra contratar',
     hire: (price: number) => `Contratar · ${price} 🪙`,
     hired: (name: string) => `${name} entrou na equipe! 🤝`,
     train: (cost: number) => `Treinar · ${cost} 🪙`,
     trained: (name: string) => `${name} ficou mais rápido! 💪`,
-    stats: (lvl: number, faster: string, share: string) =>
-      `Nível ${lvl} · ${faster} mais rápido · você recebe ${share}`,
+    faster: (p: string) => `⚡ −${p} tempo`,
+    share: (p: string) => `🪙 ${p}`,
+    unlocksAt: (lvl: number) => `Chega no nível ${lvl}`,
     assignLabel: (name: string) => `Box de ${name}`,
     noBay: 'Sem box',
     bay: 'Box',
