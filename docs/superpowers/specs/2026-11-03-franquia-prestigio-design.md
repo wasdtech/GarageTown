@@ -35,10 +35,10 @@ O dono escolheu **progressão sem fim**, no estilo idle: o jogador **abre uma no
 - **Requisito:** nível ≥ **12** (`minLevel`).
   - Abaixo disso a ação falha com o erro `level`.
   - Também falha com `no_seals` se a filial renderia 0 selos.
-- **Selos ganhos:** `floor(sqrt(runCoins / 500))`.
+- **Selos ganhos:** `floor(sqrt(runCoins / 200))`. O divisor era 500 na primeira versão; foi ajustado para 200 na calibragem da seção C.
   - `runCoins` é o total de moedas **ganhas** nesta filial. Gastos não descontam.
   - Entra tudo: serviços do jogador, dos ajudantes, minijogo e gorjetas.
-  - Exemplos: 12.500 🪙 rendem 5 selos; 50.000 🪙 rendem 10; 200.000 🪙 rendem 20.
+  - Exemplos: 5.000 🪙 rendem 5 selos; 20.000 🪙 rendem 10; 80.000 🪙 rendem 20.
 - **Mantém:**
   - a coleção de carros (`collection`: carros, peças, visual, carro ativo, tintas, acabamentos, adesivos, neon);
   - os selos;
@@ -137,14 +137,14 @@ Pode ser feita a qualquer momento, não só ao abrir a filial.
 - Todos os textos ficam em `strings.ts`, em português.
 
 ## C. Simulador e balanceamento
-- **Simulador:** o jogador simulado abre filial ao chegar ao nível 15. Ele compra melhorias sempre que pode, na ordem lucro, agilidade, experiência, paciência e recrutamento, a mais barata primeiro.
+- **Simulador:** o jogador simulado abre filial ao chegar ao nível 15, depois de ter todos os carros (um colecionador completa a coleção antes de recomeçar). Ele compra melhorias sempre que pode, na ordem lucro, agilidade, experiência, paciência e recrutamento, a mais barata primeiro.
 - **Novos testes de economia:**
   1. **Primeira filial:** o perfil médio chega ao nível 10 entre os dias 2 e 4. É o teste atual, que continua passando.
   2. **Abertura:** o perfil médio abre a primeira filial até o dia 10.
   3. **Aceleração:** na segunda filial, o perfil médio chega ao nível 12 em menos tempo que na primeira.
   4. **Sem fim:** no dia 30, o perfil médio ainda tem pelo menos uma melhoria abaixo do máximo.
   5. **Moedas úteis:** depois da primeira filial, `runCoins` cresce e vira selos, e o jogador nunca fica sem objetivo de gasto.
-- Se os números iniciais da tabela A2 não baterem essas faixas, o plano ajusta `divisor` (500), `baseCost` e `step` em `prestige.json`. A forma das regras não muda.
+- Se os números iniciais da tabela A2 não baterem essas faixas, o plano ajusta `divisor` (500, calibrado para 200), `baseCost` e `step` em `prestige.json`. A forma das regras não muda.
 
 ## D. Fora de escopo
 - Visual diferente por filial, como outro mapa ou outra fachada.
@@ -155,7 +155,7 @@ Pode ser feita a qualquer momento, não só ao abrir a filial.
 ## E. Testes
 - **Sim, unitários:**
   - `openBranch`: o que mantém e o que zera; os erros `level` e `no_seals`; o contador `branch`; selos somados.
-  - Fórmula dos selos: 499 rende 0; 500, 1; 12.500, 5.
+  - Fórmula dos selos: divisor − 1 rende 0; divisor, 1; 25 × divisor, 5.
   - `buyPerk`: custo por nível, `maxed`, `no_seals`.
   - Cada efeito: lucro (inclusive VIP e ajudante), experiência, agilidade (mínimo 1 s, acumula com treino), paciência e recrutamento.
   - `runCoins` soma moedas do jogador, do ajudante e do minijogo.

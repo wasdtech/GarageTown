@@ -43,14 +43,15 @@ function lateBranch(extra: Partial<GameState> = {}): GameState {
         },
       ],
     },
-    prestige: { branch: 1, seals: 2, perks: { lucro: 1 }, runCoins: 12_600 },
+    prestige: { branch: 1, seals: 2, perks: { lucro: 1 }, runCoins: 25 * c.prestige.sealDivisor + 100 },
     ...extra,
   };
 }
 
 describe('seals', () => {
-  it('follow floor(sqrt(runCoins / 500))', () => {
-    expect([499, 500, 12_500, 50_000, 200_000].map((n) => sealsFor(c, n))).toEqual([0, 1, 5, 10, 20]);
+  it('follow floor(sqrt(runCoins / divisor))', () => {
+    const d = c.prestige.sealDivisor;
+    expect([d - 1, d, 25 * d, 100 * d, 400 * d].map((n) => sealsFor(c, n))).toEqual([0, 1, 5, 10, 20]);
   });
 
   it('perk cost grows by step', () => {
@@ -69,7 +70,10 @@ describe('openBranch', () => {
   it('fails with no_seals when too few coins were earned', () => {
     const r = openBranch(
       c,
-      lateBranch({ xp: xpFor(12), prestige: { branch: 1, seals: 0, perks: {}, runCoins: 400 } }),
+      lateBranch({
+        xp: xpFor(12),
+        prestige: { branch: 1, seals: 0, perks: {}, runCoins: c.prestige.sealDivisor - 1 },
+      }),
       T0,
     );
     expect(r).toEqual({ ok: false, error: 'no_seals' });

@@ -134,7 +134,7 @@ describe('helpers content', () => {
   it('prestige content has the five perks with spec values', () => {
     const p = loadContent().prestige;
     expect(p.minLevel).toBe(12);
-    expect(p.sealDivisor).toBe(500);
+    expect(p.sealDivisor).toBe(200);
     expect(p.perks.map((k) => k.key)).toEqual([
       'lucro',
       'agilidade',

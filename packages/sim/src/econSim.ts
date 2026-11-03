@@ -4,7 +4,8 @@ import { buyCar, buyPart } from './cars';
 import { assignHelper, buyClock, hireHelper, trainHelper } from './helpers';
 import { tick } from './customers';
 import { collectJob, jobProgress, startJob } from './jobs';
-import { levelForXp, unlockedJobs } from './levels';
+import { levelForXp, maxLevel, unlockedJobs } from './levels';
+import { buyPerk, openBranch, perkCost, perkLevel } from './prestige';
 import { createInitialState, type GameState } from './state';
 
 /** A simulated player: how often they open the game and how long they stay. */
@@ -50,6 +51,25 @@ function serve(c: Content, s: GameState, now: number, leaving: boolean): GameSta
   return s;
 }
 
+/** Order perks are bought in when two next levels cost the same. */
+const PERK_ORDER = ['lucro', 'agilidade', 'experiencia', 'paciencia', 'recrutamento'];
+
+/** Spends seals on the cheapest next perk level until none is affordable. */
+function buyPerks(c: Content, s: GameState, now: number): GameState {
+  for (;;) {
+    const options = PERK_ORDER.flatMap((key) => {
+      const def = c.prestige.perks.find((p) => p.key === key);
+      const level = perkLevel(s, key);
+      return def && level < def.max ? [{ key, cost: perkCost(c, key, level + 1) }] : [];
+    }).sort((a, b) => a.cost - b.cost);
+    const pick = options[0];
+    if (!pick || pick.cost > s.prestige.seals) return s;
+    const r = buyPerk(c, s, pick.key, now);
+    if (!r.ok) return s;
+    s = r.value;
+  }
+}
+
 /** Spends coins like a collector: unlock the next car, then upgrade parts on every car. */
 function shop(c: Content, s: GameState, now: number): GameState {
   // helpers first: hire as soon as possible and put each on a bay without a helper (wash first)
@@ -90,10 +110,14 @@ export function simulate(
   p: Profile,
   days: number,
   seed = 1,
-): { levelDay: Record<number, number>; final: GameState } {
+): { levelDay: Record<number, number>; branchDays: number[]; level12Days: number[]; final: GameState } {
   const t0 = 0;
   let s = createInitialState(c, t0, seed);
+  /** Day each level was first reached (first branch). */
   const levelDay: Record<number, number> = { 1: 0 };
+  /** Day each branch was opened, and the day level 12 was reached in each branch. */
+  const branchDays: number[] = [];
+  const level12Days: number[] = [];
   for (let d = 0; d < days; d++) {
     for (let k = 0; k < p.sessionsPerDay; k++) {
       const start = t0 + d * DAY_MS + WAKE_START_MS + (k * WAKE_SPAN_MS) / p.sessionsPerDay;
@@ -120,8 +144,18 @@ export function simulate(
         s = shop(c, s, now);
         const lvl = levelForXp(c, s.xp);
         for (let l = 2; l <= lvl; l++) levelDay[l] ??= now / DAY_MS;
+        if (lvl >= c.prestige.minLevel) level12Days[s.prestige.branch - 1] ??= now / DAY_MS;
+        // a collector opens a new branch at the top level, once every car is in the garage
+        if (lvl >= maxLevel(c) && s.collection.cars.length >= c.cars.length) {
+          const r = openBranch(c, s, now);
+          if (r.ok) {
+            s = r.value.state;
+            branchDays.push(now / DAY_MS);
+          }
+        }
+        s = buyPerks(c, s, now);
       }
     }
   }
-  return { levelDay, final: s };
+  return { levelDay, branchDays, level12Days, final: s };
 }
