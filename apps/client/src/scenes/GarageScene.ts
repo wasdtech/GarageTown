@@ -20,7 +20,7 @@ const CAR_TEXTURE_SCALE = 0.5;
 const IN_FLIGHT_ALPHA = 0.01;
 const VIP_GOLD = 0xe9b949;
 /** Mechanic animation strips (art/src/workers): frames per strip; each has a gray `_cloth` layer to tint. */
-const WORKER_FRAMES: Record<WorkerAction, number> = { scrub: 5, wrench: 4, spray: 5 };
+const WORKER_FRAMES: Record<WorkerAction, number> = { scrub: 3, wrench: 2, spray: 5 };
 const WORKER_FPS = 8;
 /** Where the mechanic stands, relative to the centre of the car's pad (on the car's left, facing it). */
 const WORKER_OFFSET = { x: -58, y: 10 };

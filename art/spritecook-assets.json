@@ -145,21 +145,21 @@
       "file": "art/generated/workers/mech-a.png"
     },
     {
-      "asset_id": "14e3d173-9761-461b-a67e-689c91d24641",
-      "sha12": "3aa88a29eaa6",
-      "label": "mecânico: chave inglesa (8 quadros)",
+      "asset_id": "be89609c-0a33-4618-b329-a451ab10f4a1",
+      "sha12": "6be1aac21be7",
+      "label": "mecânico: chave inglesa (8 quadros, fundo magenta)",
       "file": "art/generated/workers/wrench-sheet.png"
     },
     {
-      "asset_id": "1611abdd-cfb5-4255-bc9d-11968230f013",
-      "sha12": "56d6bc4ca299",
-      "label": "mecânico: esfregar (8 quadros)",
+      "asset_id": "a6c23228-2095-4cf6-b1c6-fb384c0bcc6f",
+      "sha12": "df7e8d7f122d",
+      "label": "mecânico: esfregar (8 quadros, fundo magenta)",
       "file": "art/generated/workers/scrub-sheet.png"
     },
     {
-      "asset_id": "3778652c-88a5-48d0-a65d-13658cea7bfa",
-      "sha12": "4771e68bcd59",
-      "label": "mecânico: spray (8 quadros)",
+      "asset_id": "2588de51-f70b-409f-8671-66ce79772514",
+      "sha12": "eee5052a1032",
+      "label": "mecânico: spray (8 quadros, fundo magenta)",
       "file": "art/generated/workers/spray-sheet.png"
     }
   ],
