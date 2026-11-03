@@ -119,6 +119,7 @@ export function applyReward(s: GameState, bayId: string, reward: Reward): GameSt
     coins: s.coins + reward.coins,
     xp: s.xp + reward.xp,
     reputation: s.reputation + reward.reputation,
+    prestige: { ...s.prestige, runCoins: s.prestige.runCoins + reward.coins },
     bays: s.bays.map((b) => (b.id === bayId ? { ...b, job: null } : b)),
   };
 }
