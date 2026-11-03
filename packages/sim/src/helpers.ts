@@ -1,6 +1,7 @@
 import type { Content } from '@gt/shared';
 import { tick } from './customers';
 import { levelForXp } from './levels';
+import { recruitPrice } from './perks';
 import { err, ok, type Result } from './result';
 import { type GameState, touch } from './state';
 
@@ -24,17 +25,18 @@ export function hireHelper(
   if (!def) return err('unknown_helper');
   if (s.helpers.some((h) => h.key === key)) return err('hired');
   if (levelForXp(c, s.xp) < def.unlockLevel) return err('locked');
-  if (s.coins < def.price) return err('no_coins');
+  const price = recruitPrice(c, s, def.price);
+  if (s.coins < price) return err('no_coins');
   return ok(
-    touch({ ...s, coins: s.coins - def.price, helpers: [...s.helpers, { key, level: 1, bayId: null }] }, now),
+    touch({ ...s, coins: s.coins - price, helpers: [...s.helpers, { key, level: 1, bayId: null }] }, now),
   );
 }
 
 export type TrainError = 'unknown_helper' | 'not_hired' | 'maxed' | 'no_coins';
 
-export function trainCost(c: Content, key: string, nextLevel: number): number {
+export function trainCost(c: Content, s: GameState, key: string, nextLevel: number): number {
   const def = c.helpers.find((h) => h.key === key)!;
-  return def.price * (c.helperLevels[nextLevel - 1]?.trainCostMult ?? 0);
+  return recruitPrice(c, s, def.price * (c.helperLevels[nextLevel - 1]?.trainCostMult ?? 0));
 }
 
 export function trainHelper(
@@ -48,7 +50,7 @@ export function trainHelper(
   const hired = s.helpers.find((h) => h.key === key);
   if (!hired) return err('not_hired');
   if (hired.level >= c.helperLevels.length) return err('maxed');
-  const cost = trainCost(c, key, hired.level + 1);
+  const cost = trainCost(c, s, key, hired.level + 1);
   if (s.coins < cost) return err('no_coins');
   return ok(
     touch(

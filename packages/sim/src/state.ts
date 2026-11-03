@@ -89,6 +89,15 @@ export interface HiredHelper {
   bayId: string | null;
 }
 
+/** Franchise progress: survives opening a new branch. */
+export interface Prestige {
+  branch: number;
+  seals: number;
+  perks: Record<string, number>;
+  /** Coins earned (not net of spending) in the current branch. */
+  runCoins: number;
+}
+
 export interface IdleReport {
   jobs: number;
   coins: number;
@@ -96,7 +105,7 @@ export interface IdleReport {
 }
 
 export interface GameState {
-  version: 4;
+  version: 5;
   coins: number;
   xp: number;
   reputation: number;
@@ -115,6 +124,7 @@ export interface GameState {
   /** Last player action; helpers keep working until lastActiveAt + shift. */
   lastActiveAt: number;
   idleReport: IdleReport;
+  prestige: Prestige;
 }
 
 export const QUEUE_MAX = 6;
@@ -140,7 +150,7 @@ export const bayId = (slot: number) => `bay${slot}`;
 
 export function createInitialState(c: Content, now: number, seed: number): GameState {
   return {
-    version: 4,
+    version: 5,
     coins: 0,
     xp: 0,
     reputation: 0,
@@ -164,6 +174,7 @@ export function createInitialState(c: Content, now: number, seed: number): GameS
     clockTier: 0,
     lastActiveAt: now,
     idleReport: { jobs: 0, coins: 0, xp: 0 },
+    prestige: { branch: 1, seals: 0, perks: {}, runCoins: 0 },
   };
 }
 

@@ -1,0 +1,11 @@
+{
+  "minLevel": 12,
+  "sealDivisor": 200,
+  "perks": [
+    { "key": "lucro", "name": "Lucro", "effect": 0.1, "max": 10, "baseCost": 2, "step": 1 },
+    { "key": "agilidade", "name": "Agilidade", "effect": 0.05, "max": 6, "baseCost": 3, "step": 2 },
+    { "key": "paciencia", "name": "Paciência", "effect": 0.15, "max": 5, "baseCost": 2, "step": 1 },
+    { "key": "experiencia", "name": "Experiência", "effect": 0.1, "max": 10, "baseCost": 2, "step": 1 },
+    { "key": "recrutamento", "name": "Recrutamento", "effect": 0.15, "max": 4, "baseCost": 3, "step": 2 }
+  ]
+}

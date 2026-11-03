@@ -19,7 +19,7 @@ const ok = <T>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
 describe('state v4', () => {
   it('starts with no helpers, the 4h clock and an empty idle report', () => {
     const s = fresh();
-    expect(s.version).toBe(4);
+    expect(s.version).toBe(5);
     expect(s.helpers).toEqual([]);
     expect(s.clockTier).toBe(0);
     expect(s.lastActiveAt).toBe(T0);
@@ -102,7 +102,7 @@ describe('save v4 migration', () => {
     const r = deserialize(c, JSON.stringify(v3), T0 + 31_000, 1);
     expect(r.recovered).toBe('ok');
     expect(r.state).toMatchObject({
-      version: 4,
+      version: 5,
       helpers: [],
       clockTier: 0,
       idleReport: { jobs: 0, coins: 0, xp: 0 },

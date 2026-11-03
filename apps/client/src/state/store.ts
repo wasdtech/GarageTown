@@ -3,6 +3,10 @@ import {
   type AssignError,
   assignHelper,
   buyClock,
+  type BranchError,
+  buyPerk,
+  openBranch,
+  type PerkError,
   clearIdleReport,
   type HireError,
   hireHelper,
@@ -131,6 +135,17 @@ export class Store {
 
   buyClock(): Result<void, 'maxed' | 'no_coins'> {
     return this.act(buyClock(this.c, this.s, this.clock()));
+  }
+
+  openBranch(): Result<{ seals: number }, BranchError> {
+    const r = openBranch(this.c, this.s, this.clock());
+    if (!r.ok) return r;
+    this.commit(r.value.state, true);
+    return { ok: true, value: { seals: r.value.seals } };
+  }
+
+  buyPerk(key: string): Result<void, PerkError> {
+    return this.act(buyPerk(this.c, this.s, key, this.clock()));
   }
 
   clearIdleReport(): void {

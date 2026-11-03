@@ -57,7 +57,14 @@ scene.onReady = () => {
   scene.onImpatient = () => sfx.horn();
   let tutorial: { emit: (e: 'select' | 'start' | 'collect' | 'garage') => void } | null = null;
   const { render, garage } = createController({
-    garageOpts: { sfx: { hired: () => sfx.hired(), register: () => sfx.register(), menu: () => sfx.menu() } },
+    garageOpts: {
+      sfx: {
+        hired: () => sfx.hired(),
+        register: () => sfx.register(),
+        menu: () => sfx.menu(),
+        branch: () => sfx.branch(),
+      },
+    },
     content,
     store,
     scene,

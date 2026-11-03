@@ -137,7 +137,7 @@ describe('save v3', () => {
     delete v2.collection;
     const r = deserialize(c, JSON.stringify(v2), T0, 1);
     expect(r.recovered).toBe('ok');
-    expect(r.state.version).toBe(4);
+    expect(r.state.version).toBe(5);
     expect(r.state.coins).toBe(42);
     expect(r.state.collection.activeCarId).toBe('car-pitoco');
   });

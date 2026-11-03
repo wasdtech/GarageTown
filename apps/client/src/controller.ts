@@ -4,7 +4,6 @@ import {
   isMinigameEligible,
   jobProgress,
   levelForXp,
-  maxLevel,
   minigameUsesLeft,
   type Reward,
 } from '@gt/sim';
@@ -17,7 +16,7 @@ import { coinFly, confetti, floatText } from './ui/juice';
 import type { Sfx } from './ui/sfx';
 import { closeSheet, openBayStatus, openBuildMenu, openJobMenu } from './ui/jobMenu';
 import { errorText, S } from './ui/strings';
-import { showBanner } from './ui/toast';
+import { levelEvents } from './ui/franchise';
 
 export interface ControllerDeps {
   content: Content;
@@ -62,15 +61,15 @@ export function createController(d: ControllerDeps) {
   let level = levelForXp(d.content, d.store.state.xp);
   d.store.subscribe((s) => {
     const now = levelForXp(d.content, s.xp);
-    if (now <= level) {
-      level = now;
-      return;
-    }
+    const ev = levelEvents(d.content, level, now);
     level = now;
+    // a new branch drops the level back to 1: nothing to celebrate
+    if (!ev.levelUp) return;
     confetti(d.ui);
     setTimeout(() => d.sfx?.levelUp(), 250);
     d.toast(S.levelUp(now), 'big');
-    if (now >= maxLevel(d.content)) showBanner(d.ui, S.endOfPrototype);
+    if (ev.top) setTimeout(() => d.toast(S.franchise.topLevel, 'good'), 1200);
+    else if (ev.franchise) setTimeout(() => d.toast(S.franchise.available, 'good'), 1200);
   });
 
   const runMinigame = async (bayId: string, carKey: string) => {
@@ -165,7 +164,7 @@ export function createController(d: ControllerDeps) {
       return;
     }
     d.sfx?.menu();
-    openJobMenu(d.ui, d.content, s.xp, bay, customer, (job) => {
+    openJobMenu(d.ui, d.content, s, bay, customer, (job) => {
       const r = d.store.start({ customerId: customer.id, bayId, jobKey: job.key });
       if (!r.ok) d.toast(errorText(r.error), 'bad');
       else {

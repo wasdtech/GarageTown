@@ -41,7 +41,13 @@ const CollectionSchema = z.object({
 });
 
 const GameStateSchema = z.object({
-  version: z.literal(4),
+  version: z.literal(5),
+  prestige: z.object({
+    branch: int.min(1),
+    seals: nonneg,
+    perks: z.record(z.string(), nonneg),
+    runCoins: nonneg,
+  }),
   helpers: z.array(z.object({ key: z.string(), level: int.min(1).max(5), bayId: z.string().nullable() })),
   clockTier: int.min(0),
   lastActiveAt: int,
@@ -124,6 +130,7 @@ export function deserialize(
       lastActiveAt?: unknown;
       lastTickAt?: unknown;
       idleReport?: unknown;
+      prestige?: unknown;
     };
     if (d.version === 1) {
       // v1 -> v2: construction queue added
@@ -142,7 +149,12 @@ export function deserialize(
       d.clockTier = 0;
       d.lastActiveAt = d.lastTickAt;
       d.idleReport = { jobs: 0, coins: 0, xp: 0 };
-    } else if (d.version !== 4) {
+    }
+    if (d.version === 4) {
+      // v4 -> v5: franchise (prestige) progress, starting at branch 1
+      d.version = 5;
+      d.prestige = { branch: 1, seals: 0, perks: {}, runCoins: 0 };
+    } else if (d.version !== 5) {
       return fresh('unknown_version');
     }
   }
@@ -159,5 +171,13 @@ export function deserialize(
     s.collection.cars.some((car) => car.id === s.collection.activeCarId) &&
     s.collection.paints.every((p) => c.looks.paints.some((x) => x.key === p));
   if (!refsOk) return fresh('corrupt');
-  return { state: tick(c, s, now), recovered: 'ok' };
+  // perks: unknown keys (removed from content) are dropped; a level above the max is tampering
+  const perks: Record<string, number> = {};
+  for (const [key, level] of Object.entries(s.prestige.perks)) {
+    const def = c.prestige.perks.find((p) => p.key === key);
+    if (!def) continue;
+    if (level > def.max) return fresh('corrupt');
+    perks[key] = level;
+  }
+  return { state: tick(c, { ...s, prestige: { ...s.prestige, perks } }, now), recovered: 'ok' };
 }

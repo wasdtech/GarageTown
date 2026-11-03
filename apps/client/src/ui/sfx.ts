@@ -16,7 +16,8 @@ type SoundKey =
   | 'register'
   | 'hired'
   | 'scrub'
-  | 'welcome';
+  | 'welcome'
+  | 'branch';
 
 const SOUNDS: Record<SoundKey, Note[]> = {
   coin: [
@@ -61,6 +62,17 @@ const SOUNDS: Record<SoundKey, Note[]> = {
     type: 'triangle' as const,
     vol: 0.12,
   })),
+  // a rising fanfare for a new branch, ending on a held chord
+  branch: [
+    ...[523, 659, 784, 1047].map((f, i) => ({
+      f,
+      t: i * 0.09,
+      d: 0.18,
+      type: 'triangle' as const,
+      vol: 0.12,
+    })),
+    ...[523, 659, 784].map((f) => ({ f, t: 0.42, d: 0.6, type: 'triangle' as const, vol: 0.08 })),
+  ],
 };
 
 /** A calm 4-chord loop (I–vi–IV–V in C), one bar every 2 s, played very softly. */
@@ -182,6 +194,7 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
     hired: sound('hired'),
     scrub: sound('scrub'),
     welcome: sound('welcome'),
+    branch: sound('branch'),
   };
 }
 

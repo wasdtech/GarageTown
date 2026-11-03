@@ -14,7 +14,7 @@ const fresh = (extra: Partial<GameState> = {}): GameState => ({
 describe('initial bays', () => {
   it('come from the prebuilt garage slots', () => {
     const s = fresh();
-    expect(s.version).toBe(4);
+    expect(s.version).toBe(5);
     expect(s.bays.map((b) => [b.id, b.type, b.tile.x, b.tile.y])).toEqual([
       ['bay1', 'wash', 2, 3],
       ['bay2', 'mechanic', 5, 3],
@@ -87,6 +87,6 @@ describe('save v1 migration', () => {
     delete v1.builds;
     const r = deserialize(c, JSON.stringify(v1), T0, 1);
     expect(r.recovered).toBe('ok');
-    expect(r.state).toMatchObject({ version: 4, coins: 321, xp: 77, builds: [] });
+    expect(r.state).toMatchObject({ version: 5, coins: 321, xp: 77, builds: [] });
   });
 });

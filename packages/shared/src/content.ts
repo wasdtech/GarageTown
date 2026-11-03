@@ -5,6 +5,7 @@ import garage from '../../../content/garage.json';
 import helpers from '../../../content/helpers.json';
 import looks from '../../../content/looks.json';
 import parts from '../../../content/parts.json';
+import prestige from '../../../content/prestige.json';
 import jobs from '../../../content/jobs.json';
 import levels from '../../../content/levels.json';
 
@@ -85,6 +86,27 @@ const HelpersSchema = z.object({
     .array(z.object({ hours: z.number().positive(), cost: z.number().int().nonnegative() }))
     .min(1),
 });
+const PrestigeSchema = z
+  .object({
+    minLevel: z.number().int().positive(),
+    sealDivisor: z.number().positive(),
+    perks: z
+      .array(
+        z.object({
+          key: z.string().min(1),
+          name: z.string().min(1),
+          effect: z.number().positive().lt(1),
+          max: z.number().int().positive(),
+          baseCost: z.number().int().nonnegative(),
+          step: z.number().int().nonnegative(),
+        }),
+      )
+      .min(1),
+  })
+  .refine((p) => new Set(p.perks.map((k) => k.key)).size === p.perks.length, {
+    message: 'duplicate perk key',
+    path: ['perks'],
+  });
 const priced = { key: z.string().min(1), name: z.string().min(1), cost: z.number().int().nonnegative() };
 const LooksSchema = z.object({
   paints: z.array(z.object({ ...priced, hex: z.string().regex(/^#[0-9a-f]{6}$/i) })).min(1),
@@ -111,6 +133,7 @@ export const ContentSchema = z
     helpers: HelpersSchema.shape.helpers,
     helperLevels: HelpersSchema.shape.levels,
     clockTiers: HelpersSchema.shape.clockTiers,
+    prestige: PrestigeSchema,
   })
   .superRefine((c, ctx) => {
     c.levels.forEach((l, i) => {
@@ -148,6 +171,7 @@ export type PartDef = z.infer<typeof PartDefSchema>;
 export type Looks = z.infer<typeof LooksSchema>;
 export type Stat = z.infer<typeof StatSchema>;
 export type HelperDef = z.infer<typeof HelpersSchema>['helpers'][number];
+export type PerkDef = z.infer<typeof PrestigeSchema>['perks'][number];
 export type Content = z.infer<typeof ContentSchema>;
 
 export function parseContent(raw: unknown): Content {
@@ -166,5 +190,6 @@ export function loadContent(): Content {
     helpers: helpers.helpers,
     helperLevels: helpers.levels,
     clockTiers: helpers.clockTiers,
+    prestige,
   });
 }

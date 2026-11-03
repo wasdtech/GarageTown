@@ -3,6 +3,7 @@ import { completeBuilds } from './build';
 import { shiftEndsAt } from './helpers';
 import { runHelpers } from './idle';
 import { levelForXp, unlockedJobs } from './levels';
+import { boostPatience } from './perks';
 import {
   ARRIVAL_MS,
   type Customer,
@@ -66,7 +67,7 @@ export function makeCustomer(
     carKey: car.key,
     need: need.key,
     arrivedAt,
-    patienceUntil: arrivedAt + (vip ? VIP_PATIENCE_MS : PATIENCE_MS),
+    patienceUntil: arrivedAt + boostPatience(c, s, vip ? VIP_PATIENCE_MS : PATIENCE_MS),
     ...(vip ? { vip: true } : {}),
   };
   return { customer, rngState, nextId };

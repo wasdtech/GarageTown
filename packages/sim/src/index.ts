@@ -11,3 +11,4 @@ export * from './econSim';
 export * from './cars';
 export * from './helpers';
 export * from './idle';
+export * from './prestige';

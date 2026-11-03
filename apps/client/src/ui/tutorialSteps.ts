@@ -34,6 +34,18 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
 
 export const TUTORIAL_DONE = TUTORIAL_STEPS.length;
 
+/**
+ * Where Dona Cida starts when nothing was saved: only a brand-new garage (no XP, first branch) gets
+ * the walkthrough; a new branch also starts at 0 XP but its player already knows the game.
+ */
+export function initialTutorialStep(
+  saved: number | null,
+  s: { xp: number; prestige: { branch: number } },
+): number {
+  if (saved !== null) return saved;
+  return s.xp === 0 && s.prestige.branch === 1 ? 0 : TUTORIAL_DONE;
+}
+
 export function advanceTutorial(step: number, e: TutorialEvent): number {
   if (step >= TUTORIAL_DONE) return TUTORIAL_DONE;
   if (e === 'skip') return TUTORIAL_DONE;

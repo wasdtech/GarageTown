@@ -18,6 +18,7 @@ export function createHud(root: HTMLElement, c: Content) {
   const xpFill = h('div', { class: 'gt-xp-fill' });
   const xpText = h('span', { class: 'gt-xp-text', 'data-testid': 'xp' });
   const rep = h('span', { 'data-testid': 'reputation' });
+  const branch = h('span', { class: 'gt-branch', 'data-testid': 'branch', title: S.franchise.title(1) });
   const bar = h(
     'header',
     { class: 'gt-hud' },
@@ -27,6 +28,7 @@ export function createHud(root: HTMLElement, c: Content) {
       { class: 'gt-pill gt-xp', title: S.level },
       level,
       h('div', { class: 'gt-xp-bar' }, xpFill, xpText),
+      branch,
     ),
     h('div', { class: 'gt-pill', title: S.reputation }, '⭐ ', rep),
   );
@@ -37,5 +39,9 @@ export function createHud(root: HTMLElement, c: Content) {
     xpText.textContent = `${s.xp} XP`;
     xpFill.style.width = `${Math.round(xpFraction(c, s.xp) * 100)}%`;
     rep.textContent = String(s.reputation);
+    // from the second branch on, a small 🏢 N badge next to the level
+    branch.hidden = s.prestige.branch < 2;
+    branch.textContent = `🏢 ${s.prestige.branch}`;
+    branch.title = S.franchise.title(s.prestige.branch);
   };
 }
