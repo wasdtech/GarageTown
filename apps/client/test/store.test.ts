@@ -129,3 +129,12 @@ describe('Store.present', () => {
     expect(store.state.idleReport).toEqual({ jobs: 0, coins: 0, xp: 0 });
   });
 });
+
+describe('Store clock', () => {
+  it('tells the time it plays by (the menus use it, not the wall clock)', () => {
+    const { store, advance } = setup();
+    expect(store.now()).toBe(T0);
+    advance(5_000);
+    expect(store.now()).toBe(T0 + 5_000);
+  });
+});

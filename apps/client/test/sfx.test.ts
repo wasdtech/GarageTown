@@ -119,3 +119,41 @@ describe('music on touch devices', () => {
     sfx.stopMusic();
   });
 });
+
+describe('sfx in a hidden tab', () => {
+  it('suspends the audio (the race engine included) while hidden and resumes after', () => {
+    const calls: string[] = [];
+    const node = () => ({
+      connect: () => node(),
+      gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {}, linearRampToValueAtTime() {} },
+      frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {}, setTargetAtTime() {} },
+      type: '',
+      start() {},
+      stop() {},
+    });
+    class FakeCtx {
+      currentTime = 0;
+      state = 'running';
+      destination = {};
+      createOscillator = node;
+      createGain = node;
+      resume() {
+        calls.push('resume');
+        this.state = 'running';
+      }
+      suspend() {
+        calls.push('suspend');
+        this.state = 'suspended';
+      }
+    }
+    const sfx = createSfx(memoryStorage(), FakeCtx as unknown as typeof AudioContext);
+    sfx.revStart();
+    sfx.setHidden(true);
+    expect(calls).toEqual(['suspend']);
+    // a sound asked for while hidden does not wake the audio up
+    sfx.coin();
+    expect(calls).toEqual(['suspend']);
+    sfx.setHidden(false);
+    expect(calls).toEqual(['suspend', 'resume']);
+  });
+});

@@ -34,3 +34,15 @@ describe('presenceAction', () => {
     ).toBe('none');
   });
 });
+
+describe('presenceAction during a race', () => {
+  it('never opens the welcome sheet over a race; the shift keeps going', () => {
+    expect(
+      presenceAction(st({ idleReport: report }), T0 + 60_000, {
+        visible: true,
+        sheetOpen: false,
+        racing: true,
+      }),
+    ).toBe('present');
+  });
+});

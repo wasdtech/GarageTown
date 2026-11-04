@@ -1223,3 +1223,23 @@ body {
   font-weight: 800;
   font-size: 18px;
 }
+
+/* narrow phones: a smaller dial leaves the go button room for its label */
+@media (max-width: 380px) {
+  .gt-tach-box {
+    width: 128px;
+  }
+  .gt-race-go {
+    font-size: 14px;
+  }
+}
+
+/* read by screen readers, not shown */
+.gt-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

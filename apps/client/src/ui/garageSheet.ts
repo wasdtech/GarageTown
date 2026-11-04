@@ -230,7 +230,7 @@ export function openGarage(
     if (menu === 'dealer') return dealerContent(s);
     if (menu === 'team') return teamTab(c, s, store, toast, opts.sfx);
     if (menu === 'race')
-      return raceTab(c, s, Date.now(), (target) => {
+      return raceTab(c, s, store.now(), (target) => {
         close();
         opts.onRace?.(target);
       });

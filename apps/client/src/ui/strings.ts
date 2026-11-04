@@ -161,7 +161,8 @@ export const S = {
     piYours: (n: number) => `Seu PI ${n}`,
     rachas: 'Rachas',
     rachasPitch: 'Aposte contra um piloto do seu nível. Vitória paga o dobro.',
-    rachasLocked: 'Vença a Rua do Bairro para liberar',
+    gearLabel: 'Marcha',
+    rachasLocked: (track: string) => `Vença a ${track} para liberar`,
     rachasLeft: (n: number, max: number) => `${n} de ${max} hoje`,
     stake: [
       (v: number) => `Pequena · ${v} 🪙`,

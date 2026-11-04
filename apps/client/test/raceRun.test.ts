@@ -104,4 +104,18 @@ describe('RaceRun', () => {
     expect(parked.rivalMeters).toBeGreaterThan(400 + 20);
     expect(parked.rivalMeters).toBeLessThanOrEqual(400 + 30 + 1e-6);
   });
+
+  it('a race played frame by frame ends with the same result as the simulation of its taps', () => {
+    const r = run();
+    r.goDown();
+    r.frame(greenAtMs(SEED) + 37);
+    r.goUp();
+    for (let i = 0; i < 3000 && !r.finished; i++) {
+      const s = r.frame(16 + (i % 3) * 7);
+      if (s.view.phase === 'running' && s.view.rpm > 6500 && s.view.gear < 4) r.goDown();
+      if (i === 60) r.nitro();
+    }
+    expect(r.finished).toBe(true);
+    expect(r.result()).toEqual(simulateRace(SEED, CAR, r.inputs));
+  });
 });

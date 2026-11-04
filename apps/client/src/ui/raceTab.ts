@@ -23,6 +23,15 @@ export function trackCard(
 
 const MEDALS = ['bronze', 'silver', 'gold'] as const;
 
+/** The three street race bets: each open only when street races are open, left today and affordable. */
+export function rachaOptions(c: Content, s: GameState, now: number): { stake: number; enabled: boolean }[] {
+  const open = s.race.beaten.includes(c.race.rachas.unlockTrack) && rachasLeft(c, s, now) > 0;
+  return ([0, 1, 2] as const).map((i) => {
+    const stake = rachaStake(c, s, i);
+    return { stake, enabled: open && s.coins >= stake };
+  });
+}
+
 /** "Arrancada" menu: league tracks with medals and the rival's car, and the street race bets. */
 export function raceTab(c: Content, s: GameState, now: number, onRace: (t: RaceTarget) => void): Node[] {
   const tracks = c.race.tracks.map((def) => {
@@ -80,20 +89,22 @@ export function raceTab(c: Content, s: GameState, now: number, onRace: (t: RaceT
 
   const open = s.race.beaten.includes(c.race.rachas.unlockTrack);
   const left = rachasLeft(c, s, now);
-  const stakes = ([0, 1, 2] as const).map((i) => {
+  const stakes = rachaOptions(c, s, now).map((o, n) => {
+    const i = n as 0 | 1 | 2;
     const b = h(
       'button',
-      { class: 'gt-btn', 'data-testid': `racha-${i}`, ...(open && left > 0 ? {} : { disabled: '' }) },
-      S.race.stake[i](rachaStake(c, s, i)),
+      { class: 'gt-btn', 'data-testid': `racha-${i}`, ...(o.enabled ? {} : { disabled: '' }) },
+      S.race.stake[i](o.stake),
     );
-    b.addEventListener('click', () => open && left > 0 && onRace({ racha: i }));
+    b.addEventListener('click', () => o.enabled && onRace({ racha: i }));
     return b;
   });
+  const unlockName = c.race.tracks.find((t) => t.key === c.race.rachas.unlockTrack)?.name ?? '';
   const rachas = h(
     'div',
     { class: `gt-team-card gt-wide${open ? '' : ' gt-locked'}` },
     h('div', { class: 'gt-team-head' }, h('strong', {}, S.race.rachas)),
-    h('span', { class: 'gt-muted' }, open ? S.race.rachasPitch : S.race.rachasLocked),
+    h('span', { class: 'gt-muted' }, open ? S.race.rachasPitch : S.race.rachasLocked(unlockName)),
     h(
       'span',
       { class: 'gt-chip', 'data-testid': 'rachas-left' },

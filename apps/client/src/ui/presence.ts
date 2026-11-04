@@ -12,9 +12,11 @@ export const AWAY_MS = 60_000;
 export function presenceAction(
   s: GameState,
   now: number,
-  o: { visible: boolean; sheetOpen: boolean },
+  o: { visible: boolean; sheetOpen: boolean; racing?: boolean },
 ): 'welcome' | 'present' | 'none' {
   if (!o.visible || o.sheetOpen) return 'none';
+  // the welcome sheet waits for the race to end
+  if (o.racing) return 'present';
   if (s.idleReport.jobs > 0 && now - s.lastActiveAt >= AWAY_MS) return 'welcome';
   return 'present';
 }
