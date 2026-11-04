@@ -104,7 +104,7 @@ describe('collectJob', () => {
   });
 
   it('reports a multi-level jump in one reward', () => {
-    const big = { ...c, jobs: [...c.jobs, { ...c.jobs[0]!, key: 'mega', xp: 300 }] };
+    const big = { ...c, jobs: [...c.jobs, { ...c.jobs[0]!, key: 'mega', xp: 200 }] };
     const s = startJob(
       big,
       withCustomer('mega', big),

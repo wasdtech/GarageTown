@@ -15,7 +15,7 @@ describe('levels', () => {
   it('caps at the max level when xp jumps far ahead', () => {
     expect(levelForXp(c, 99999)).toBe(15);
     expect(maxLevel(c)).toBe(15);
-    expect(levelForXp(c, 6999)).toBe(14);
+    expect(levelForXp(c, 5999)).toBe(14);
   });
 
   it('lists jobs unlocked at a level', () => {

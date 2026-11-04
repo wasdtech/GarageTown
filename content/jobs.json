@@ -15,7 +15,7 @@
     "bay": "mechanic",
     "durationS": 120,
     "coins": 15,
-    "xp": 6,
+    "xp": 12,
     "unlockLevel": 1,
     "icon": "oil"
   },
@@ -25,7 +25,7 @@
     "bay": "wash",
     "durationS": 180,
     "coins": 22,
-    "xp": 8,
+    "xp": 21,
     "unlockLevel": 2,
     "icon": "polish"
   },
@@ -35,7 +35,7 @@
     "bay": "mechanic",
     "durationS": 300,
     "coins": 35,
-    "xp": 10,
+    "xp": 40,
     "unlockLevel": 3,
     "icon": "tires"
   },
@@ -45,7 +45,7 @@
     "bay": "mechanic",
     "durationS": 3600,
     "coins": 300,
-    "xp": 50,
+    "xp": 150,
     "unlockLevel": 4,
     "icon": "engine"
   },
@@ -55,7 +55,7 @@
     "bay": "paint",
     "durationS": 600,
     "coins": 70,
-    "xp": 18,
+    "xp": 90,
     "unlockLevel": 4,
     "icon": "touchup"
   },
@@ -65,7 +65,7 @@
     "bay": "performance",
     "durationS": 480,
     "coins": 60,
-    "xp": 15,
+    "xp": 80,
     "unlockLevel": 6,
     "icon": "alignment"
   },
@@ -75,7 +75,7 @@
     "bay": "paint",
     "durationS": 1200,
     "coins": 130,
-    "xp": 28,
+    "xp": 220,
     "unlockLevel": 7,
     "icon": "stickers"
   },
@@ -85,7 +85,7 @@
     "bay": "performance",
     "durationS": 3600,
     "coins": 360,
-    "xp": 60,
+    "xp": 180,
     "unlockLevel": 9,
     "icon": "suspension"
   },
@@ -95,7 +95,7 @@
     "bay": "paint",
     "durationS": 2700,
     "coins": 280,
-    "xp": 50,
+    "xp": 510,
     "unlockLevel": 10,
     "icon": "fullpaint"
   },
@@ -105,7 +105,7 @@
     "bay": "performance",
     "durationS": 14400,
     "coins": 1200,
-    "xp": 150,
+    "xp": 600,
     "unlockLevel": 13,
     "icon": "turbo"
   }

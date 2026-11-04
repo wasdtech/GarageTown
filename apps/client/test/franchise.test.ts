@@ -76,10 +76,10 @@ describe('review fixes', () => {
 
   it('the job menu shows the coins, XP and time with perks applied', () => {
     const oil = c.jobs.find((j) => j.key === 'oil')!;
-    expect(jobSummary(c, state(1, 0), oil)).toBe('2m 00s · 15 🪙 · 6 XP');
-    // agilidade 2: 108 s; lucro 2: 18; experiencia 3: 7
+    expect(jobSummary(c, state(1, 0), oil)).toBe('2m 00s · 15 🪙 · 12 XP');
+    // agilidade 2: 108 s; lucro 2: 18; experiencia 3: 15
     expect(jobSummary(c, state(1, 0, { agilidade: 2, lucro: 2, experiencia: 3 }), oil)).toBe(
-      '1m 48s · 18 🪙 · 7 XP',
+      '1m 48s · 18 🪙 · 15 XP',
     );
   });
 

@@ -9,6 +9,6 @@ test('a running job survives a reload', async ({ page }) => {
   // the fake-clock offset is lost on reload: the sim rebases timers, so 120s is still enough
   await advance(page, 120_000);
   await tapAnchor(page, 'bay2');
-  await expect(page.getByTestId('xp')).toHaveText('6 XP');
+  await expect(page.getByTestId('xp')).toHaveText('12 XP');
   expect(errors).toEqual([]);
 });
