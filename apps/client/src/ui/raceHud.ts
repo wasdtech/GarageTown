@@ -49,8 +49,17 @@ export function createRaceHud(
 
   const gear = h('b', { class: 'gt-gear', 'data-testid': 'race-gear' }, '1');
   const speed = h('span', { class: 'gt-speed', 'data-testid': 'race-speed' }, '0 km/h');
-  const go = h('button', { class: 'gt-btn gt-race-go', 'data-testid': 'race-go' }, S.race.hold);
-  const nitro = h('button', { class: 'gt-btn gt-race-nitro', 'data-testid': 'race-nitro' }, S.race.nitro);
+  // the keyboard works too: Space holds/shifts, N fires the nitro
+  const go = h(
+    'button',
+    { class: 'gt-btn gt-race-go', 'data-testid': 'race-go', 'aria-keyshortcuts': 'Space' },
+    S.race.hold,
+  );
+  const nitro = h(
+    'button',
+    { class: 'gt-btn gt-race-nitro', 'data-testid': 'race-nitro', 'aria-keyshortcuts': 'N' },
+    S.race.nitro,
+  );
   const quit = h(
     'button',
     { class: 'gt-close gt-race-quit', 'data-testid': 'race-quit', 'aria-label': S.race.quit },
@@ -66,7 +75,15 @@ export function createRaceHud(
     e.preventDefault();
     run.goUp();
   };
-  go.addEventListener('pointerdown', press);
+  go.addEventListener('pointerdown', (e) => {
+    // keep the finger's pointer on the button: sliding off it before letting go still launches
+    try {
+      go.setPointerCapture(e.pointerId);
+    } catch {
+      /* synthetic events have no live pointer */
+    }
+    press(e);
+  });
   go.addEventListener('pointerup', lift);
   go.addEventListener('pointercancel', lift);
   nitro.addEventListener('click', () => run.nitro());
@@ -89,7 +106,17 @@ export function createRaceHud(
     h(
       'div',
       { class: 'gt-race-panel' },
-      h('div', { class: 'gt-tach-box' }, dial, h('div', { class: 'gt-tach-read' }, gear, speed)),
+      h(
+        'div',
+        { class: 'gt-tach-box' },
+        dial,
+        h(
+          'div',
+          { class: 'gt-tach-read' },
+          h('span', {}, h('span', { class: 'gt-sr-only' }, `${S.race.gearLabel} `), gear),
+          speed,
+        ),
+      ),
       h('div', { class: 'gt-race-buttons' }, go, nitro),
     ),
   );

@@ -89,7 +89,6 @@ export interface HiredHelper {
   bayId: string | null;
 }
 
-/** Franchise progress: survives opening a new branch. */
 /** Drag race record: medals per track (0-3), rivals beaten, street race times, races run. */
 export interface Race {
   medals: Record<string, number>;
@@ -110,6 +109,7 @@ export interface RachaPending {
   grip: number;
 }
 
+/** Franchise progress: survives opening a new branch. */
 export interface Prestige {
   branch: number;
   seals: number;

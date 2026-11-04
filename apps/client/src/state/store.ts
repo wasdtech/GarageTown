@@ -144,6 +144,11 @@ export class Store {
     return this.act(buyClock(this.c, this.s, this.clock()));
   }
 
+  /** The time the game plays by (menus use it instead of the wall clock). */
+  now(): number {
+    return this.clock();
+  }
+
   /** The race about to be run (seed, your car, the rival and its taps); changes nothing. */
   raceSetup(target: RaceTarget) {
     return raceSetup(this.c, this.s, target, this.clock());

@@ -110,3 +110,37 @@ test('holding and releasing the go button starts the race', async ({ page }) => 
   await page.getByTestId('race-quit').click();
   await expect(page.getByTestId('race-hud')).toHaveCount(0);
 });
+
+test('sliding the finger off the go button before letting go still launches the car', async ({ page }) => {
+  await seedSave(page, {});
+  await open(page);
+  await page.getByTestId('menu-race').click();
+  await page.getByTestId('race-bairro').click();
+  const b = (await page.getByTestId('race-go').boundingBox())!;
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await expect(page.locator('[data-lamp="2"]')).toHaveAttribute('data-on', 'green', { timeout: 8000 });
+  await page.mouse.move(5, 5, { steps: 4 });
+  await page.mouse.up();
+  // launched by the player, well before the car would leave on its own (2 s after green)
+  await expect(page.getByTestId('race-go')).toHaveText('Trocar marcha', { timeout: 1000 });
+  await page.getByTestId('race-quit').click();
+});
+
+test('"Correr de novo" starts a fresh race on the same track', async ({ page }) => {
+  await seedSave(page, { xp: 20, coins: 0 });
+  const errors = await open(page);
+  await page.getByTestId('menu-race').click();
+  await page.getByTestId('race-bairro').click();
+  await raceHook(page, 'poor');
+  await expect(page.getByTestId('race-result')).toBeVisible();
+  await page.getByTestId('race-again').click();
+  await expect(page.getByTestId('race-result')).toHaveCount(0);
+  await expect(page.getByTestId('race-hud')).toHaveCount(1);
+  await expect(page.getByTestId('race-go')).toHaveText('Segure… solte no verde!');
+  await expect(page.getByTestId('race-speed')).toHaveText('0 km/h');
+  // and it can be finished again
+  await raceHook(page, 'optimal');
+  await expect(page.getByTestId('race-result')).toBeVisible();
+  expect(errors).toEqual([]);
+});

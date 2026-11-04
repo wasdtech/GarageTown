@@ -49,7 +49,9 @@ for (const ev of ['pointerup', 'click', 'keydown'])
   window.addEventListener(ev, () => sfx.startMusic(), { once: true });
 // no music in the background (battery, and a phone switching apps should go quiet)
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') sfx.stopMusic();
+  const hidden = document.visibilityState === 'hidden';
+  sfx.setHidden(hidden);
+  if (hidden) sfx.stopMusic();
   else sfx.startMusic();
 });
 store.subscribe(updateHud);
@@ -99,6 +101,7 @@ scene.onReady = () => {
     const action = presenceAction(store.state, clock(), {
       visible: document.visibilityState === 'visible',
       sheetOpen: welcomeOpen,
+      racing: ui.classList.contains('gt-racing'),
     });
     if (action === 'present') store.present();
     if (action !== 'welcome') return;

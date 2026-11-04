@@ -122,9 +122,11 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
   let ctx: AudioContext | null = null;
   let musicTimer: ReturnType<typeof setInterval> | null = null;
   let bar = 0;
+  /** the tab is hidden: the context stays suspended and new sounds are skipped */
+  let hidden = false;
 
   const play = (notes: Note[], force = false) => {
-    if ((muted && !force) || !Ctx) return;
+    if ((muted && !force) || !Ctx || hidden) return;
     try {
       ctx ??= new Ctx();
       if (ctx.state === 'suspended') void ctx.resume();
@@ -164,7 +166,7 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
     if (!musicOn || !Ctx) return;
     // every call (each user gesture) may unlock a context that started suspended
     try {
-      if (ctx?.state === 'suspended') void ctx.resume();
+      if (!hidden && ctx?.state === 'suspended') void ctx.resume();
     } catch {
       /* ignore */
     }
@@ -183,7 +185,7 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
     if (muted || !Ctx || engine) return;
     try {
       ctx ??= new Ctx();
-      if (ctx.state === 'suspended') void ctx.resume();
+      if (!hidden && ctx.state === 'suspended') void ctx.resume();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';
@@ -230,6 +232,17 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
     },
     startMusic,
     stopMusic,
+    /** A hidden tab goes quiet (the race engine included) and wakes up when shown again. */
+    setHidden(h: boolean) {
+      if (h === hidden) return;
+      hidden = h;
+      try {
+        if (h) void ctx?.suspend();
+        else if (ctx?.state === 'suspended') void ctx.resume();
+      } catch {
+        /* sound is optional */
+      }
+    },
     coin: sound('coin'),
     click: sound('click'),
     levelUp: sound('levelUp'),
