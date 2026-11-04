@@ -71,4 +71,18 @@ describe('RaceRun', () => {
     expect(r.frame(10).nitroFired).toBe(true);
     expect(r.frame(10).nitroFired).toBe(false);
   });
+
+  it('the engine revs while the go button is held before green, and idles otherwise', () => {
+    const idle = run();
+    expect(idle.frame(400).rpm).toBe(1000);
+    const r = run();
+    r.goDown();
+    r.frame(200);
+    expect(r.frame(200).rpm).toBeGreaterThan(4000);
+    // after the launch the needle follows the car
+    r.frame(greenAtMs(SEED));
+    r.goUp();
+    const s = r.frame(300);
+    expect(s.rpm).toBe(s.view.rpm);
+  });
 });

@@ -23,7 +23,14 @@ export interface RaceSnapshot {
   jumped: boolean;
   /** set on the frame the nitro kicked in */
   nitroFired: boolean;
+  /** what the tachometer shows: the car's rpm, or the engine revved in place before the launch */
+  rpm: number;
 }
+
+const IDLE_RPM = 1000;
+const REV_RPM = 6000;
+/** how fast the revs chase the pedal before the launch (ms to cover ~63% of the gap) */
+const REV_LAG_MS = 120;
 
 /**
  * One race being played: turns button presses into timed taps, steps the player's race in real
@@ -40,6 +47,7 @@ export class RaceRun {
   private shiftsSeen = 0;
   private jumpSeen = false;
   private nitroSeen = false;
+  private revs = IDLE_RPM;
   private view: RaceView;
 
   constructor(
@@ -102,6 +110,9 @@ export class RaceRun {
   frame(dtMs: number): RaceSnapshot {
     this.t = Math.min(RACE_CAP_MS, this.t + dtMs);
     this.view = this.race.advance(this.t);
+    // before the launch, holding the button revs the engine in place (a little wobble on the limiter)
+    const target = this.held ? REV_RPM + 300 * Math.sin(this.t / 45) : IDLE_RPM;
+    this.revs += (target - this.revs) * Math.min(1, dtMs / REV_LAG_MS);
     return this.snapshot();
   }
 
@@ -144,6 +155,7 @@ export class RaceRun {
       graded,
       jumped,
       nitroFired,
+      rpm: this.view.phase === 'countdown' ? Math.round(this.revs) : this.view.rpm,
     };
   }
 }

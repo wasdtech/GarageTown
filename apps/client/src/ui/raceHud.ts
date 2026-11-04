@@ -2,7 +2,7 @@ import { greenBand, RPM_MAX, type RaceOutcome, type ShiftGrade } from '@gt/sim';
 import type { RaceRun, RaceSnapshot } from '../race/raceRun';
 import { h } from './dom';
 import { S } from './strings';
-import { tachArc, tachAngle } from './tach';
+import { TACH_DIAL, tachArc, tachAngle } from './tach';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const svg = (tag: string, attrs: Record<string, string>) => {
@@ -31,14 +31,21 @@ export function createRaceHud(
 
   // tachometer: dial, green band, perfect band, needle
   const band = greenBand(grip);
-  const dial = svg('svg', { viewBox: '0 0 200 130', class: 'gt-tach', 'aria-hidden': 'true' });
+  const { w: dialW, h: dialH, cx, cy, r } = TACH_DIAL;
+  const dial = svg('svg', { viewBox: `0 0 ${dialW} ${dialH}`, class: 'gt-tach', 'aria-hidden': 'true' });
   dial.append(
-    svg('path', { d: tachArc(100, 110, 84, 1000, RPM_MAX), class: 'gt-tach-track' }),
-    svg('path', { d: tachArc(100, 110, 84, band.lo, band.hi), class: 'gt-tach-green' }),
-    svg('path', { d: tachArc(100, 110, 84, band.perfectLo, band.perfectHi), class: 'gt-tach-perfect' }),
+    svg('path', { d: tachArc(cx, cy, r, 1000, RPM_MAX), class: 'gt-tach-track' }),
+    svg('path', { d: tachArc(cx, cy, r, band.lo, band.hi), class: 'gt-tach-green' }),
+    svg('path', { d: tachArc(cx, cy, r, band.perfectLo, band.perfectHi), class: 'gt-tach-perfect' }),
   );
-  const needle = svg('line', { x1: '100', y1: '110', x2: '100', y2: '36', class: 'gt-tach-needle' });
-  dial.append(needle, svg('circle', { cx: '100', cy: '110', r: '8', class: 'gt-tach-hub' }));
+  const needle = svg('line', {
+    x1: String(cx),
+    y1: String(cy),
+    x2: String(cx),
+    y2: String(cy - r + 10),
+    class: 'gt-tach-needle',
+  });
+  dial.append(needle, svg('circle', { cx: String(cx), cy: String(cy), r: '8', class: 'gt-tach-hub' }));
 
   const gear = h('b', { class: 'gt-gear', 'data-testid': 'race-gear' }, '1');
   const speed = h('span', { class: 'gt-speed', 'data-testid': 'race-speed' }, '0 km/h');
@@ -98,7 +105,7 @@ export function createRaceHud(
   return {
     update(s: RaceSnapshot) {
       s.lights.forEach((l, i) => lamps[i]!.setAttribute('data-on', l));
-      needle.setAttribute('transform', `rotate(${tachAngle(s.view.rpm)} 100 110)`);
+      needle.setAttribute('transform', `rotate(${tachAngle(s.rpm)} ${cx} ${cy})`);
       gear.textContent = String(s.view.gear);
       speed.textContent = `${Math.round(s.view.speed * 3.6)} km/h`;
       go.textContent = s.view.phase === 'countdown' ? S.race.hold : S.race.shift;

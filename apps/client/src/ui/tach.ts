@@ -3,6 +3,9 @@ export const TACH_MIN = 1000;
 export const TACH_MAX = 8000;
 export const TACH_SWEEP = 120;
 
+/** The dial's SVG box: the arc's ends sit below the centre, so the box leaves room for them. */
+export const TACH_DIAL = { w: 200, h: 150, cx: 100, cy: 96, r: 84, stroke: 14 } as const;
+
 export function tachAngle(rpm: number): number {
   const f = Math.min(1, Math.max(0, (rpm - TACH_MIN) / (TACH_MAX - TACH_MIN)));
   return -TACH_SWEEP + f * 2 * TACH_SWEEP;
