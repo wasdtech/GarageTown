@@ -6,6 +6,12 @@ import {
   type BranchError,
   buyPerk,
   openBranch,
+  finishRace,
+  type RaceError,
+  type RaceInput,
+  type RaceOutcome,
+  type RaceTarget,
+  raceSetup,
   type PerkError,
   clearIdleReport,
   type HireError,
@@ -135,6 +141,19 @@ export class Store {
 
   buyClock(): Result<void, 'maxed' | 'no_coins'> {
     return this.act(buyClock(this.c, this.s, this.clock()));
+  }
+
+  /** The race about to be run (seed, your car, the rival and its taps); changes nothing. */
+  raceSetup(target: RaceTarget) {
+    return raceSetup(this.c, this.s, target, this.clock());
+  }
+
+  /** Settles a race from the player's taps: medals, unlocks or the street race bet. */
+  finishRace(target: RaceTarget, inputs: RaceInput[]): Result<RaceOutcome, RaceError> {
+    const r = finishRace(this.c, this.s, target, inputs, this.clock());
+    if (!r.ok) return r;
+    this.commit(r.value.state, true);
+    return { ok: true, value: r.value.outcome };
   }
 
   openBranch(): Result<{ seals: number }, BranchError> {

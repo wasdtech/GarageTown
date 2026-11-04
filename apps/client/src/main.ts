@@ -126,12 +126,14 @@ scene.onReady = () => {
     dealer: 'dealer',
     team: 'team',
     franchise: 'franchise',
+    race: 'race',
   };
   const MENUS: [Menu, string][] = [
     ['car', 'menu-car'],
     ['dealer', 'menu-dealer'],
     ['team', 'menu-team'],
     ['franchise', 'menu-franchise'],
+    ['race', 'menu-race'],
   ];
   ui.append(
     h(

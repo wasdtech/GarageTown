@@ -9,6 +9,7 @@ import type {
   LookError,
   MinigameError,
   PerkError,
+  RaceError,
   StartError,
   TrainError,
 } from '@gt/sim';
@@ -25,7 +26,8 @@ type ErrorKey =
   | TrainError
   | AssignError
   | BranchError
-  | PerkError;
+  | PerkError
+  | RaceError;
 
 export const S = {
   coins: 'Moedas',
@@ -84,8 +86,20 @@ export const S = {
   },
   menus: {
     bar: 'Menus',
-    label: { car: 'Meu carro', dealer: 'Concessionária', team: 'Equipe', franchise: 'Franquia' },
-    title: { car: 'Meu carro', dealer: 'Concessionária', team: 'Equipe', franchise: 'Franquia' },
+    label: {
+      car: 'Meu carro',
+      dealer: 'Concessionária',
+      team: 'Equipe',
+      franchise: 'Franquia',
+      race: 'Arrancada',
+    },
+    title: {
+      car: 'Meu carro',
+      dealer: 'Concessionária',
+      team: 'Equipe',
+      franchise: 'Franquia',
+      race: 'Arrancada',
+    },
   },
   garage: {
     title: 'Minha garagem',
@@ -115,6 +129,25 @@ export const S = {
   buildInProgress: (secs: string) => `Obra em andamento: faltam ${secs}`,
   zoomIn: 'Aproximar',
   zoomOut: 'Afastar',
+  race: {
+    title: 'Arrancada',
+    intro: 'Vença o rival de cada pista para liberar a próxima. Cada medalha paga uma vez.',
+    go: 'Correr',
+    lockedTrack: 'Vença o rival anterior',
+    rival: (name: string) => `Rival: ${name}`,
+    medalsLabel: (n: number) => `${n} de 3 medalhas`,
+    piTarget: (n: number) => `PI recomendado ${n}`,
+    piYours: (n: number) => `Seu PI ${n}`,
+    rachas: 'Rachas',
+    rachasPitch: 'Aposte contra um piloto do seu nível. Vitória paga o dobro.',
+    rachasLocked: 'Vença a Rua do Bairro para liberar',
+    rachasLeft: (n: number, max: number) => `${n} de ${max} hoje`,
+    stake: [
+      (v: number) => `Pequena · ${v} 🪙`,
+      (v: number) => `Média · ${v} 🪙`,
+      (v: number) => `Grande · ${v} 🪙`,
+    ] as [(v: number) => string, (v: number) => string, (v: number) => string],
+  },
   franchise: {
     title: (n: number) => `Filial ${n}`,
     seals: (n: number) => `${n} selos`,
@@ -170,6 +203,7 @@ export const S = {
     level: 'Disponível no nível 12',
     no_seals: 'Selos insuficientes',
     unknown_perk: 'Melhoria desconhecida',
+    unknown_track: 'Pista desconhecida',
   } satisfies Record<ErrorKey, string>,
 };
 

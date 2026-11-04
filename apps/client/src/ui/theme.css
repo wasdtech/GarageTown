@@ -974,3 +974,41 @@ body {
   height: 100%;
   background: #f4a300;
 }
+
+/* race menu */
+.gt-tone-race {
+  --gt-tone: #2b2d42;
+  --gt-tone-ink: #fff;
+}
+.gt-track {
+  align-items: stretch;
+}
+.gt-track-thumb {
+  display: grid;
+  place-items: center;
+  height: 70px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(90deg, #4a4e5a 0 18px, #555a68 18px 36px);
+}
+.gt-track-name {
+  font-size: 16px;
+}
+.gt-medals {
+  display: flex;
+  gap: 4px;
+}
+.gt-medal {
+  width: 34px;
+  height: 34px;
+}
+.gt-medal-dim {
+  filter: grayscale(1);
+  opacity: 0.3;
+}
+.gt-stakes {
+  flex-wrap: wrap;
+}
+.gt-stakes > .gt-btn {
+  flex: 1 1 120px;
+  font-size: 14px;
+}
