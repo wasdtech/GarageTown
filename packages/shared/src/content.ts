@@ -6,6 +6,7 @@ import helpers from '../../../content/helpers.json';
 import looks from '../../../content/looks.json';
 import parts from '../../../content/parts.json';
 import prestige from '../../../content/prestige.json';
+import race from '../../../content/race.json';
 import jobs from '../../../content/jobs.json';
 import levels from '../../../content/levels.json';
 
@@ -107,6 +108,48 @@ const PrestigeSchema = z
     message: 'duplicate perk key',
     path: ['perks'],
   });
+const RaceSchema = z.object({
+  tracks: z
+    .array(
+      z
+        .object({
+          key: z.string().min(1),
+          name: z.string().min(1),
+          pi: z.number().int().positive(),
+          rival: z.object({
+            name: z.string().min(1),
+            car: z.string().min(1),
+            power: z.number().positive(),
+            grip: z.number().positive(),
+            skill: z.number().min(0).max(1),
+          }),
+          medals: z.object({
+            bronze: z.number().int().positive(),
+            silver: z.number().int().positive(),
+            gold: z.number().int().positive(),
+          }),
+          rewards: z.object({
+            coins: z.tuple([
+              z.number().int().nonnegative(),
+              z.number().int().nonnegative(),
+              z.number().int().nonnegative(),
+            ]),
+            xp: z.number().int().nonnegative(),
+          }),
+        })
+        .refine((t) => t.medals.bronze > t.medals.silver && t.medals.silver > t.medals.gold, {
+          message: 'medal goals must get faster: bronze > silver > gold',
+          path: ['medals'],
+        }),
+    )
+    .min(1),
+  rachas: z.object({
+    stakes: z.tuple([z.number().int().positive(), z.number().int().positive(), z.number().int().positive()]),
+    perDay: z.number().int().positive(),
+    windowMs: z.number().int().positive(),
+    unlockTrack: z.string().min(1),
+  }),
+});
 const priced = { key: z.string().min(1), name: z.string().min(1), cost: z.number().int().nonnegative() };
 const LooksSchema = z.object({
   paints: z.array(z.object({ ...priced, hex: z.string().regex(/^#[0-9a-f]{6}$/i) })).min(1),
@@ -134,8 +177,18 @@ export const ContentSchema = z
     helperLevels: HelpersSchema.shape.levels,
     clockTiers: HelpersSchema.shape.clockTiers,
     prestige: PrestigeSchema,
+    race: RaceSchema,
   })
   .superRefine((c, ctx) => {
+    // every track's rival drives a car that exists
+    c.race.tracks.forEach((t, i) => {
+      if (!c.cars.some((car) => car.key === t.rival.car))
+        ctx.addIssue({
+          code: 'custom',
+          path: ['race', 'tracks', i, 'rival', 'car'],
+          message: 'unknown rival car',
+        });
+    });
     c.levels.forEach((l, i) => {
       const prev = c.levels[i - 1];
       if (l.level !== i + 1)
@@ -172,6 +225,7 @@ export type Looks = z.infer<typeof LooksSchema>;
 export type Stat = z.infer<typeof StatSchema>;
 export type HelperDef = z.infer<typeof HelpersSchema>['helpers'][number];
 export type PerkDef = z.infer<typeof PrestigeSchema>['perks'][number];
+export type TrackDef = z.infer<typeof RaceSchema>['tracks'][number];
 export type Content = z.infer<typeof ContentSchema>;
 
 export function parseContent(raw: unknown): Content {
@@ -191,5 +245,6 @@ export function loadContent(): Content {
     helperLevels: helpers.levels,
     clockTiers: helpers.clockTiers,
     prestige,
+    race,
   });
 }

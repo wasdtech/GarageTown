@@ -1,0 +1,45 @@
+{
+  "tracks": [
+    {
+      "key": "bairro",
+      "name": "Rua do Bairro",
+      "pi": 180,
+      "rival": { "name": "Juninho do Grau", "car": "pitoco", "power": 40, "grip": 45, "skill": 0.3 },
+      "medals": { "bronze": 30000, "silver": 28000, "gold": 26000 },
+      "rewards": { "coins": [100, 200, 400], "xp": 20 }
+    },
+    {
+      "key": "avenida",
+      "name": "Avenida",
+      "pi": 230,
+      "rival": { "name": "Dona Lurdes", "car": "pitoco", "power": 65, "grip": 50, "skill": 0.45 },
+      "medals": { "bronze": 30000, "silver": 28000, "gold": 26000 },
+      "rewards": { "coins": [250, 500, 1000], "xp": 40 }
+    },
+    {
+      "key": "porto",
+      "name": "Porto",
+      "pi": 280,
+      "rival": { "name": "Capitão Rocha", "car": "brutus_v8", "power": 80, "grip": 70, "skill": 0.55 },
+      "medals": { "bronze": 30000, "silver": 28000, "gold": 26000 },
+      "rewards": { "coins": [600, 1200, 2400], "xp": 80 }
+    },
+    {
+      "key": "autodromo",
+      "name": "Autódromo",
+      "pi": 340,
+      "rival": { "name": "Fernanda Faísca", "car": "corisco_rs", "power": 110, "grip": 90, "skill": 0.7 },
+      "medals": { "bronze": 30000, "silver": 28000, "gold": 26000 },
+      "rewards": { "coins": [1500, 3000, 6000], "xp": 150 }
+    },
+    {
+      "key": "final",
+      "name": "Grande Final",
+      "pi": 420,
+      "rival": { "name": "O Barão", "car": "corisco_rs", "power": 145, "grip": 115, "skill": 0.85 },
+      "medals": { "bronze": 30000, "silver": 28000, "gold": 26000 },
+      "rewards": { "coins": [4000, 8000, 16000], "xp": 300 }
+    }
+  ],
+  "rachas": { "stakes": [50, 150, 400], "perDay": 5, "windowMs": 86400000, "unlockTrack": "bairro" }
+}
