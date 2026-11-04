@@ -26,6 +26,7 @@ export class RaceScene extends Phaser.Scene {
   private you!: Phaser.GameObjects.Container;
   private rival!: Phaser.GameObjects.Container;
   private ended = false;
+  private pendingEnd: RaceSnapshot | null = null;
   private following: Phaser.GameObjects.Container | null = null;
 
   constructor() {
@@ -35,6 +36,7 @@ export class RaceScene extends Phaser.Scene {
   init(data: RaceSceneData) {
     this.data_ = data;
     this.ended = false;
+    this.pendingEnd = null;
   }
 
   preload() {
@@ -83,6 +85,7 @@ export class RaceScene extends Phaser.Scene {
     cam.setZoom(Math.min(1.4, Math.max(0.8, this.scale.width / 700)));
     cam.startFollow(this.you, true, 0.12, 0.12, 0, 60);
     this.following = this.you;
+    this.applyEnd();
   }
 
   private car(sprite: string, paint: number) {
@@ -122,8 +125,16 @@ export class RaceScene extends Phaser.Scene {
 
   /** Jumps to the end state after an instant finish (tests and replays). */
   showEnd(s: RaceSnapshot) {
+    this.ended = true;
+    // the scene may still be starting: keep the end state for create() to apply
+    this.pendingEnd = s;
+    if (this.you) this.applyEnd();
+  }
+
+  private applyEnd() {
+    const s = this.pendingEnd;
+    if (!s) return;
     this.place(this.you, s.view.meters, LANE_PLAYER);
     this.place(this.rival, s.rivalMeters, LANE_RIVAL);
-    this.ended = true;
   }
 }
