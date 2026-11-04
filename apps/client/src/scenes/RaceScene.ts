@@ -41,6 +41,7 @@ export class RaceScene extends Phaser.Scene {
 
   preload() {
     this.load.image('race_finish', 'race/finish.png');
+    this.load.image('race_finish_far', 'race/finish_far.png');
     this.load.image('race_stands', 'race/stands.png');
   }
 
@@ -64,17 +65,23 @@ export class RaceScene extends Phaser.Scene {
         .setLineWidth(4)
         .setDepth(-900);
     }
-    for (let x = 6; x < TRACK_TILES; x += 10) {
-      const p = isoToScreen(x, -2.4, ORIGIN);
-      this.add.image(p.x, p.y, 'race_stands').setOrigin(0.5, 0.85).setScale(0.45).setDepth(depthOf(x, -2.4));
+    // grandstands right behind the far sidewalk, facing the track (front corner on its outer edge)
+    for (let x = 8; x < TRACK_TILES; x += 10) {
+      const p = isoToScreen(x, -1, ORIGIN);
+      this.add.image(p.x, p.y, 'race_stands').setOrigin(0.52, 0.96).setScale(0.45).setDepth(depthOf(x, -1.5));
     }
+    // finish gantry: one pillar on each sidewalk, centred on the finish line. The far pillar is
+    // its own image so a car past the line is drawn in front of it; the banner and the near
+    // pillar sort with the rival's lane.
     const g = isoToScreen(TRACK_TILES, 1.5, ORIGIN);
-    this.add
-      .image(g.x, g.y + 18, 'race_finish')
-      .setFlipX(true)
-      .setOrigin(0.5, 0.78)
-      .setScale(0.8)
-      .setDepth(depthOf(TRACK_TILES, 3) + 5);
+    const gantry = (key: string, depth: number) =>
+      this.add
+        .image(g.x, g.y, key)
+        .setOrigin(0.5, 0.784)
+        .setScale(128 / 238)
+        .setDepth(depth);
+    gantry('race_finish_far', depthOf(TRACK_TILES, -0.5));
+    gantry('race_finish', depthOf(TRACK_TILES, LANE_RIVAL) + 0.01);
 
     const d = this.data_;
     this.rival = this.car(d.rival.sprite, d.rival.paint);
