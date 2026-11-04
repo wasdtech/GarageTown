@@ -10,6 +10,7 @@ import {
   simulateRace,
   type ShiftGrade,
 } from '@gt/sim';
+import { coastMeters } from './raceCamera';
 
 export type Lights = ['off' | 'red', 'off' | 'red', 'off' | 'green'];
 
@@ -23,6 +24,8 @@ export interface RaceSnapshot {
   jumped: boolean;
   /** set on the frame the nitro kicked in */
   nitroFired: boolean;
+  /** where your car is drawn: the race distance, then rolling past the line after the finish */
+  youMeters: number;
   /** what the tachometer shows: the car's rpm, or the engine revved in place before the launch */
   rpm: number;
 }
@@ -48,6 +51,9 @@ export class RaceRun {
   private jumpSeen = false;
   private nitroSeen = false;
   private revs = IDLE_RPM;
+  /** when and how fast each car crossed the line, for the roll-out after it */
+  private youFinish: { t: number; speed: number } | null = null;
+  private readonly rivalFinish: { t: number; speed: number };
   private view: RaceView;
 
   constructor(
@@ -59,6 +65,10 @@ export class RaceRun {
     this.greenAt = greenAtMs(seed);
     this.race = createRace(seed, car);
     this.rivalTrace = simulateRace(seed, rival, rivalInputs).trace;
+    // the trace ends on the line; its last regular samples give the rival's speed there
+    const n = this.rivalTrace.length;
+    const v = n >= 3 ? (this.rivalTrace[n - 2]! - this.rivalTrace[n - 3]!) / (RACE_TRACE_MS / 1000) : 0;
+    this.rivalFinish = { t: (n - 1) * RACE_TRACE_MS, speed: Math.max(0, v) };
     this.view = this.race.advance(0);
   }
 
@@ -108,8 +118,12 @@ export class RaceRun {
 
   /** Advances the race by `dtMs` of real time. */
   frame(dtMs: number): RaceSnapshot {
+    const speedBefore = this.view.speed;
     this.t = Math.min(RACE_CAP_MS, this.t + dtMs);
     this.view = this.race.advance(this.t);
+    if (!this.youFinish && this.view.phase === 'finished') {
+      this.youFinish = { t: this.t, speed: Math.max(speedBefore, this.view.speed) };
+    }
     // before the launch, holding the button revs the engine in place (a little wobble on the limiter)
     const target = this.held ? REV_RPM + 300 * Math.sin(this.t / 45) : IDLE_RPM;
     this.revs += (target - this.revs) * Math.min(1, dtMs / REV_LAG_MS);
@@ -148,9 +162,17 @@ export class RaceRun {
     const nitroFired = this.view.nitroUsed && !this.nitroSeen;
     if (nitroFired) this.nitroSeen = true;
     const idx = Math.min(this.rivalTrace.length - 1, Math.floor(this.t / RACE_TRACE_MS));
+    const rf = this.rivalFinish;
+    const rivalMeters =
+      this.t > rf.t
+        ? this.rivalTrace[this.rivalTrace.length - 1]! + coastMeters(rf.speed, this.t - rf.t)
+        : this.rivalTrace[idx]!;
+    const yf = this.youFinish;
+    const youMeters = this.view.meters + (yf ? coastMeters(yf.speed, this.t - yf.t) : 0);
     return {
       view: this.view,
-      rivalMeters: this.rivalTrace[idx]!,
+      rivalMeters,
+      youMeters,
       lights: this.lights(),
       graded,
       jumped,

@@ -1,6 +1,7 @@
 import { RACE_LENGTH_M } from '@gt/sim';
 import Phaser from 'phaser';
 import { depthOf, isoToScreen, type Point } from '../iso/iso';
+import { leaderOf, smoothToward } from '../race/raceCamera';
 import type { RaceRun, RaceSnapshot } from '../race/raceRun';
 
 /** Metres per isometric tile along the strip: 400 m = 40 tiles. */
@@ -11,6 +12,8 @@ const LANE_RIVAL = 2.1;
 const CAR_FOOT_Y = 0.74;
 const CAR_SCALE = 0.5;
 const ORIGIN: Point = { x: 0, y: 0 };
+/** the camera looks this far above the car it follows (px) */
+const CAMERA_LIFT = 60;
 
 export interface RaceSceneData {
   run: RaceRun;
@@ -25,9 +28,12 @@ export class RaceScene extends Phaser.Scene {
   private data_!: RaceSceneData;
   private you!: Phaser.GameObjects.Container;
   private rival!: Phaser.GameObjects.Container;
+  /** the race is over and settled; the cars still roll out past the line */
+  private finished = false;
+  /** an instant finish (tests and replays): nothing left to animate */
   private ended = false;
   private pendingEnd: RaceSnapshot | null = null;
-  private following: Phaser.GameObjects.Container | null = null;
+  private look = { x: 0, y: 0 };
 
   constructor() {
     super('race');
@@ -35,6 +41,7 @@ export class RaceScene extends Phaser.Scene {
 
   init(data: RaceSceneData) {
     this.data_ = data;
+    this.finished = false;
     this.ended = false;
     this.pendingEnd = null;
   }
@@ -90,8 +97,8 @@ export class RaceScene extends Phaser.Scene {
     this.place(this.rival, 0, LANE_RIVAL);
     const cam = this.cameras.main;
     cam.setZoom(Math.min(1.4, Math.max(0.8, this.scale.width / 700)));
-    cam.startFollow(this.you, true, 0.12, 0.12, 0, 60);
-    this.following = this.you;
+    this.look = { x: this.you.x, y: this.you.y - CAMERA_LIFT };
+    cam.centerOn(this.look.x, this.look.y);
     this.applyEnd();
   }
 
@@ -114,18 +121,21 @@ export class RaceScene extends Phaser.Scene {
   update(_time: number, delta: number) {
     const d = this.data_;
     if (!d || this.ended) return;
-    const s = d.run.frame(Math.min(delta, 50));
-    this.place(this.you, s.view.meters, LANE_PLAYER);
+    const dt = Math.min(delta, 50);
+    const s = d.run.frame(dt);
+    this.place(this.you, s.youMeters, LANE_PLAYER);
     this.place(this.rival, s.rivalMeters, LANE_RIVAL);
-    // the camera follows whoever is ahead
-    const leader = s.rivalMeters > s.view.meters + 5 ? this.rival : this.you;
-    if (this.following !== leader) {
-      this.following = leader;
-      this.cameras.main.startFollow(leader, true, 0.12, 0.12, 0, 60);
-    }
+    // the camera eases toward whoever is ahead (a hard switch made the screen jump)
+    const leader = leaderOf(s.youMeters, s.rivalMeters) === 'rival' ? this.rival : this.you;
+    this.look = {
+      x: smoothToward(this.look.x, leader.x, dt),
+      y: smoothToward(this.look.y, leader.y - CAMERA_LIFT, dt),
+    };
+    this.cameras.main.centerOn(this.look.x, this.look.y);
+    if (this.finished) return;
     d.onFrame(s);
     if (s.view.phase === 'finished') {
-      this.ended = true;
+      this.finished = true;
       d.onFinish();
     }
   }
@@ -141,7 +151,10 @@ export class RaceScene extends Phaser.Scene {
   private applyEnd() {
     const s = this.pendingEnd;
     if (!s) return;
-    this.place(this.you, s.view.meters, LANE_PLAYER);
+    this.place(this.you, s.youMeters, LANE_PLAYER);
     this.place(this.rival, s.rivalMeters, LANE_RIVAL);
+    const leader = leaderOf(s.youMeters, s.rivalMeters) === 'rival' ? this.rival : this.you;
+    this.look = { x: leader.x, y: leader.y - CAMERA_LIFT };
+    this.cameras.main.centerOn(this.look.x, this.look.y);
   }
 }

@@ -85,4 +85,23 @@ describe('RaceRun', () => {
     const s = r.frame(300);
     expect(s.rpm).toBe(s.view.rpm);
   });
+
+  it('after the finish both cars roll on past the line and stop, instead of freezing on it', () => {
+    const r = run();
+    r.frame(greenAtMs(SEED));
+    r.goUp();
+    let s = r.frame(10);
+    while (s.view.phase !== 'finished') s = r.frame(50);
+    const atLine = s.youMeters;
+    const later = r.frame(300);
+    expect(later.youMeters).toBeGreaterThan(atLine);
+    const parked = r.frame(8000);
+    const still = r.frame(500);
+    expect(still.youMeters).toBe(parked.youMeters);
+    expect(parked.youMeters).toBeLessThanOrEqual(400 + 30 + 1e-6);
+    // the rival (it never let go, so it left late) also rolls past the line and parks
+    expect(still.rivalMeters).toBe(parked.rivalMeters);
+    expect(parked.rivalMeters).toBeGreaterThan(400 + 20);
+    expect(parked.rivalMeters).toBeLessThanOrEqual(400 + 30 + 1e-6);
+  });
 });
