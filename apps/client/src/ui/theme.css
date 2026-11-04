@@ -1012,3 +1012,214 @@ body {
   flex: 1 1 120px;
   font-size: 14px;
 }
+
+/* ---------- race ---------- */
+.gt-racing .gt-menu-bar,
+.gt-racing .gt-zoom,
+.gt-racing .gt-cida {
+  display: none;
+}
+.gt-race-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+}
+.gt-race-hud > *,
+.gt-race-hud .gt-backdrop {
+  pointer-events: auto;
+}
+.gt-race-quit {
+  position: absolute;
+  top: calc(max(12px, env(safe-area-inset-top, 0px)) + 56px);
+  left: max(12px, env(safe-area-inset-left, 0px));
+}
+.gt-lights {
+  position: absolute;
+  top: calc(max(12px, env(safe-area-inset-top, 0px)) + 56px);
+  right: max(14px, env(safe-area-inset-right, 0px));
+  width: 64px;
+  height: 64px;
+}
+.gt-lights img {
+  width: 64px;
+  height: 64px;
+}
+.gt-lamp {
+  position: absolute;
+  left: 22px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+.gt-lamp[data-lamp='0'] {
+  top: 6px;
+}
+.gt-lamp[data-lamp='1'] {
+  top: 16px;
+}
+.gt-lamp[data-lamp='2'] {
+  top: 26px;
+}
+.gt-lamp[data-on='red'] {
+  background: #ff3b3b;
+  box-shadow: 0 0 10px 3px #ff3b3b;
+}
+.gt-lamp[data-on='green'] {
+  background: #2bff88;
+  box-shadow: 0 0 12px 4px #2bff88;
+}
+.gt-race-pop {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+}
+.gt-pop {
+  font: 900 34px/1 var(--gt-font);
+  color: #fff;
+  -webkit-text-stroke: 2px var(--gt-ink);
+  text-shadow: 0 4px 0 var(--gt-ink);
+  animation: gt-pop 0.9s ease-out forwards;
+}
+.gt-pop-perfect {
+  color: #ffd166;
+}
+.gt-pop-good {
+  color: #2bff88;
+}
+.gt-pop-bad {
+  color: #ff6b6b;
+}
+@keyframes gt-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+}
+.gt-race-panel {
+  position: absolute;
+  left: 50%;
+  bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 24px));
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+  background: rgba(43, 45, 66, 0.92);
+  border: 3px solid var(--gt-ink);
+  border-radius: 20px;
+}
+.gt-tach-box {
+  position: relative;
+  width: 170px;
+  flex: none;
+}
+.gt-tach {
+  width: 100%;
+  display: block;
+}
+.gt-tach-track,
+.gt-tach-green,
+.gt-tach-perfect {
+  fill: none;
+  stroke-width: 14;
+}
+.gt-tach-track {
+  stroke: #555a68;
+}
+.gt-tach-green {
+  stroke: #2bff88;
+}
+.gt-tach-perfect {
+  stroke: #ffd166;
+}
+.gt-tach-needle {
+  stroke: #ff3b3b;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.gt-tach-hub {
+  fill: #fff;
+  stroke: var(--gt-ink);
+  stroke-width: 3;
+}
+.gt-tach-read {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  display: flex;
+  justify-content: space-between;
+  color: #fff;
+  font-weight: 800;
+}
+.gt-gear {
+  font-size: 22px;
+}
+.gt-speed {
+  font-size: 13px;
+  align-self: end;
+}
+.gt-race-buttons {
+  flex: 1;
+  display: grid;
+  gap: 8px;
+}
+.gt-race-go {
+  min-height: 72px;
+  font-size: 18px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.gt-race-nitro {
+  background: #3a86ff;
+  color: #fff;
+}
+.gt-race-result {
+  max-width: 420px;
+}
+.gt-race-times {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  text-align: center;
+}
+.gt-race-times > div {
+  display: grid;
+  padding: 8px;
+  border: 3px solid var(--gt-ink);
+  border-radius: 14px;
+  background: #fff;
+}
+.gt-race-times b {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.gt-race-medal {
+  display: grid;
+  justify-items: center;
+}
+.gt-race-medal img {
+  width: 96px;
+  height: 96px;
+  animation: gt-up 0.4s ease-out;
+}
+.gt-race-prize {
+  text-align: center;
+  font-weight: 800;
+  font-size: 18px;
+}

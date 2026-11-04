@@ -17,6 +17,8 @@ export interface RaceView {
   nitroLeftMs: number;
   nitroUsed: boolean;
   lastShift: ShiftGrade | null;
+  /** gear changes graded so far */
+  shiftCount: number;
 }
 export interface RaceResult {
   timeMs: number;
@@ -165,6 +167,7 @@ export function createRace(seed: number, car: RaceCar) {
       nitroLeftMs: nitroLeft,
       nitroUsed,
       lastShift,
+      shiftCount: shifts.length,
     };
   }
 

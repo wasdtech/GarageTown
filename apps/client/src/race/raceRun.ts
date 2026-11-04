@@ -1,0 +1,132 @@
+import {
+  createRace,
+  greenAtMs,
+  type RaceCar,
+  type RaceInput,
+  type RaceResult,
+  type RaceView,
+  RACE_CAP_MS,
+  RACE_TRACE_MS,
+  simulateRace,
+  type ShiftGrade,
+} from '@gt/sim';
+
+export type Lights = ['off' | 'red', 'off' | 'red', 'off' | 'green'];
+
+export interface RaceSnapshot {
+  view: RaceView;
+  rivalMeters: number;
+  lights: Lights;
+  /** set on the frame a shift was graded */
+  graded: ShiftGrade | null;
+  /** set on the frame a jumped start was detected */
+  jumped: boolean;
+}
+
+/**
+ * One race being played: turns button presses into timed taps, steps the player's race in real
+ * time and plays the rival from its precomputed run. The taps are what the store settles later.
+ */
+export class RaceRun {
+  readonly greenAt: number;
+  readonly inputs: RaceInput[] = [];
+  private readonly race: ReturnType<typeof createRace>;
+  private readonly rivalTrace: number[];
+  private t = 0;
+  private held = false;
+  private released = false;
+  private shiftsSeen = 0;
+  private jumpSeen = false;
+  private view: RaceView;
+
+  constructor(
+    readonly seed: number,
+    readonly car: RaceCar,
+    rival: RaceCar,
+    rivalInputs: RaceInput[],
+  ) {
+    this.greenAt = greenAtMs(seed);
+    this.race = createRace(seed, car);
+    this.rivalTrace = simulateRace(seed, rival, rivalInputs).trace;
+    this.view = this.race.advance(0);
+  }
+
+  get time(): number {
+    return this.t;
+  }
+
+  get finished(): boolean {
+    return this.view.phase === 'finished';
+  }
+
+  private tap(kind: RaceInput['kind']) {
+    const i: RaceInput = { kind, t: this.t };
+    this.inputs.push(i);
+    this.race.input(i);
+  }
+
+  /** Go button pressed: before leaving it is held; afterwards each press is a gear change. */
+  goDown() {
+    if (this.finished) return;
+    if (!this.released) this.held = true;
+    else this.tap('shift');
+  }
+
+  /** Go button released: the launch (a jumped start if the light is not green yet). */
+  goUp() {
+    if (this.finished || this.released) return;
+    if (this.held || this.t >= this.greenAt) {
+      this.released = true;
+      this.tap('release');
+    }
+  }
+
+  nitro() {
+    if (this.released && !this.finished) this.tap('nitro');
+  }
+
+  lights(): Lights {
+    if (this.t >= this.greenAt) return ['off', 'off', 'green'];
+    return this.t >= this.greenAt / 2 ? ['red', 'red', 'off'] : ['red', 'off', 'off'];
+  }
+
+  /** Advances the race by `dtMs` of real time. */
+  frame(dtMs: number): RaceSnapshot {
+    this.t = Math.min(RACE_CAP_MS, this.t + dtMs);
+    this.view = this.race.advance(this.t);
+    return this.snapshot();
+  }
+
+  /** Finishes at once with the given taps (used to settle a race played elsewhere, and in tests). */
+  runInstant(inputs: RaceInput[]): RaceSnapshot {
+    for (const i of inputs) {
+      this.inputs.push(i);
+      this.race.input(i);
+    }
+    this.released = true;
+    this.t = RACE_CAP_MS;
+    this.view = this.race.advance(RACE_CAP_MS);
+    return this.snapshot();
+  }
+
+  result(): RaceResult {
+    return this.race.result();
+  }
+
+  private snapshot(): RaceSnapshot {
+    let graded: ShiftGrade | null = null;
+    // a new gear change was graded since the last frame
+    if (this.view.shiftCount > this.shiftsSeen) {
+      graded = this.view.lastShift;
+      this.shiftsSeen = this.view.shiftCount;
+    }
+    let jumped = false;
+    const release = this.inputs.find((i) => i.kind === 'release');
+    if (!this.jumpSeen && release && release.t < this.greenAt) {
+      jumped = true;
+      this.jumpSeen = true;
+    }
+    const idx = Math.min(this.rivalTrace.length - 1, Math.floor(this.t / RACE_TRACE_MS));
+    return { view: this.view, rivalMeters: this.rivalTrace[idx]!, lights: this.lights(), graded, jumped };
+  }
+}
