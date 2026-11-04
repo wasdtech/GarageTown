@@ -287,6 +287,48 @@
       "sha12": "f173641094fc",
       "label": "ui perk_recrutamento",
       "file": "art/generated/ui/perk_recrutamento.png"
+    },
+    {
+      "asset_id": "b2d4c04a-d86c-46a1-b8b1-bbbcf4b62ae5",
+      "sha12": "0a0b8228ebc3",
+      "label": "race race",
+      "file": "art/generated/race/race.png"
+    },
+    {
+      "asset_id": "43754576-5076-455e-b96b-2f4087093ca2",
+      "sha12": "e7008841fa68",
+      "label": "race medal_bronze",
+      "file": "art/generated/race/medal_bronze.png"
+    },
+    {
+      "asset_id": "8b78c116-1297-4cc6-b2f2-041a71b1f72f",
+      "sha12": "ee5bcff5dc6d",
+      "label": "race medal_silver",
+      "file": "art/generated/race/medal_silver.png"
+    },
+    {
+      "asset_id": "c17c0134-864e-4fab-ac88-b73d6ddcc082",
+      "sha12": "abde6eb8064f",
+      "label": "race medal_gold",
+      "file": "art/generated/race/medal_gold.png"
+    },
+    {
+      "asset_id": "de2621b6-74f7-4d7e-85af-5da3085b33e7",
+      "sha12": "5c1e0914e2ac",
+      "label": "race lights",
+      "file": "art/generated/race/lights.png"
+    },
+    {
+      "asset_id": "ffc3d08e-805f-4ca1-b710-5ea4a63b782d",
+      "sha12": "7c9b94038033",
+      "label": "race finish",
+      "file": "art/generated/race/finish.png"
+    },
+    {
+      "asset_id": "8c38d57f-fa1c-4cc7-b750-b7d4203650b2",
+      "sha12": "76968c6ad04b",
+      "label": "race stands",
+      "file": "art/generated/race/stands.png"
     }
   ],
   "project_id": "235856bd-6983-4059-8c8c-191899cbacc9",

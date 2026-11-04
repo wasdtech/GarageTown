@@ -90,6 +90,26 @@ export interface HiredHelper {
 }
 
 /** Franchise progress: survives opening a new branch. */
+/** Drag race record: medals per track (0-3), rivals beaten, street race times, races run. */
+export interface Race {
+  medals: Record<string, number>;
+  beaten: string[];
+  /** when each street race was run (ms); only the last 24 h matter */
+  rachas: number[];
+  /** races run so far: part of each race's seed */
+  count: number;
+  /** a street race started and not settled yet: the stake is already paid */
+  pending?: RachaPending;
+}
+
+export interface RachaPending {
+  racha: 0 | 1 | 2;
+  stake: number;
+  seed: number;
+  power: number;
+  grip: number;
+}
+
 export interface Prestige {
   branch: number;
   seals: number;
@@ -105,7 +125,7 @@ export interface IdleReport {
 }
 
 export interface GameState {
-  version: 5;
+  version: 6;
   coins: number;
   xp: number;
   reputation: number;
@@ -125,6 +145,7 @@ export interface GameState {
   lastActiveAt: number;
   idleReport: IdleReport;
   prestige: Prestige;
+  race: Race;
 }
 
 export const QUEUE_MAX = 6;
@@ -150,7 +171,7 @@ export const bayId = (slot: number) => `bay${slot}`;
 
 export function createInitialState(c: Content, now: number, seed: number): GameState {
   return {
-    version: 5,
+    version: 6,
     coins: 0,
     xp: 0,
     reputation: 0,
@@ -175,6 +196,7 @@ export function createInitialState(c: Content, now: number, seed: number): GameS
     lastActiveAt: now,
     idleReport: { jobs: 0, coins: 0, xp: 0 },
     prestige: { branch: 1, seals: 0, perks: {}, runCoins: 0 },
+    race: { medals: {}, beaten: [], rachas: [], count: 0 },
   };
 }
 

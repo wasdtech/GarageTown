@@ -21,7 +21,7 @@ test('the menu bar, the HUD and the sound/zoom buttons use drawn icons, not emoj
   await expect
     .poll(() => iconsIn(page, 'menu-bar'))
     .toEqual({
-      files: ['ui/car.png', 'ui/dealer.png', 'ui/team.png', 'ui/franchise.png'],
+      files: ['ui/car.png', 'ui/dealer.png', 'ui/team.png', 'ui/franchise.png', 'ui/race.png'],
       loaded: true,
     });
   await expect(page.getByTestId('menu-car')).toHaveText('Meu carro');

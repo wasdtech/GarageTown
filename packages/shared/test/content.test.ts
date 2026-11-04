@@ -153,4 +153,28 @@ describe('helpers content', () => {
     zero.prestige.perks[0]!.effect = 0;
     expect(() => parseContent(zero)).toThrow();
   });
+  it('race content has five tracks in order', () => {
+    const c = loadContent();
+    expect(c.race.tracks.map((t) => t.key)).toEqual(['bairro', 'avenida', 'porto', 'autodromo', 'final']);
+    for (const t of c.race.tracks) {
+      expect(t.medals.bronze).toBeGreaterThan(t.medals.silver);
+      expect(t.medals.silver).toBeGreaterThan(t.medals.gold);
+      expect(t.medals.gold).toBeGreaterThan(0);
+      expect(c.cars.some((car) => car.key === t.rival.car)).toBe(true);
+      expect(t.rival.skill).toBeGreaterThanOrEqual(0);
+      expect(t.rival.skill).toBeLessThanOrEqual(1);
+    }
+    expect(c.race.rachas).toEqual({
+      stakes: [50, 150, 400],
+      perDay: 5,
+      windowMs: 86_400_000,
+      unlockTrack: 'bairro',
+    });
+  });
+
+  it('rejects a track whose gold goal is not faster than silver', () => {
+    const r = raw() as unknown as { race: { tracks: { medals: { silver: number; gold: number } }[] } };
+    r.race.tracks[0]!.medals.gold = r.race.tracks[0]!.medals.silver;
+    expect(() => parseContent(r)).toThrow();
+  });
 });

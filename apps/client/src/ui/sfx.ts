@@ -17,7 +17,11 @@ type SoundKey =
   | 'hired'
   | 'scrub'
   | 'welcome'
-  | 'branch';
+  | 'branch'
+  | 'beep'
+  | 'beepGo'
+  | 'nitro'
+  | 'medal';
 
 const SOUNDS: Record<SoundKey, Note[]> = {
   coin: [
@@ -59,6 +63,17 @@ const SOUNDS: Record<SoundKey, Note[]> = {
     f,
     t: i * 0.1,
     d: 0.2,
+    type: 'triangle' as const,
+    vol: 0.12,
+  })),
+  // race: start-light beeps, a nitro whoosh and a medal fanfare
+  beep: [{ f: 660, t: 0, d: 0.18, type: 'square', vol: 0.07 }],
+  beepGo: [{ f: 1320, t: 0, d: 0.4, type: 'square', vol: 0.08 }],
+  nitro: [{ f: 180, t: 0, d: 0.6, type: 'sawtooth', vol: 0.06, slideTo: 900 }],
+  medal: [523, 659, 784, 1047, 1319].map((f, i) => ({
+    f,
+    t: i * 0.08,
+    d: 0.3,
     type: 'triangle' as const,
     vol: 0.12,
   })),
@@ -162,6 +177,39 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
     musicTimer = null;
   };
 
+  // a continuous engine note for the race, its pitch following the rpm
+  let engine: { osc: OscillatorNode; gain: GainNode } | null = null;
+  const revStart = () => {
+    if (muted || !Ctx || engine) return;
+    try {
+      ctx ??= new Ctx();
+      if (ctx.state === 'suspended') void ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.value = 40;
+      gain.gain.value = 0.03;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      engine = { osc, gain };
+    } catch {
+      /* sound is optional */
+    }
+  };
+  const rev = (rpm: number) => {
+    if (!engine || !ctx) return;
+    engine.osc.frequency.setTargetAtTime(30 + rpm / 60, ctx.currentTime, 0.03);
+  };
+  const revStop = () => {
+    if (!engine) return;
+    try {
+      engine.osc.stop();
+    } catch {
+      /* already stopped */
+    }
+    engine = null;
+  };
+
   const sound = (k: SoundKey) => () => play(SOUNDS[k]);
   return {
     get muted() {
@@ -195,6 +243,13 @@ export function createSfx(storage: Storage | null, Ctx: typeof AudioContext | un
     scrub: sound('scrub'),
     welcome: sound('welcome'),
     branch: sound('branch'),
+    beep: sound('beep'),
+    beepGo: sound('beepGo'),
+    nitro: sound('nitro'),
+    medal: sound('medal'),
+    revStart,
+    rev,
+    revStop,
   };
 }
 

@@ -1,17 +1,18 @@
 import type { Content } from '@gt/shared';
-import { carStats, levelForXp, type GameState, type OwnedCar } from '@gt/sim';
+import { carStats, levelForXp, type GameState, type OwnedCar, type RaceTarget } from '@gt/sim';
 import type { Store } from '../state/store';
 import { drawCarPreview } from './carPreview';
 import { h } from './dom';
 import { errorText, S } from './strings';
 import { garageKey } from './garageKey';
 import { franchiseTab } from './franchiseTab';
+import { raceTab } from './raceTab';
 import { sheetHead } from './frame';
 import { confetti } from './juice';
 import { teamTab } from './teamTab';
 
 /** The bottom-bar menus; only the car menu has tabs (the car's own configuration). */
-export type Menu = 'car' | 'dealer' | 'team' | 'franchise';
+export type Menu = 'car' | 'dealer' | 'team' | 'franchise' | 'race';
 type Tab = 'paint' | 'finish' | 'extras' | 'parts';
 const CAR_TABS: Tab[] = ['paint', 'finish', 'extras', 'parts'];
 let openTab: Tab = 'paint';
@@ -29,6 +30,8 @@ export function openGarage(
     menu?: Menu;
     tab?: Tab;
     sfx?: { hired(): void; register?(): void; menu?(): void; branch?(): void };
+    /** a league track or a street race was picked in the race menu */
+    onRace?: (target: RaceTarget) => void;
   } = {},
 ) {
   const menu = opts.menu ?? 'car';
@@ -226,6 +229,11 @@ export function openGarage(
   function menuContent(s: GameState): Node[] {
     if (menu === 'dealer') return dealerContent(s);
     if (menu === 'team') return teamTab(c, s, store, toast, opts.sfx);
+    if (menu === 'race')
+      return raceTab(c, s, Date.now(), (target) => {
+        close();
+        opts.onRace?.(target);
+      });
     return franchiseTab(c, s, store, toast, {
       confirming,
       setConfirming(v) {

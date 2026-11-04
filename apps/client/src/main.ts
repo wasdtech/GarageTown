@@ -1,6 +1,8 @@
 import { loadContent } from '@gt/shared';
 import Phaser from 'phaser';
 import { createController } from './controller';
+import { createRaceFlow } from './race/raceFlow';
+import { RaceScene } from './scenes/RaceScene';
 import type { Menu } from './ui/garageSheet';
 import { icon, type IconName } from './ui/icon';
 import { openScrubMinigame } from './minigames/scrub';
@@ -66,6 +68,7 @@ scene.onReady = () => {
         menu: () => sfx.menu(),
         branch: () => sfx.branch(),
       },
+      onRace: (target) => raceFlow.start(target),
     },
     content,
     store,
@@ -126,12 +129,14 @@ scene.onReady = () => {
     dealer: 'dealer',
     team: 'team',
     franchise: 'franchise',
+    race: 'race',
   };
   const MENUS: [Menu, string][] = [
     ['car', 'menu-car'],
     ['dealer', 'menu-dealer'],
     ['team', 'menu-team'],
     ['franchise', 'menu-franchise'],
+    ['race', 'menu-race'],
   ];
   ui.append(
     h(
@@ -169,6 +174,7 @@ scene.onReady = () => {
     (window as unknown as { __gt: unknown }).__gt = {
       store,
       scene,
+      race: raceFlow.testHook,
       clock: {
         advance(ms: number) {
           clockOffset += ms;
@@ -178,7 +184,7 @@ scene.onReady = () => {
     };
   }
 };
-new Phaser.Game({
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
   backgroundColor: '#86c96b',
@@ -186,7 +192,11 @@ new Phaser.Game({
   // only the canvas feeds the scene: clicks on DOM menus must not fall through to cars behind them
   input: { windowEvents: false },
   scene: [],
-}).scene.add('garage', scene, true, { content });
+});
+game.scene.add('garage', scene, true, { content });
+const raceScene = new RaceScene();
+game.scene.add('race', raceScene, false);
+const raceFlow = createRaceFlow({ game, race: raceScene, content, store, ui, toast, sfx });
 
 function musicButton() {
   const b = h('button', { class: 'gt-btn', 'data-testid': 'music' });

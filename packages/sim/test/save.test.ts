@@ -98,7 +98,7 @@ describe('save v5 (franchise)', () => {
   it('a v4 save migrates to v5 at branch 1 with no seals', () => {
     const r = deserialize(c, JSON.stringify(v4()), T0, 1);
     expect(r.recovered).toBe('ok');
-    expect(r.state.version).toBe(5);
+    expect(r.state.version).toBe(6);
     expect(r.state.prestige).toEqual({ branch: 1, seals: 0, perks: {}, runCoins: 0 });
   });
 
@@ -116,5 +116,47 @@ describe('save v5 (franchise)', () => {
     const r = deserialize(c, v5({ branch: 3, seals: 4, perks: { lucro: 2, turbo: 3 }, runCoins: 10 }), T0, 1);
     expect(r.recovered).toBe('ok');
     expect(r.state.prestige).toEqual({ branch: 3, seals: 4, perks: { lucro: 2 }, runCoins: 10 });
+  });
+});
+
+describe('save v6 (race record)', () => {
+  const base = () => JSON.parse(serialize(createInitialState(c, T0, 1)));
+  const withRace = (race: unknown) => JSON.stringify({ ...base(), race });
+
+  it('a v5 save migrates to v6 with an empty race record', () => {
+    const d = base();
+    delete d.race;
+    const r = deserialize(c, JSON.stringify({ ...d, version: 5 }), T0, 1);
+    expect(r.recovered).toBe('ok');
+    expect(r.state.version).toBe(6);
+    expect(r.state.race).toEqual({ medals: {}, beaten: [], rachas: [], count: 0 });
+  });
+
+  it('a medal outside 0-3 is corrupt', () => {
+    const r = deserialize(c, withRace({ medals: { bairro: 4 }, beaten: [], rachas: [], count: 0 }), T0, 1);
+    expect(r.recovered).toBe('corrupt');
+  });
+
+  it('a street race in progress survives a reload', () => {
+    const pending = { racha: 1, stake: 300, seed: 12345, power: 40, grip: 50 };
+    const r = deserialize(c, withRace({ medals: {}, beaten: [], rachas: [T0], count: 3, pending }), T0, 1);
+    expect(r.recovered).toBe('ok');
+    expect(r.state.race.pending).toEqual(pending);
+  });
+
+  it('unknown tracks are dropped from medals and beaten', () => {
+    const r = deserialize(
+      c,
+      withRace({ medals: { bairro: 2, lua: 3 }, beaten: ['bairro', 'lua'], rachas: [T0 - 1000], count: 4 }),
+      T0,
+      1,
+    );
+    expect(r.recovered).toBe('ok');
+    expect(r.state.race).toEqual({
+      medals: { bairro: 2 },
+      beaten: ['bairro'],
+      rachas: [T0 - 1000],
+      count: 4,
+    });
   });
 });

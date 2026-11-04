@@ -14,6 +14,10 @@ export type IconName =
   | 'sound_off'
   | 'zoom_in'
   | 'zoom_out'
+  | 'race'
+  | 'medal_bronze'
+  | 'medal_silver'
+  | 'medal_gold'
   | `helper_${string}`
   | `perk_${string}`;
 
