@@ -43,7 +43,8 @@ describe('experiencia', () => {
   it('boosts the XP of a job', () => {
     let s = withPerks(withCustomer('oil'), { experiencia: 3 });
     s = ok(startJob(c, s, { customerId: 'cx', bayId: 'bay2', jobKey: 'oil' }, T0));
-    expect(ok(collectJob(c, s, 'bay2', T0 + 120_000)).reward.xp).toBe(7);
+    // oil pays 12 XP; +30% is 15.6, rounded down
+    expect(ok(collectJob(c, s, 'bay2', T0 + 120_000)).reward.xp).toBe(15);
   });
 });
 

@@ -15,6 +15,6 @@ test('build a paint bay, then serve a car in it', async ({ page }) => {
   await startJob(page, 'bay3', 'touchup');
   await advance(page, 600_000);
   await tapAnchor(page, 'bay3');
-  await expect(page.getByTestId('xp')).toHaveText('148 XP');
+  await expect(page.getByTestId('xp')).toHaveText('220 XP');
   expect(errors).toEqual([]);
 });

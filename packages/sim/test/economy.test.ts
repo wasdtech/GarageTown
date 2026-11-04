@@ -4,11 +4,46 @@ import { content as c } from './helpers';
 
 const profile = (name: string) => PROFILES.find((p) => p.name === name)!;
 
+/** Minutes of play into an always-on session at which each level is reached. */
+function activeMinutes(): Record<number, number> {
+  const { levelDay } = simulate(c, { name: 'ativo', sessionsPerDay: 1, sessionS: 8 * 3600 }, 1);
+  // the session starts at 08:00
+  return Object.fromEntries(Object.entries(levelDay).map(([l, d]) => [l, (d - 8 / 24) * 1440]));
+}
+
+describe('pacing (ritmo rápido)', () => {
+  it('an active player gets level 5 in the first quarter hour', () => {
+    expect(activeMinutes()[5]).toBeLessThanOrEqual(15);
+  });
+
+  it('an active player reaches level 10 within about 1.5 h and level 15 within 6 h, not under 4 h', () => {
+    const m = activeMinutes();
+    expect(m[10]).toBeLessThanOrEqual(100);
+    expect(m[15]).toBeLessThanOrEqual(360);
+    expect(m[15]).toBeGreaterThanOrEqual(240);
+  });
+
+  it('a job unlocked later pays at least as much XP per hour as earlier ones (under an hour long)', () => {
+    const active = c.jobs.filter((j) => j.durationS < 3600).sort((a, b) => a.unlockLevel - b.unlockLevel);
+    const rate = (j: (typeof active)[number]) => j.xp / j.durationS;
+    for (let i = 1; i < active.length; i++) {
+      if (active[i]!.unlockLevel > active[i - 1]!.unlockLevel)
+        expect(rate(active[i]!)).toBeGreaterThanOrEqual(rate(active[i - 1]!) * 0.99);
+    }
+  });
+
+  it('jobs an hour or longer (for when you leave) pay less XP per hour than playing', () => {
+    const wash = c.jobs.find((j) => j.key === 'wash')!;
+    for (const j of c.jobs.filter((x) => x.durationS >= 3600))
+      expect(j.xp / j.durationS).toBeLessThan(wash.xp / wash.durationS);
+  });
+});
+
 describe('economy simulator (spec §2.3)', () => {
-  it('the average player reaches level 10 between day 2 and day 4', () => {
+  it('the average player reaches level 10 on the first or second day', () => {
     const { levelDay } = simulate(c, profile('medio'), 30);
-    expect(levelDay[10]).toBeGreaterThanOrEqual(2);
-    expect(levelDay[10]).toBeLessThanOrEqual(4);
+    expect(levelDay[10]).toBeGreaterThanOrEqual(0.5);
+    expect(levelDay[10]).toBeLessThanOrEqual(1.5);
   });
 
   it('more play means faster progress, and everyone builds both bays', () => {
@@ -39,19 +74,18 @@ describe('economy sinks', () => {
 });
 
 describe('economy with helpers', () => {
-  it('the average player hires helpers and still reaches level 10 on days 2-4', () => {
-    const { levelDay, final } = simulate(c, profile('medio'), 30);
+  it('the average player hires helpers before the first branch', () => {
+    // a new branch starts the garage again, helpers included: look on day 4, before it opens
+    const { final } = simulate(c, profile('medio'), 4);
     expect(final.helpers.length).toBeGreaterThanOrEqual(3);
-    expect(levelDay[10]).toBeGreaterThanOrEqual(2);
-    expect(levelDay[10]).toBeLessThanOrEqual(4);
   });
 
   it('a day of only quick check-ins earns less than a day of the average player', () => {
     const coinsOn = (name: string) => {
       const day = (d: number) => simulate(c, profile(name), d).final;
-      // compare day 4 -> day 5 earnings: helpers already hired, before the average player's first new branch
-      const a = day(4);
-      const b = day(5);
+      // compare day 3 -> day 4 earnings: helpers already hired, before the average player's first new branch
+      const a = day(3);
+      const b = day(4);
       const spent = (s: typeof a) => s.coins;
       return { a: spent(a), b: spent(b), xp: b.xp - a.xp };
     };
