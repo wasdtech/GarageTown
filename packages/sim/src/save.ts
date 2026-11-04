@@ -41,7 +41,13 @@ const CollectionSchema = z.object({
 });
 
 const GameStateSchema = z.object({
-  version: z.literal(5),
+  version: z.literal(6),
+  race: z.object({
+    medals: z.record(z.string(), int.min(0).max(3)),
+    beaten: z.array(z.string()),
+    rachas: z.array(int),
+    count: nonneg,
+  }),
   prestige: z.object({
     branch: int.min(1),
     seals: nonneg,
@@ -131,6 +137,7 @@ export function deserialize(
       lastTickAt?: unknown;
       idleReport?: unknown;
       prestige?: unknown;
+      race?: unknown;
     };
     if (d.version === 1) {
       // v1 -> v2: construction queue added
@@ -154,7 +161,12 @@ export function deserialize(
       // v4 -> v5: franchise (prestige) progress, starting at branch 1
       d.version = 5;
       d.prestige = { branch: 1, seals: 0, perks: {}, runCoins: 0 };
-    } else if (d.version !== 5) {
+    }
+    if (d.version === 5) {
+      // v5 -> v6: drag race record
+      d.version = 6;
+      d.race = { medals: {}, beaten: [], rachas: [], count: 0 };
+    } else if (d.version !== 6) {
       return fresh('unknown_version');
     }
   }
@@ -179,5 +191,12 @@ export function deserialize(
     if (level > def.max) return fresh('corrupt');
     perks[key] = level;
   }
-  return { state: tick(c, { ...s, prestige: { ...s.prestige, perks } }, now), recovered: 'ok' };
+  // race: tracks no longer in the content are dropped
+  const tracks = new Set(c.race.tracks.map((t) => t.key));
+  const race = {
+    ...s.race,
+    medals: Object.fromEntries(Object.entries(s.race.medals).filter(([k]) => tracks.has(k))),
+    beaten: s.race.beaten.filter((k) => tracks.has(k)),
+  };
+  return { state: tick(c, { ...s, prestige: { ...s.prestige, perks }, race }, now), recovered: 'ok' };
 }

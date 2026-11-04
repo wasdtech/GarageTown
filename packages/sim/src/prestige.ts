@@ -38,6 +38,8 @@ export function openBranch(
         collection: s.collection,
         rngState: s.rngState,
         nextId: s.nextId,
+        // the trophy cabinet goes with the player, like the cars
+        race: s.race,
         prestige: {
           branch: s.prestige.branch + 1,
           seals: s.prestige.seals + seals,

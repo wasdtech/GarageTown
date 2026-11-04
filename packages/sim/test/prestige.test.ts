@@ -190,3 +190,11 @@ describe('runCoins', () => {
     expect(s.prestige.runCoins).toBe(before + helperCoins);
   });
 });
+
+describe('openBranch and the race record', () => {
+  it('opening a branch keeps medals', () => {
+    const race = { medals: { bairro: 3 }, beaten: ['bairro'], rachas: [T0 - 5000], count: 9 };
+    const s = ok(openBranch(c, lateBranch({ race } as Partial<GameState>), T0)).state;
+    expect(s.race).toEqual(race);
+  });
+});
