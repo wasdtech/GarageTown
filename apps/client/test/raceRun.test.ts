@@ -47,4 +47,18 @@ describe('RaceRun', () => {
     expect(r.finished).toBe(true);
     expect(r.result()).toEqual(simulateRace(SEED, CAR, taps));
   });
+
+  it('after the car leaves on its own, the first press shifts and nitro works', () => {
+    const r = run();
+    // never let go: the car departs by itself a while after green
+    r.frame(greenAtMs(SEED) + 3000);
+    expect(r.frame(10).view.phase).not.toBe('countdown');
+    r.goDown();
+    r.goUp();
+    const s = r.frame(10);
+    expect(s.view.gear).toBe(2);
+    expect(r.inputs.map((i) => i.kind)).toEqual(['shift']);
+    r.nitro();
+    expect(r.frame(10).view.nitroUsed).toBe(true);
+  });
 });

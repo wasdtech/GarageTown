@@ -65,16 +65,21 @@ export class RaceRun {
     this.race.input(i);
   }
 
+  /** The car has left: launched by the player, or on its own when they never let go. */
+  private get departed(): boolean {
+    return this.released || this.view.phase !== 'countdown';
+  }
+
   /** Go button pressed: before leaving it is held; afterwards each press is a gear change. */
   goDown() {
     if (this.finished) return;
-    if (!this.released) this.held = true;
+    if (!this.departed) this.held = true;
     else this.tap('shift');
   }
 
   /** Go button released: the launch (a jumped start if the light is not green yet). */
   goUp() {
-    if (this.finished || this.released) return;
+    if (this.finished || this.departed) return;
     if (this.held || this.t >= this.greenAt) {
       this.released = true;
       this.tap('release');
@@ -82,7 +87,7 @@ export class RaceRun {
   }
 
   nitro() {
-    if (this.released && !this.finished) this.tap('nitro');
+    if (this.departed && !this.finished) this.tap('nitro');
   }
 
   lights(): Lights {
