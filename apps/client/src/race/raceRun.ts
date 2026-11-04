@@ -21,6 +21,8 @@ export interface RaceSnapshot {
   graded: ShiftGrade | null;
   /** set on the frame a jumped start was detected */
   jumped: boolean;
+  /** set on the frame the nitro kicked in */
+  nitroFired: boolean;
 }
 
 /**
@@ -37,6 +39,7 @@ export class RaceRun {
   private released = false;
   private shiftsSeen = 0;
   private jumpSeen = false;
+  private nitroSeen = false;
   private view: RaceView;
 
   constructor(
@@ -131,7 +134,16 @@ export class RaceRun {
       jumped = true;
       this.jumpSeen = true;
     }
+    const nitroFired = this.view.nitroUsed && !this.nitroSeen;
+    if (nitroFired) this.nitroSeen = true;
     const idx = Math.min(this.rivalTrace.length - 1, Math.floor(this.t / RACE_TRACE_MS));
-    return { view: this.view, rivalMeters: this.rivalTrace[idx]!, lights: this.lights(), graded, jumped };
+    return {
+      view: this.view,
+      rivalMeters: this.rivalTrace[idx]!,
+      lights: this.lights(),
+      graded,
+      jumped,
+      nitroFired,
+    };
   }
 }

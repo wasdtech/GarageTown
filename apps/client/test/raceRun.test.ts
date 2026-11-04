@@ -61,4 +61,14 @@ describe('RaceRun', () => {
     r.nitro();
     expect(r.frame(10).view.nitroUsed).toBe(true);
   });
+
+  it('flags the frame the nitro fires, once', () => {
+    const r = run();
+    r.frame(greenAtMs(SEED));
+    r.goUp();
+    expect(r.frame(500).nitroFired).toBe(false);
+    r.nitro();
+    expect(r.frame(10).nitroFired).toBe(true);
+    expect(r.frame(10).nitroFired).toBe(false);
+  });
 });

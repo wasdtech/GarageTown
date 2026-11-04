@@ -63,6 +63,7 @@ export function createRaceFlow(d: {
   function onFrame(s: RaceSnapshot) {
     current?.hud.update(s);
     d.sfx?.rev(s.view.rpm);
+    if (s.nitroFired) d.sfx?.nitro();
     const lights = s.lights.join();
     if (lights !== lastLights) {
       lastLights = lights;
