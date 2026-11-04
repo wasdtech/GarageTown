@@ -73,7 +73,7 @@ export function createRaceFlow(d: {
 
   function start(target: RaceTarget) {
     end();
-    const r = d.store.raceSetup(target);
+    const r = 'track' in target ? d.store.raceSetup(target) : d.store.startRacha(target.racha);
     if (!r.ok) {
       d.toast(errorText(r.error), 'bad');
       return;

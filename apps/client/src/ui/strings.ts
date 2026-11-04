@@ -209,6 +209,7 @@ export const S = {
     rate_limited: 'Seus braços cansaram — tente mais tarde',
     locked: 'Você ainda não tem nível para essa vaga',
     no_coins: 'Moedas insuficientes',
+    no_race: 'Esse racha já terminou',
     slot_taken: 'Essa vaga já está ocupada',
     unknown_slot: 'Vaga desconhecida',
     unknown_model: 'Carro desconhecido',

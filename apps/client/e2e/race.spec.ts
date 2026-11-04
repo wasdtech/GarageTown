@@ -68,6 +68,33 @@ test('a street race takes the stake and pays a win', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('quitting a street race does not give the stake back', async ({ page }) => {
+  await seedSave(page, {
+    version: 6,
+    xp: 20,
+    coins: 1000,
+    helpers: [],
+    clockTier: 0,
+    lastActiveAt: Date.now(),
+    idleReport: { jobs: 0, coins: 0, xp: 0 },
+    prestige: { branch: 1, seals: 0, perks: {}, runCoins: 0 },
+    race: { medals: { bairro: 1 }, beaten: ['bairro'], rachas: [], count: 0 },
+  });
+  const errors = await open(page);
+  const stake = Math.floor(50 * (1 + 2 / 5));
+  await page.getByTestId('menu-race').click();
+  await page.getByTestId('racha-0').click();
+  await expect(page.getByTestId('race-hud')).toBeVisible();
+  // the stake is paid at the start
+  await expect.poll(() => coins(page)).toBe(1000 - stake);
+  await page.getByTestId('race-quit').click();
+  await expect(page.getByTestId('race-hud')).toHaveCount(0);
+  await expect.poll(() => coins(page)).toBe(1000 - stake);
+  await page.getByTestId('menu-race').click();
+  await expect(page.getByTestId('rachas-left')).toHaveText('4 de 5 hoje');
+  expect(errors).toEqual([]);
+});
+
 test('holding and releasing the go button starts the race', async ({ page }) => {
   await seedSave(page, {});
   await open(page);

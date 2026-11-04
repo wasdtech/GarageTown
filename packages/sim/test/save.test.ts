@@ -137,6 +137,13 @@ describe('save v6 (race record)', () => {
     expect(r.recovered).toBe('corrupt');
   });
 
+  it('a street race in progress survives a reload', () => {
+    const pending = { racha: 1, stake: 300, seed: 12345, power: 40, grip: 50 };
+    const r = deserialize(c, withRace({ medals: {}, beaten: [], rachas: [T0], count: 3, pending }), T0, 1);
+    expect(r.recovered).toBe('ok');
+    expect(r.state.race.pending).toEqual(pending);
+  });
+
   it('unknown tracks are dropped from medals and beaten', () => {
     const r = deserialize(
       c,

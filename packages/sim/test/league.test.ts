@@ -8,6 +8,7 @@ import {
   rachaStake,
   raceSeed,
   raceSetup,
+  startRacha,
   trackUnlocked,
 } from '../src/league';
 import { scriptInputs } from '../src/race';
@@ -143,35 +144,71 @@ describe('street races', () => {
     expect(rachaStake(c, rich(), 2)).toBe(Math.floor(400 * (1 + 5 / 5)));
   });
 
-  it('a street race charges and pays in one action', () => {
+  /** Starts a street race and finishes it with a player as good as asked. */
+  const play = (s: GameState, how: 'optimal' | 'poor', now = T0) => {
+    const st = ok(startRacha(c, s, 0, now));
+    const { seed, car } = st.setup;
+    const inputs =
+      how === 'optimal'
+        ? scriptInputs(seed, car, { reactionMs: 120, shiftRpm: 'center', nitroGear: 3 })
+        : scriptInputs(seed, car, { reactionMs: 600, shiftRpm: 3000 });
+    return { started: st.state, done: ok(finishRace(c, st.state, { racha: 0 }, inputs, now)) };
+  };
+
+  it('the stake is taken at the start and the payout comes at the end', () => {
     // the rival is drawn from the seed: find one race the optimal player wins and one the poor player loses
     const seeds = Array.from({ length: 20 }, (_, n) => rich({ count: n }));
-    const winState = seeds.find(
-      (s) => ok(finishRace(c, s, { racha: 0 }, taps(c, s, { racha: 0 }, 'optimal'), T0)).outcome.won,
-    )!;
-    const loseState = seeds.find(
-      (s) => !ok(finishRace(c, s, { racha: 0 }, taps(c, s, { racha: 0 }, 'poor'), T0)).outcome.won,
-    )!;
+    const winState = seeds.find((s) => play(s, 'optimal').done.outcome.won)!;
+    const loseState = seeds.find((s) => !play(s, 'poor').done.outcome.won)!;
     const stake = rachaStake(c, winState, 0);
-    const win = ok(finishRace(c, winState, { racha: 0 }, taps(c, winState, { racha: 0 }, 'optimal'), T0));
-    expect(win.state.coins).toBe(1000 + stake);
-    expect(win.state.prestige.runCoins).toBe(winState.prestige.runCoins + stake);
-    expect(win.outcome).toMatchObject({ stake, coins: stake });
-    const lose = ok(finishRace(c, loseState, { racha: 0 }, taps(c, loseState, { racha: 0 }, 'poor'), T0));
-    expect(lose.state.coins).toBe(1000 - stake);
-    expect(lose.outcome.coins).toBe(0);
+    const win = play(winState, 'optimal');
+    expect(win.started.coins).toBe(1000 - stake);
+    expect(win.started.race.pending).toMatchObject({ racha: 0, stake });
+    expect(win.done.state.coins).toBe(1000 + stake);
+    expect(win.done.state.race.pending).toBeUndefined();
+    expect(win.done.state.prestige.runCoins).toBe(winState.prestige.runCoins + stake);
+    expect(win.done.outcome).toMatchObject({ stake, coins: stake });
+    const lose = play(loseState, 'poor');
+    expect(lose.done.state.coins).toBe(1000 - stake);
+    expect(lose.done.outcome.coins).toBe(0);
     const broke = { ...winState, coins: stake - 1 };
-    expect(finishRace(c, broke, { racha: 0 }, [], T0)).toEqual({ ok: false, error: 'no_coins' });
-    expect(broke.coins).toBe(stake - 1);
+    expect(startRacha(c, broke, 0, T0)).toEqual({ ok: false, error: 'no_coins' });
+  });
+
+  it('quitting a street race loses the stake and the next one has a new seed', () => {
+    const s = rich();
+    const first = ok(startRacha(c, s, 0, T0));
+    const stake = rachaStake(c, s, 0);
+    // the player quits: nothing is settled; starting again costs again and races a new seed
+    const second = ok(startRacha(c, first.state, 0, T0 + 1));
+    expect(second.state.coins).toBe(1000 - 2 * stake);
+    expect(second.setup.seed).not.toBe(first.setup.seed);
+    expect(rachasLeft(c, second.state, T0 + 2)).toBe(3);
+  });
+
+  it('a street race cannot be settled without being started, nor twice', () => {
+    const s = rich();
+    expect(finishRace(c, s, { racha: 0 }, [], T0)).toEqual({ ok: false, error: 'no_race' });
+    const done = play(s, 'optimal').done.state;
+    expect(finishRace(c, done, { racha: 0 }, [], T0)).toEqual({ ok: false, error: 'no_race' });
+  });
+
+  it('the stake does not change if the level goes up mid-race', () => {
+    const s = rich();
+    const st = ok(startRacha(c, s, 0, T0));
+    const stake = rachaStake(c, s, 0);
+    const leveled = { ...st.state, xp: c.levels[9]!.xp };
+    const r = ok(finishRace(c, leveled, { racha: 0 }, [], T0));
+    expect(r.outcome.stake).toBe(stake);
   });
 
   it('five street races per 24 h', () => {
     let s = rich();
     for (let i = 0; i < 5; i++) {
       expect(rachasLeft(c, s, T0 + i)).toBe(5 - i);
-      s = ok(finishRace(c, s, { racha: 0 }, taps(c, s, { racha: 0 }, 'optimal'), T0 + i)).state;
+      s = play(s, 'optimal', T0 + i).done.state;
     }
-    expect(finishRace(c, s, { racha: 0 }, [], T0 + 10)).toEqual({ ok: false, error: 'rate_limited' });
+    expect(startRacha(c, s, 0, T0 + 10)).toEqual({ ok: false, error: 'rate_limited' });
     expect(rachasLeft(c, s, T0 + 86_400_000 + 10)).toBe(5);
   });
 

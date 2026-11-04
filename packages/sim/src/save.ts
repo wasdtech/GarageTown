@@ -47,6 +47,15 @@ const GameStateSchema = z.object({
     beaten: z.array(z.string()),
     rachas: z.array(int),
     count: nonneg,
+    pending: z
+      .object({
+        racha: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+        stake: nonneg,
+        seed: nonneg,
+        power: z.number().nonnegative(),
+        grip: z.number().nonnegative(),
+      })
+      .optional(),
   }),
   prestige: z.object({
     branch: int.min(1),

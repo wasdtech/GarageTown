@@ -8,7 +8,7 @@ import { type GameState, nextRandom, touch } from './state';
 
 /** A league track, or a street race at one of the three stakes. */
 export type RaceTarget = { track: string } | { racha: 0 | 1 | 2 };
-export type RaceError = 'locked' | 'unknown_track' | 'no_coins' | 'rate_limited';
+export type RaceError = 'locked' | 'unknown_track' | 'no_coins' | 'rate_limited' | 'no_race';
 export type RaceRival = { name: string; car: string; power: number; grip: number; skill: number };
 
 export interface RaceOutcome {
@@ -88,20 +88,49 @@ function check(c: Content, s: GameState, target: RaceTarget, now: number): RaceE
   return null;
 }
 
+export type RaceSetup = { seed: number; car: RaceCar; rival: RaceRival; rivalInputs: RaceInput[] };
+
+function setupFor(c: Content, target: RaceTarget, seed: number, car: RaceCar): RaceSetup {
+  const rival =
+    'track' in target ? c.race.tracks.find((t) => t.key === target.track)!.rival : rachaRival(c, seed, car);
+  return { seed, car, rival, rivalInputs: rivalInputs(seed, rival) };
+}
+
+/** The race this state would run next; changes nothing. */
 export function raceSetup(
   c: Content,
   state: GameState,
   target: RaceTarget,
   now: number,
-): Result<{ seed: number; car: RaceCar; rival: RaceRival; rivalInputs: RaceInput[] }, RaceError> {
+): Result<RaceSetup, RaceError> {
   const s = tick(c, state, now);
   const e = check(c, s, target, now);
   if (e) return err(e);
-  const seed = raceSeed(s);
-  const car = playerCar(c, s);
-  const rival =
-    'track' in target ? c.race.tracks.find((t) => t.key === target.track)!.rival : rachaRival(c, seed, car);
-  return ok({ seed, car, rival, rivalInputs: rivalInputs(seed, rival) });
+  return ok(setupFor(c, target, raceSeed(s), playerCar(c, s)));
+}
+
+/**
+ * Starts a street race: the stake is paid and the race counted now, so quitting before the
+ * finish loses the bet and the next race runs a new seed.
+ */
+export function startRacha(
+  c: Content,
+  state: GameState,
+  i: 0 | 1 | 2,
+  now: number,
+): Result<{ state: GameState; setup: RaceSetup }, RaceError> {
+  const r = raceSetup(c, state, { racha: i }, now);
+  if (!r.ok) return r;
+  const s = tick(c, state, now);
+  const { seed, car } = r.value;
+  const stake = rachaStake(c, s, i);
+  const race = {
+    ...s.race,
+    count: s.race.count + 1,
+    rachas: [...s.race.rachas.filter((t) => t > now - c.race.rachas.windowMs), now],
+    pending: { racha: i, stake, seed, power: car.power, grip: car.grip },
+  };
+  return ok({ state: touch({ ...s, coins: s.coins - stake, race }, now), setup: r.value });
 }
 
 /** Re-runs the race from the player's taps and settles it: medals and unlocks, or the street race bet. */
@@ -112,10 +141,18 @@ export function finishRace(
   inputs: RaceInput[],
   now: number,
 ): Result<{ state: GameState; outcome: RaceOutcome }, RaceError> {
-  const setup = raceSetup(c, state, target, now);
-  if (!setup.ok) return setup;
   const s = tick(c, state, now);
-  const { seed, car, rival, rivalInputs: rivalTaps } = setup.value;
+  let setup: RaceSetup;
+  if ('track' in target) {
+    const r = raceSetup(c, state, target, now);
+    if (!r.ok) return r;
+    setup = r.value;
+  } else {
+    const p = s.race.pending;
+    if (!p || p.racha !== target.racha) return err('no_race');
+    setup = setupFor(c, target, p.seed, { power: p.power, grip: p.grip });
+  }
+  const { seed, car, rival, rivalInputs: rivalTaps } = setup;
   const player = simulateRace(seed, car, inputs);
   const rivalRun = simulateRace(seed, rival, rivalTaps);
   const pt = player.finished ? player.timeMs : Infinity;
@@ -127,7 +164,7 @@ export function finishRace(
   let stake = 0;
   let medal: 0 | 1 | 2 | 3 = 0;
   let newMedal = false;
-  let race = { ...s.race, count: s.race.count + 1 };
+  let race: GameState['race'] = { ...s.race };
   let wallet = s.coins;
 
   if ('track' in target) {
@@ -153,13 +190,15 @@ export function finishRace(
       medals: { ...race.medals, [def.key]: Math.max(had, medal) },
       beaten: won && !race.beaten.includes(def.key) ? [...race.beaten, def.key] : race.beaten,
     };
+    race.count += 1;
     wallet += coins;
   } else {
-    stake = rachaStake(c, s, target.racha);
+    // the stake was paid and the race counted at the start
+    stake = s.race.pending!.stake;
     const payout = rachaPayout(stake, won ? 'win' : tie ? 'tie' : 'loss');
-    wallet += payout - stake;
+    wallet += payout;
     coins = Math.max(0, payout - stake);
-    race = { ...race, rachas: [...race.rachas.filter((t) => t > now - c.race.rachas.windowMs), now] };
+    delete race.pending;
   }
 
   const next: GameState = {

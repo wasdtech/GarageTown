@@ -98,6 +98,16 @@ export interface Race {
   rachas: number[];
   /** races run so far: part of each race's seed */
   count: number;
+  /** a street race started and not settled yet: the stake is already paid */
+  pending?: RachaPending;
+}
+
+export interface RachaPending {
+  racha: 0 | 1 | 2;
+  stake: number;
+  seed: number;
+  power: number;
+  grip: number;
 }
 
 export interface Prestige {
